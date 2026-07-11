@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake</title>
+
+<style>
+/* Style commun à tous les jeux */
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial, sans-serif;
+    margin:0;
+    min-height:100vh;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+    margin:25px 10px 10px;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    margin:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+/* Style du Snake */
+.scores{
+    font-size:22px;
+    margin:12px;
+    text-shadow:0 0 8px black;
+}
+
+#jeu{
+    display:block;
+    width:min(82vw, 500px);
+    height:min(82vw, 500px);
+    margin:15px auto;
+    background:rgba(0, 10, 15, 0.92);
+    border:4px solid cyan;
+    border-radius:18px;
+    box-shadow:0 0 25px cyan;
+    touch-action:none;
+}
+
+#message{
+    min-height:28px;
+    font-size:22px;
+    font-weight:bold;
+    margin:12px;
+}
+
+.commandes{
+    display:grid;
+    grid-template-columns:repeat(3, 65px);
+    justify-content:center;
+    gap:5px;
+    margin:10px auto 25px;
+}
+
+.commandes button{
+    width:65px;
+    height:55px;
+    padding:0;
+    margin:0;
+    font-size:26px;
+}
+
+.haut{grid-column:2;}
+.gauche{grid-column:1;grid-row:2;}
+.bas{grid-column:2;grid-row:2;}
+.droite{grid-column:3;grid-row:2;}
+
+@media(max-width:600px){
+    h1{font-size:42px;}
+    .scores, #message{font-size:18px;}
+}
+</style>
+</head>
+
+<body>
+<h1>🐍 Snake 🐍</h1>
+<div class="scores">Score : <span id="score">0</span> | Meilleur score : <span id="record">0</span></div>
+<canvas id="jeu" width="500" height="500" aria-label="Plateau du jeu Snake"></canvas>
+<p id="message">Utilise les flèches ou ZQSD pour commencer.</p>
+<button id="rejouer">🔄 Rejouer</button>
+
+<div class="commandes" aria-label="Commandes tactiles">
+    <button class="haut" data-direction="haut" aria-label="Haut">⬆️</button>
+    <button class="gauche" data-direction="gauche" aria-label="Gauche">⬅️</button>
+    <button class="bas" data-direction="bas" aria-label="Bas">⬇️</button>
+    <button class="droite" data-direction="droite" aria-label="Droite">➡️</button>
+</div>
+
+<script>
+const canvas = document.getElementById("jeu");
+const ctx = canvas.getContext("2d");
+const scoreElement = document.getElementById("score");
+const recordElement = document.getElementById("record");
+const messageElement = document.getElementById("message");
+const tailleCase = 25;
+const nombreCases = canvas.width / tailleCase;
+
+let serpent;
+let nourriture;
+let direction;
+let prochaineDirection;
+let score;
+let boucle = null;
+let partieCommencee;
+let partieFinie;
+let record = Number(localStorage.getItem("recordSnake")) || 0;
+recordElement.textContent = record;
+
+function nouvellePartie(){
+    serpent = [{x:10, y:10}, {x:9, y:10}, {x:8, y:10}];
+    direction = {x:1, y:0};
+    prochaineDirection = {x:1, y:0};
+    score = 0;
+    partieCommencee = false;
+    partieFinie = false;
+    scoreElement.textContent = score;
+    messageElement.textContent = "Utilise les flèches ou ZQSD pour commencer.";
+    placerNourriture();
+    clearInterval(boucle);
+    boucle = null;
+    dessiner();
+}
+
+function placerNourriture(){
+    do{
+        nourriture = {
+            x:Math.floor(Math.random() * nombreCases),
+            y:Math.floor(Math.random() * nombreCases)
+        };
+    }while(serpent.some(partie => partie.x === nourriture.x && partie.y === nourriture.y));
+}
+
+function demarrer(){
+    if(!partieCommencee && !partieFinie){
+        partieCommencee = true;
+        messageElement.textContent = "Attrape les pommes sans toucher les murs ni ta queue !";
+        boucle = setInterval(avancer, 115);
+    }
+}
+
+function changerDirection(x, y){
+    if(partieFinie) return;
+    if(x === -direction.x && y === -direction.y) return;
+    prochaineDirection = {x, y};
+    demarrer();
+}
+
+function avancer(){
+    direction = prochaineDirection;
+    const tete = {
+        x:serpent[0].x + direction.x,
+        y:serpent[0].y + direction.y
+    };
+    const mange = tete.x === nourriture.x && tete.y === nourriture.y;
+    const corpsTeste = mange ? serpent : serpent.slice(0, -1);
+    const collisionMur = tete.x < 0 || tete.x >= nombreCases || tete.y < 0 || tete.y >= nombreCases;
+    const collisionCorps = corpsTeste.some(partie => partie.x === tete.x && partie.y === tete.y);
+
+    if(collisionMur || collisionCorps){
+        terminerPartie();
+        return;
+    }
+
+    serpent.unshift(tete);
+    if(mange){
+        score++;
+        scoreElement.textContent = score;
+        placerNourriture();
+    }else{
+        serpent.pop();
+    }
+    dessiner();
+}
+
+function terminerPartie(){
+    clearInterval(boucle);
+    boucle = null;
+    partieFinie = true;
+    if(score > record){
+        record = score;
+        localStorage.setItem("recordSnake", record);
+        recordElement.textContent = record;
+        messageElement.textContent = "🏆 Nouveau record : " + score + " !";
+    }else{
+        messageElement.textContent = "💥 Perdu ! Ton score : " + score;
+    }
+    dessiner();
+}
+
+function dessiner(){
+    ctx.fillStyle = "#020b10";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "rgba(0,255,255,0.08)";
+    ctx.lineWidth = 1;
+    for(let i=tailleCase; i<canvas.width; i+=tailleCase){
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+    }
+
+    ctx.fillStyle = "#ff334f";
+    ctx.beginPath();
+    ctx.arc(nourriture.x * tailleCase + 12.5, nourriture.y * tailleCase + 12.5, 9, 0, Math.PI * 2);
+    ctx.fill();
+
+    serpent.forEach((partie, index) => {
+        ctx.fillStyle = index === 0 ? "#7dff5a" : "#22cc55";
+        ctx.shadowColor = "#39ff70";
+        ctx.shadowBlur = index === 0 ? 12 : 5;
+        ctx.fillRect(partie.x * tailleCase + 2, partie.y * tailleCase + 2, tailleCase - 4, tailleCase - 4);
+    });
+    ctx.shadowBlur = 0;
+}
+
+const touches = {
+    ArrowUp:[0,-1], z:[0,-1], Z:[0,-1], w:[0,-1], W:[0,-1],
+    ArrowDown:[0,1], s:[0,1], S:[0,1],
+    ArrowLeft:[-1,0], q:[-1,0], Q:[-1,0], a:[-1,0], A:[-1,0],
+    ArrowRight:[1,0], d:[1,0], D:[1,0]
+};
+
+document.addEventListener("keydown", evenement => {
+    if(touches[evenement.key]){
+        evenement.preventDefault();
+        changerDirection(...touches[evenement.key]);
+    }
+});
+
+document.querySelectorAll("[data-direction]").forEach(bouton => {
+    bouton.addEventListener("click", () => {
+        const directions = {haut:[0,-1], bas:[0,1], gauche:[-1,0], droite:[1,0]};
+        changerDirection(...directions[bouton.dataset.direction]);
+    });
+});
+
+document.getElementById("rejouer").addEventListener("click", nouvellePartie);
+nouvellePartie();
+</script>
+</body>
+</html>
