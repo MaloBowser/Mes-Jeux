@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Trésor Mystère</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan, 0 0 30px cyan;
+}
+
+#coffres{
+    display:grid;
+    grid-template-columns:repeat(4,150px);
+    gap:25px;
+    justify-content:center;
+    margin-top:40px;
+}
+
+.coffre{
+    width:150px;
+    height:150px;
+    font-size:75px;
+    background:linear-gradient(#5a2d0c,#2b1203);
+    border:4px solid cyan;
+    border-radius:25px;
+    cursor:pointer;
+    transition:.3s;
+    box-shadow:0 0 20px cyan;
+}
+
+.coffre:hover{
+    transform:scale(1.12) rotate(3deg);
+    box-shadow:0 0 35px cyan, 0 0 60px cyan;
+}
+
+.ouvert{
+    animation:ouvrir .5s;
+    background:linear-gradient(cyan,cyan);
+}
+
+@keyframes ouvrir{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.25) rotate(-8deg);}
+    100%{transform:scale(1);}
+}
+
+#lot{
+    margin-top:40px;
+    font-size:32px;
+    min-height:100px;
+}
+
+.gros-lot{
+    color:cyan;
+    text-shadow:0 0 15px cyan, 0 0 30px cyan;
+    animation:brille 1s infinite alternate;
+}
+
+@keyframes brille{
+    from{transform:scale(1);}
+    to{transform:scale(1.08);}
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin-top:30px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏴‍☠️ Trésor Mystère 🏴‍☠️</h1>
+
+<p>Choisis un coffre et découvre ton lot !</p>
+
+<div id="coffres"></div>
+
+<div id="lot"></div>
+
+<button onclick="nouvellePartie()">🔄 Nouvelle partie</button>
+
+<script>
+const lots=[
+"📱 Un smartphone","💻 Un ordinateur portable","⌚ Une montre connectée",
+"🎧 Un casque Bluetooth","🎮 Une PlayStation 5","🎮 Une Xbox Series X",
+"🎮 Une Nintendo Switch","🚁 Un drone","🚲 Un vélo",
+"🧸 Une peluche géante","🍫 Une boîte de chocolats","🍕 Une pizza",
+"🥔 Une patate","🍌 Une banane","🥦 Un brocoli","🪨 Un caillou",
+"📦 Une boîte vide","💰 5 €","💰 10 €","💰 20 €","💰 50 €",
+"💰 100 €","💰 500 €","💰 1000 €","💎 Un diamant",
+"👑 Une couronne","🏆 Un trophée","🥇 Une médaille d'or",
+"🍀 Un trèfle à quatre feuilles","📺 Une télévision 4K",
+"❌ Rien...","😂 Une facture Amazon","😂 Une boîte remplie d'air",
+"😂 Une photo de Jeff Bezos","😂 Une chaussette trouée"
+];
+
+const grosLots=[
+"💰 1000 €",
+"💎 Un diamant",
+"👑 Une couronne",
+"🏆 Un trophée",
+"🎮 Une PlayStation 5",
+"🎮 Une Xbox Series X",
+"📺 Une télévision 4K"
+];
+
+const coffres=document.getElementById("coffres");
+
+function nouvellePartie(){
+    document.getElementById("lot").innerHTML="";
+    coffres.innerHTML="";
+
+    for(let i=0;i<12;i++){
+        let c=document.createElement("button");
+        c.className="coffre";
+        c.innerHTML="🧰";
+
+        c.onclick=function(){
+            let lot=lots[Math.floor(Math.random()*lots.length)];
+
+            this.innerHTML="🎁";
+            this.classList.add("ouvert");
+            this.disabled=true;
+
+            if(grosLots.includes(lot)){
+                document.getElementById("lot").innerHTML =
+                "<div class='gros-lot'>🎉 GROS LOT !!! 🎉<br><br>"+lot+"</div>";
+            }else{
+                document.getElementById("lot").innerHTML =
+                "🎁 Voici ton lot :<br><br><b>"+lot+"</b>";
+            }
+        };
+
+        coffres.appendChild(c);
+    }
+}
+
+nouvellePartie();
+</script>
+
+</body>
+</html>

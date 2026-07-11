@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Pierre Feuille Ciseaux</title>
+
+<link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+<style>
+body{
+    text-align:center;
+    font-family:Arial;
+    margin-top:50px;
+}
+body {
+    background-image: url("../fond.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+button{
+    font-size:25px;
+    padding:15px;
+    margin:10px;
+}
+h1{
+        font-size:60px;
+        text-shadow:0 0 15px cyan;
+    }
+
+#message{
+    font-size:28px;
+    margin-top:20px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🪨🍀✂️ Pierre Feuille Ciseaux 🪨🍀✂️</h1>
+
+<button onclick="jouer('pierre')">🪨 Pierre</button>
+<button onclick="jouer('feuille')">🍀 Feuille</button>
+<button onclick="jouer('ciseaux')">✂️ Ciseaux</button>
+
+<p id="message"></p>
+
+<script>
+
+function jouer(joueur){
+
+    const signes = ["pierre","feuille","ciseaux"];
+
+    let ordinateur =
+        signes[Math.floor(Math.random()*3)];
+
+    let message =
+        document.getElementById("message");
+
+    if(joueur === ordinateur){
+
+        message.innerHTML =
+        "🤝 Égalité !<br>L'ordinateur a choisi : "
+        + ordinateur;
+    }
+
+    else if(
+        (joueur === "pierre" && ordinateur === "ciseaux") ||
+        (joueur === "ciseaux" && ordinateur === "feuille") ||
+        (joueur === "feuille" && ordinateur === "pierre")
+    ){
+
+        message.innerHTML =
+        "🎉 Tu gagnes !<br>L'ordinateur a choisi : "
+        + ordinateur;
+    }
+
+    else{
+
+        message.innerHTML =
+        "💻 L'ordinateur gagne ! 😭<br>L'ordinateur a choisi : "
+        + ordinateur;
+    }
+}
+
+</script>
+
+</body>
+</html>

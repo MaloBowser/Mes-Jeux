@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Morpion Deluxe</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    margin:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#grille{
+    display:grid;
+    justify-content:center;
+    gap:8px;
+    margin-top:25px;
+}
+
+.case{
+    width:90px;
+    height:90px;
+    background:black;
+    border:3px solid cyan;
+    border-radius:15px;
+    font-size:55px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+
+.case:hover{
+    box-shadow:0 0 20px cyan;
+}
+
+#message, #score, #tour{
+    font-size:26px;
+    margin-top:15px;
+}
+
+.gagnante{
+    background:green;
+    animation:flash 0.5s infinite alternate;
+}
+
+@keyframes flash{
+    from{transform:scale(1);}
+    to{transform:scale(1.12);}
+}
+</style>
+</head>
+
+<body>
+
+<h1>❌ Morpion Deluxe ⭕</h1>
+
+<div id="menu">
+    <h2>Choisis ton mode</h2>
+    <button onclick="modeDeuxJoueurs()">👥 Deux joueurs</button>
+    <button onclick="choisirDifficulte()">🤖 Contre l'ordinateur</button>
+</div>
+
+<div id="jeu" style="display:none;">
+    <p id="score">👤 Joueur X : 0 | ⭕ Joueur O / IA : 0 | 🤝 Nuls : 0</p>
+    <p id="tour"></p>
+    <div id="grille"></div>
+    <p id="message"></p>
+    <button onclick="nouvellePartie()">🔄 Rejouer</button>
+    <button onclick="retourMenu()">🏠 Menu</button>
+</div>
+
+<script>
+let plateau = [];
+let joueur = "X";
+let modeIA = false;
+let difficulte = "facile";
+let partieFinie = false;
+
+let scoreX = 0;
+let scoreO = 0;
+let scoreNul = 0;
+
+const combos = [
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+];
+
+function modeDeuxJoueurs(){
+    modeIA = false;
+    lancerJeu();
+}
+
+function choisirDifficulte(){
+    document.getElementById("menu").innerHTML = `
+        <h2>Choisis la difficulté</h2>
+        <button onclick="modeOrdinateur('facile')">😊 Facile</button>
+        <button onclick="modeOrdinateur('moyen')">😎 Moyen</button>
+        <button onclick="modeOrdinateur('impossible')">🔥 Impossible</button>
+    `;
+}
+
+function modeOrdinateur(niveau){
+    modeIA = true;
+    difficulte = niveau;
+    lancerJeu();
+}
+
+function lancerJeu(){
+    document.getElementById("menu").style.display = "none";
+    document.getElementById("jeu").style.display = "block";
+    nouvellePartie();
+}
+
+function retourMenu(){
+    location.reload();
+}
+
+function nouvellePartie(){
+    plateau = ["","","","","","","","",""];
+    joueur = "X";
+    partieFinie = false;
+
+    document.getElementById("message").innerHTML = "";
+    document.getElementById("tour").innerHTML = "Tour du joueur X";
+
+    let grille = document.getElementById("grille");
+    grille.style.gridTemplateColumns = "repeat(3, 90px)";
+    grille.innerHTML = "";
+
+    for(let i=0;i<9;i++){
+        let div = document.createElement("div");
+        div.className = "case";
+        div.onclick = function(){ jouer(i, div); };
+        grille.appendChild(div);
+    }
+
+    afficherScore();
+}
+
+function jouer(i, div){
+    if(plateau[i] !== "" || partieFinie) return;
+
+    plateau[i] = joueur;
+    div.innerHTML = joueur;
+    div.style.color = joueur === "X" ? "red" : "deepskyblue";
+
+    if(verifierGagnant(joueur)){
+        finir(joueur);
+        return;
+    }
+
+    if(!plateau.includes("")){
+        finir("nul");
+        return;
+    }
+
+    joueur = joueur === "X" ? "O" : "X";
+    document.getElementById("tour").innerHTML = "Tour du joueur " + joueur;
+
+    if(modeIA && joueur === "O"){
+        setTimeout(iaJoue, 500);
+    }
+}
+
+function iaJoue(){
+    let caseChoisie;
+
+    if(difficulte === "facile"){
+        caseChoisie = caseAleatoire();
+    }
+    else if(difficulte === "moyen"){
+        caseChoisie = trouverCoupGagnant("O") ?? caseAleatoire();
+    }
+    else{
+        caseChoisie =
+        trouverCoupGagnant("O") ??
+        trouverCoupGagnant("X") ??
+        meilleurCoup();
+    }
+
+    let div = document.getElementsByClassName("case")[caseChoisie];
+    jouer(caseChoisie, div);
+}
+
+function caseAleatoire(){
+    let libres = [];
+
+    for(let i=0;i<plateau.length;i++){
+        if(plateau[i] === "") libres.push(i);
+    }
+
+    return libres[Math.floor(Math.random()*libres.length)];
+}
+
+function trouverCoupGagnant(symbole){
+    for(let combo of combos){
+        let valeurs = combo.map(i => plateau[i]);
+
+        if(valeurs.filter(v => v === symbole).length === 2 &&
+           valeurs.includes("")){
+            return combo[valeurs.indexOf("")];
+        }
+    }
+
+    return null;
+}
+
+function meilleurCoup(){
+    if(plateau[4] === "") return 4;
+
+    let coins = [0,2,6,8].filter(i => plateau[i] === "");
+    if(coins.length > 0) return coins[Math.floor(Math.random()*coins.length)];
+
+    return caseAleatoire();
+}
+
+function verifierGagnant(symbole){
+    for(let combo of combos){
+        if(combo.every(i => plateau[i] === symbole)){
+            combo.forEach(i => {
+                document.getElementsByClassName("case")[i].classList.add("gagnante");
+            });
+            return true;
+        }
+    }
+    return false;
+}
+
+function finir(resultat){
+    partieFinie = true;
+
+    if(resultat === "nul"){
+        scoreNul++;
+        document.getElementById("message").innerHTML = "🤝 Match nul !";
+    }
+    else{
+        if(resultat === "X") scoreX++;
+        else scoreO++;
+
+        document.getElementById("message").innerHTML =
+        "🏆 Le joueur " + resultat + " a gagné !";
+    }
+
+    afficherScore();
+}
+
+function afficherScore(){
+    document.getElementById("score").innerHTML =
+    "❌ X : " + scoreX + " | ⭕ O / IA : " + scoreO + " | 🤝 Nuls : " + scoreNul;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Désamorce la Bombe</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+#chrono, #message{
+    font-size:28px;
+}
+
+.fil{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 25px;
+    margin:12px;
+    font-size:24px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.fil:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 25px cyan;
+}
+
+.suivant{
+    background:black;
+    color:white;
+    border:2px solid white;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>💣 Désamorce la Bombe 💣</h1>
+
+<p id="chrono">⏱️ Temps restant : 10 secondes</p>
+
+<button class="fil" onclick="choisir('rouge')">🔴 ━━━━━━━━━ Rouge</button><br>
+<button class="fil" onclick="choisir('vert')">🟢 ━━━━━━━━━ Vert</button><br>
+<button class="fil" onclick="choisir('bleu')">🔵 ━━━━━━━━━ Bleu</button><br>
+<button class="fil" onclick="choisir('jaune')">🟡 ━━━━━━━━━ Jaune</button><br>
+<button class="fil" onclick="choisir('blanc')">⚪ ━━━━━━━━━ Blanc</button><br>
+
+<br>
+
+<button class="suivant" onclick="nouvelleBombe()">💣 Bombe suivante</button>
+
+<p id="message"></p>
+
+<script>
+const fils = ["rouge","vert","bleu","jaune","blanc"];
+
+let chrono = 10;
+let bonFil = fils[Math.floor(Math.random() * fils.length)];
+
+function choisir(couleur){
+
+    if(couleur === bonFil){
+        document.getElementById("message").innerHTML =
+        "🎉 Bravo !<br>Tu as désamorcé la bombe ! 💣";
+        return;
+    }
+
+    chrono--;
+
+    document.getElementById("chrono").innerHTML =
+    "⏱️ Temps restant : " + chrono + " secondes";
+
+    document.getElementById("message").innerHTML =
+    "❌ Mauvais fil !";
+
+    if(chrono <= 0){
+        document.getElementById("message").innerHTML =
+        "💥 BOUM !! La bombe a explosé !<br>Le bon fil était : <b>" + bonFil + "</b>";
+    }
+}
+
+function nouvelleBombe(){
+    chrono = 10;
+    bonFil = fils[Math.floor(Math.random() * fils.length)];
+
+    document.getElementById("chrono").innerHTML =
+    "⏱️ Temps restant : 10 secondes";
+
+    document.getElementById("message").innerHTML = "";
+}
+</script>
+
+</body>
+</html>

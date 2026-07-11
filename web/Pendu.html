@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Pendu</title>
+
+<style>
+body {
+    background-image: url("../fond.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    font-size: 60px;
+    text-shadow: 0 0 15px cyan;
+}
+
+input {
+    font-size: 25px;
+    text-align: center;
+    width: 80px;
+}
+
+button {
+    background-color: transparent;
+    color: white;
+    border: 2px solid cyan;
+    border-radius: 15px;
+    padding: 10px 20px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px cyan;
+}
+
+#mot {
+    font-size: 40px;
+    letter-spacing: 10px;
+}
+
+#message, #vies, #lettres {
+    font-size: 24px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎮 Pendu 🎮</h1>
+
+<link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+<p id="mot"></p>
+<p id="vies"></p>
+<p id="lettres"></p>
+
+<input id="lettre" maxlength="1">
+<button onclick="verifier()">Valider</button>
+<button onclick="rejouer()">Rejouer</button>
+
+<p id="message"></p>
+
+<script>
+const mots = [
+    "maison", "arbre", "soleil", "lune", "etoile", "mer", "plage", "sable",
+    "montagne", "foret", "riviere", "lac", "nuage", "pluie", "neige", "vent",
+    "ciel", "herbe", "fleur", "feuille", "racine", "branche", "fruit", "graine",
+    "pierre", "chemin", "route", "village", "ville", "pont", "mur", "porte",
+    "fenetre", "toit", "chambre", "salon", "cuisine", "table", "chaise", "lit",
+    "lampe", "livre", "cahier", "crayon", "gomme", "stylo", "papier", "trousse",
+    "cartable", "ecole", "eleve", "classe", "maitre", "amie", "ami", "famille",
+    "parent", "enfant", "frere", "soeur", "cousin", "voisine", "voisin", "chat",
+    "chien", "lapin", "cheval", "vache", "mouton", "poule", "canard", "oiseau",
+    "poisson", "abeille", "fourmi", "papillon", "araignee", "souris", "renard",
+    "ours", "loup", "tigre", "lion", "zebre", "singe", "panda", "banane",
+    "pomme", "poire", "prune", "orange", "citron", "tomate", "carotte", "salade",
+    "pain", "fromage", "beurre", "sucre", "miel", "gateau", "soupe", "riz",
+    "pates", "viande", "eau", "lait", "jus", "tasse", "verre", "bol",
+    "couteau", "fourchette", "cuillere", "assiette", "serviette", "pantalon",
+    "veste", "chemise", "robe", "jupe", "chaussette", "chaussure", "bonnet",
+    "echarpe", "manteau", "bouton", "poche", "montre", "ballon", "corde", "cube",
+    "jouet", "puzzle", "musique", "danse", "chanson", "film", "image", "couleur",
+    "dessin", "sourire", "rire", "reve", "espoir", "bonheur", "calme", "force",
+    "vitesse", "energie", "travail", "repos", "jeu", "equipe", "victoire",
+    "defaite", "secret", "histoire", "minute", "heure", "matin", "midi", "soir",
+    "nuit", "hiver", "printemps", "ete", "automne", "lundi", "mardi", "mercredi",
+    "jeudi", "vendredi", "samedi", "dimanche", "janvier", "fevrier", "mars",
+    "avril", "mai", "juin", "juillet", "aout", "septembre", "octobre", "novembre",
+    "decembre", "nombre", "chiffre", "calcul", "question", "reponse", "idee",
+    "projet", "voyage", "avenir", "hasard", "modele", "univers", "jardin"
+];
+
+let motSecret = "";
+let lettresTrouvees = [];
+let lettresUtilisees = [];
+let vies = 15;
+
+function rejouer() {
+    motSecret = mots[Math.floor(Math.random() * mots.length)];
+    lettresTrouvees = [];
+    lettresUtilisees = [];
+    vies = 15;
+    document.getElementById("message").textContent = "";
+    document.getElementById("lettre").value = "";
+    afficher();
+}
+
+function afficher() {
+    let affichage = "";
+
+    for (let lettre of motSecret) {
+        if (lettresTrouvees.includes(lettre)) {
+            affichage += lettre + " ";
+        } else {
+            affichage += "_ ";
+        }
+    }
+
+    document.getElementById("mot").textContent = affichage;
+    document.getElementById("vies").textContent = "❤️ Vies : " + vies;
+    document.getElementById("lettres").textContent =
+        "🔤 Lettres déjà proposées : " + lettresUtilisees.join(" ");
+}
+
+function verifier() {
+    let reponse = document.getElementById("lettre").value.toLowerCase();
+    let message = document.getElementById("message");
+
+    if (reponse.length !== 1) {
+        message.textContent = "❌ Entre une seule lettre.";
+        return;
+    }
+
+    if (lettresUtilisees.includes(reponse)) {
+        message.textContent = "⚠️ Tu as déjà proposé cette lettre.";
+        return;
+    }
+
+    lettresUtilisees.push(reponse);
+
+    if (motSecret.includes(reponse)) {
+        message.textContent = "✅ Bonne lettre !";
+        lettresTrouvees.push(reponse);
+    } else {
+        message.textContent = "❌ Mauvaise lettre !";
+        vies--;
+    }
+
+    afficher();
+    document.getElementById("lettre").value = "";
+
+    if (!document.getElementById("mot").textContent.includes("_")) {
+        message.textContent = "🎉 Bravo ! Tu as trouvé le mot : " + motSecret;
+    }
+
+    if (vies === 0) {
+        message.textContent = "💀 Perdu ! Le mot était : " + motSecret;
+    }
+}
+
+rejouer();
+</script>
+
+</body>
+</html>

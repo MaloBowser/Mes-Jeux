@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Action ou Vérité</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    margin:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#resultat{
+    font-size:30px;
+    margin-top:30px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎲 Action ou Vérité 🎲</h1>
+
+<button onclick="action()">🔥 Action</button>
+
+<button onclick="verite()">💬 Vérité</button>
+
+<p id="resultat"></p>
+
+<script>
+
+ const actions = [
+    "Fais 10 pompes.",
+    "Saute 20 fois sur place.",
+    "Imite un chat pendant 30 secondes.",
+    "Parle avec une voix de robot pendant 2 minutes.",
+    "Danse sans musique pendant 1 minute.",
+    "Chante une chanson.",
+    "Fais une grimace pendant 20 secondes.",
+    "Marche comme un pingouin.",
+    "Imite un lion.",
+    "Fais un compliment à chaque joueur.",
+    "Raconte une blague.",
+    "Saute à cloche-pied pendant 30 secondes.",
+    "Fais semblant d'être un super-héros.",
+    "Imite un singe.",
+    "Parle comme un pirate.",
+    "Fais une révérence.",
+    "Imite un chien.",
+    "Fais tourner tes bras comme un moulin.",
+    "Marche comme un zombie.",
+    "Imite un cheval.",
+    "Compte jusqu'à 30 en chantant.",
+    "Reste sur un pied pendant 30 secondes.",
+    "Fais un cœur avec tes mains.",
+    "Imite une grenouille.",
+    "Fais une pirouette.",
+    "Tape dans tes mains 30 fois.",
+    "Fais semblant de jouer de la guitare.",
+    "Imite un canard.",
+    "Marche sur la pointe des pieds.",
+    "Imite un bébé qui pleure.",
+    "Fais une pose de statue pendant 1 minute.",
+    "Parle très lentement pendant 1 minute.",
+    "Imite un éléphant.",
+    "Fais semblant de téléphoner.",
+    "Marche comme un mannequin.",
+    "Imite un serpent.",
+    "Saute comme un kangourou.",
+    "Fais semblant de conduire une voiture.",
+    "Imite un mouton.",
+    "Fais un cri de dinosaure.",
+    "Imite un coq.",
+    "Marche comme un géant.",
+    "Fais semblant de skier.",
+    "Imite une abeille.",
+    "Fais une tête très sérieuse pendant 1 minute.",
+    "Fais semblant de pêcher.",
+    "Imite un poisson.",
+    "Fais semblant de voler comme un avion.",
+    "Marche comme un robot.",
+    "Imite un hibou.",
+    "Fais une danse de victoire.",
+    "Fais semblant d'ouvrir un cadeau.",
+    "Imite un ours.",
+    "Tape des pieds 20 fois.",
+    "Fais semblant de jongler.",
+    "Imite un cochon.",
+    "Marche comme un crabe.",
+    "Fais semblant de cuisiner.",
+    "Imite un chevalier.",
+    "Fais un applaudissement géant.",
+    "Imite un extraterrestre.",
+    "Fais semblant d'être invisible.",
+    "Invente un slogan amusant.",
+    "Danse en tournant sur toi-même.",
+    "Chante 'Joyeux anniversaire' très vite.",
+    "Imite une poule qui pond un œuf.",
+    "Fais semblant de jouer du piano.",
+    "Marche les bras en l'air pendant 30 secondes.",
+    "Raconte une histoire en 5 mots.",
+    "Fais un moonwalk (ou essaie).",
+    "Écris ton prénom avec ton doigt dans les airs.",
+    "Fais 15 squats.",
+    "Saute 15 fois.",
+    "Tourne sur toi-même 10 fois.",
+    "Fais le bruit d'une moto.",
+    "Fais le bruit d'une voiture.",
+    "Imite un dauphin.",
+    "Imite une chouette.",
+    "Fais une pose de yoga.",
+    "Marche à reculons pendant 30 secondes.",
+    "Ferme les yeux pendant 20 secondes.",
+    "Récite l'alphabet à l'envers (essaie).",
+    "Fais semblant d'être un professeur.",
+    "Imite un présentateur télé.",
+    "Dis trois mots qui riment.",
+    "Fais un salut militaire.",
+    "Imite un vampire.",
+    "Parle uniquement en chantant pendant 1 minute.",
+    "Reste immobile pendant 45 secondes.",
+    "Imite un cuisinier célèbre.",
+    "Mime ton sport préféré.",
+    "Fais semblant d'être un détective.",
+    "Marche comme si le sol brûlait.",
+    "Fais un grand sourire pendant 1 minute.",
+    "Imite un lapin.",
+    "Fais 20 battements de mains.",
+    "Mime un film sans parler.",
+    "Imite un présentateur météo.",
+    "Fais un tour complet de la pièce en sautillant.",
+    "Termine par une danse de la victoire."
+]
+const verites = [
+    "Quel est ton plat préféré ?",
+    "Quel est ton dessert préféré ?",
+    "Quelle est ta couleur préférée ?",
+    "Quel est ton animal préféré ?",
+    "Quel est ton film préféré ?",
+    "Quelle est ta série préférée ?",
+    "Quel est ton jeu vidéo préféré ?",
+    "Quel est ton sport préféré ?",
+    "Quel est ton chanteur préféré ?",
+    "Quelle est ta chanson préférée ?",
+    "Quel est ton livre préféré ?",
+    "Quel est ton dessin animé préféré ?",
+    "Quel est ton plus grand rêve ?",
+    "Quel métier aimerais-tu faire plus tard ?",
+    "Quel est ton plus beau souvenir ?",
+    "Quel est ton pire souvenir ?",
+    "As-tu déjà menti à tes parents ?",
+    "As-tu déjà triché à un jeu ?",
+    "As-tu déjà cassé quelque chose sans le dire ?",
+    "As-tu déjà eu une mauvaise note ?",
+    "As-tu déjà oublié un anniversaire ?",
+    "As-tu déjà pleuré devant un film ?",
+    "As-tu déjà eu peur du noir ?",
+    "As-tu déjà chanté sous la douche ?",
+    "As-tu déjà parlé tout seul ?",
+    "Quel est ton plus grand défaut ?",
+    "Quelle est ta plus grande qualité ?",
+    "Quel est ton animal que tu détestes le plus ?",
+    "Quelle est ta plus grande peur ?",
+    "Quel pays aimerais-tu visiter ?",
+    "Quel est ton jeu de société préféré ?",
+    "Quel est ton bonbon préféré ?",
+    "Quel est ton fruit préféré ?",
+    "Quel est ton légume préféré ?",
+    "Quel est ton parfum de glace préféré ?",
+    "Quel est ton emoji préféré ?",
+    "Quel est ton jour préféré de la semaine ?",
+    "Quel est ton mois préféré ?",
+    "Préfères-tu la mer ou la montagne ?",
+    "Préfères-tu le chocolat ou les bonbons ?",
+    "Préfères-tu les chiens ou les chats ?",
+    "Préfères-tu l'été ou l'hiver ?",
+    "Préfères-tu le matin ou le soir ?",
+    "Préfères-tu Netflix ou YouTube ?",
+    "Quel est ton héros préféré ?",
+    "Quel est ton super-pouvoir rêvé ?",
+    "Quel est ton personnage de film préféré ?",
+    "Quel est ton personnage de jeu préféré ?",
+    "Quel est ton objet préféré ?",
+    "Quel est ton vêtement préféré ?",
+    "Quel est ton prénom préféré ?",
+    "Quel est ton surnom préféré ?",
+    "Quel est ton plus grand talent ?",
+    "Qu'est-ce qui te fait le plus rire ?",
+    "Quel est ton plus grand défi réussi ?",
+    "As-tu déjà fait une grosse bêtise ?",
+    "As-tu déjà cassé ton téléphone ?",
+    "As-tu déjà perdu quelque chose d'important ?",
+    "Quel est ton plus grand regret ?",
+    "Quel est ton plus grand souhait ?",
+    "Si tu pouvais voyager dans le temps, où irais-tu ?",
+    "Si tu gagnais un million d'euros, que ferais-tu ?",
+    "Si tu pouvais devenir invisible, que ferais-tu ?",
+    "Si tu pouvais voler, où irais-tu ?",
+    "Si tu pouvais rencontrer une célébrité, qui choisirais-tu ?",
+    "Quel est ton dessin animé d'enfance préféré ?",
+    "Quel est ton plus grand fou rire ?",
+    "Quel est ton plus grand exploit ?",
+    "Quelle est la chose la plus drôle que tu aies faite ?",
+    "Quelle est la chose la plus étrange que tu aies mangée ?",
+    "Quel est ton animal fantastique préféré ?",
+    "Quel est ton jeu mobile préféré ?",
+    "Quel est ton réseau social préféré ?",
+    "Quel est ton sport que tu détestes ?",
+    "Quel est ton cours préféré ?",
+    "Quel est ton cours que tu aimes le moins ?",
+    "Quelle matière es-tu le meilleur ?",
+    "Quelle matière est la plus difficile pour toi ?",
+    "Quel est ton plus grand objectif ?",
+    "Quel est ton passe-temps préféré ?",
+    "Quel est ton talent caché ?",
+    "Quel est ton bruit préféré ?",
+    "Quelle est ton odeur préférée ?",
+    "Quel est ton gâteau préféré ?",
+    "Quel est ton fast-food préféré ?",
+    "Quel est ton restaurant préféré ?",
+    "Quel est ton jeu préféré quand tu étais petit ?",
+    "Quel est ton plus grand rêve de voyage ?",
+    "Quel est ton endroit préféré ?",
+    "Quel est ton objet indispensable ?",
+    "Quel est ton meilleur souvenir de vacances ?",
+    "Quelle est ta fête préférée ?",
+    "Quel est ton cadeau préféré reçu ?",
+    "Quelle est ta plus grande réussite ?",
+    "Quel est ton mot préféré ?",
+    "Quel est ton bruit le plus détesté ?",
+    "Quel est ton film que tu pourrais revoir 100 fois ?",
+    "Quel est ton livre que tu pourrais relire 100 fois ?",
+    "Quelle est la première chose que tu fais en te levant ?",
+    "Quelle est la dernière chose que tu fais avant de dormir ?",
+    "Quelle est la meilleure journée de ta vie ?"
+]
+
+function action(){
+
+    let hasard=Math.floor(Math.random()*actions.length);
+
+    document.getElementById("resultat").innerHTML=
+    "🔥 <b>Action :</b><br><br>"+actions[hasard];
+
+}
+
+function verite(){
+
+    let hasard=Math.floor(Math.random()*verites.length);
+
+    document.getElementById("resultat").innerHTML=
+    "💬 <b>Vérité :</b><br><br>"+verites[hasard];
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Machine à Sous</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#cases{
+    font-size:60px;
+    margin:30px;
+}
+
+#message, #argent{
+    font-size:28px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎰 Machine à Sous 🎰</h1>
+
+<p>Combien d'argent as-tu ?</p>
+<input id="depart" type="number" placeholder="Argent">
+<button onclick="commencer()">Commencer</button>
+
+<p id="argent"></p>
+
+<div id="jeu" style="display:none;">
+    <p>Combien veux-tu miser ?</p>
+    <input id="mise" type="number" placeholder="Mise">
+    <button onclick="jouer()">🎲 Jouer</button>
+
+    <div id="cases">❓ | ❓ | ❓</div>
+    <p id="message"></p>
+</div>
+
+<script>
+const symboles = [
+"🍒","🍋","🍉","🍇","🍓","🍍","🍎","🥝","🍊","🍌",
+"💎","⭐","❤️","💰","👑","🔔","🍀","🧁","🎁","🎲"
+];
+
+let argent = 0;
+
+function commencer(){
+    argent = Number(document.getElementById("depart").value);
+
+    if(argent <= 0){
+        document.getElementById("argent").innerHTML =
+        "❌ Entre une somme valide.";
+        return;
+    }
+
+    document.getElementById("jeu").style.display = "block";
+    document.getElementById("argent").innerHTML =
+    "💰 Porte-feuille : " + argent + " €";
+}
+
+function jouer(){
+    let mise = Number(document.getElementById("mise").value);
+
+    if(mise <= 0){
+        document.getElementById("message").innerHTML =
+        "❌ Entre une mise valide.";
+        return;
+    }
+
+    if(mise > argent){
+        document.getElementById("message").innerHTML =
+        "❌ Tu n'as pas assez de fric !";
+        return;
+    }
+
+    argent = argent - mise;
+
+    let case1 = symboles[Math.floor(Math.random()*symboles.length)];
+    let case2 = symboles[Math.floor(Math.random()*symboles.length)];
+    let case3 = symboles[Math.floor(Math.random()*symboles.length)];
+
+    document.getElementById("cases").innerHTML =
+    case1 + " | " + case2 + " | " + case3;
+
+    if(case1 === case2 && case2 === case3){
+        let gain = mise * 1000;
+        argent = argent + gain;
+
+        document.getElementById("message").innerHTML =
+        "🎉 Bravo ! Tu gagnes 1000 fois ta mise : <b>" + gain + " €</b>";
+    }
+
+    else if(case1 === case2 || case2 === case3 || case1 === case3){
+        let gain = mise * 2;
+        argent = argent + gain;
+
+        document.getElementById("message").innerHTML =
+        "😮 Presque ! Tu gagnes le double : <b>" + gain + " €</b>";
+    }
+
+    else{
+        document.getElementById("message").innerHTML =
+        "❌ Pas pour aujourd'hui !";
+    }
+
+    document.getElementById("argent").innerHTML =
+    "💰 Porte-feuille : " + argent + " €";
+
+    if(argent <= 0){
+        document.getElementById("message").innerHTML +=
+        "<br>💀 Tu n'as plus d'argent.";
+    }
+}
+</script>
+
+</body>
+</html>

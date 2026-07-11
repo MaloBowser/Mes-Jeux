@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Ballons Mystères</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+    margin:10px;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#zoneBallons{
+    margin-top:30px;
+}
+
+.ballon{
+    font-size:50px;
+    margin:10px;
+    background:transparent;
+    border:none;
+    cursor:pointer;
+}
+
+.ballon:hover{
+    transform:scale(1.2);
+}
+
+#message{
+    font-size:28px;
+    margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎈 Ballons Mystères 🎈</h1>
+
+<p>Combien de ballons veux-tu ? Minimum 5.</p>
+
+<input id="nombreBallons" type="number" min="5" placeholder="Nombre de ballons">
+
+<br>
+
+<button onclick="creerBallons()">Créer les ballons</button>
+
+<div id="zoneBallons"></div>
+
+<p id="message"></p>
+
+<script>
+const lots = [
+"une patate 🥔",
+"un brocoli 🥦",
+"une chaussette trouée 🧦",
+"un caillou 🪨",
+"un vieux trombone 📎",
+"une banane écrasée 🍌",
+"un cornichon 🥒",
+"une brique 🧱",
+"une vieille cuillère 🥄",
+"une plume 🪶",
+"une boîte vide 📦",
+"une facture 💸",
+"un ticket de caisse 🧾",
+"une pizza froide 🍕",
+"une glace fondue 🍦",
+"un hamburger écrasé 🍔",
+"des frites molles 🍟",
+"un bonbon collant 🍬",
+"un cookie cassé 🍪",
+"une télécommande sans piles 📺",
+"une pile usée 🔋",
+"une mouche imaginaire 🪰",
+"une peluche toute moche 🧸",
+"un ballon dégonflé 🎈",
+"une pièce de 1 centime 🪙",
+"un billet de Monopoly 💵",
+"une pierre brillante 💎 en plastique",
+"une pomme toute molle 🍎",
+"une coquille d'œuf 🥚",
+"absolument rien... 😭"
+];
+
+let bonBallon = 0;
+let partieFinie = false;
+
+function creerBallons(){
+    let nombre = Number(document.getElementById("nombreBallons").value);
+
+    if(nombre < 5){
+        document.getElementById("message").innerHTML =
+        "❌ Il faut au moins 5 ballons.";
+        return;
+    }
+
+    bonBallon = Math.floor(Math.random() * nombre) + 1;
+    partieFinie = false;
+
+    document.getElementById("message").innerHTML = "";
+    document.getElementById("zoneBallons").innerHTML = "";
+
+    for(let i=1;i<=nombre;i++){
+        let bouton = document.createElement("button");
+        bouton.className = "ballon";
+        bouton.innerHTML = "🎈";
+        bouton.onclick = function(){
+            choisirBallon(i, bouton);
+        };
+        document.getElementById("zoneBallons").appendChild(bouton);
+    }
+}
+
+function choisirBallon(numero, bouton){
+    if(partieFinie) return;
+
+    partieFinie = true;
+
+    if(numero === bonBallon){
+        bouton.innerHTML = "🏆";
+        document.getElementById("message").innerHTML =
+        "🎉 Tu as trouvé le bon ballon !!!";
+    }else{
+        let lot = lots[Math.floor(Math.random()*lots.length)];
+        bouton.innerHTML = "💥";
+        document.getElementById("message").innerHTML =
+        "❌ Raté ! Tu as obtenu : <b>" + lot + "</b>";
+    }
+}
+</script>
+
+</body>
+</html>

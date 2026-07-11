@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Roue de la Chance</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#resultat{
+    font-size:35px;
+    margin-top:40px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎰 Roue de la Chance 🎰</h1>
+
+<p>Appuie sur le bouton pour tenter ta chance !</p>
+
+<button onclick="jouer()">🍀 Jouer</button>
+
+<p id="resultat"></p>
+
+<script>
+
+const rep = [
+"Gagné",
+"Perdu",
+"Perdu",
+"Perdu",
+"Perdu"
+];
+
+function jouer(){
+
+    let resultat = rep[Math.floor(Math.random()*rep.length)];
+
+    if(resultat=="Gagné"){
+
+        document.getElementById("resultat").innerHTML =
+        "🎉 <b>Tu as GAGNÉ !!!</b><br><br>🏆 Félicitations !";
+
+    }
+
+    else{
+
+        document.getElementById("resultat").innerHTML =
+        "❌ <b>Tu as perdu...</b><br><br>🍀 Retente ta chance !";
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>

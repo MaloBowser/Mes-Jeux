@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Le Juste Prix</title>
+
+    <link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        body {
+    background-image: url("../fond.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+        input, button {
+            font-size: 20px;
+            padding: 10px;
+            margin: 10px;
+        }
+
+        #message {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        h1{
+        font-size:60px;
+        text-shadow:0 0 15px cyan;
+    }
+
+        #score {
+            font-size: 22px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>💰 Le Juste Prix 💰 </h1>
+
+    <h2 id="objet"></h2>
+
+    <input id="reponse" type="number" placeholder="Ton prix">
+
+    <button onclick="verifier()">Valider</button>
+    <button onclick="nouvelObjet()">Objet suivant</button>
+
+    <p id="message"></p>
+
+    <p id="score">Points : 0</p>
+
+    <script>
+
+        const objets = [
+            "Stylo", "Cahier", "Gourde", "Casque audio", "Souris",
+            "Clavier", "Clé USB 32 Go", "Montre", "Réveil",
+            "Lampe de bureau", "Sac à dos", "Ballon de football",
+            "Raquette de tennis", "Trottinette", "Vélo"
+        ];
+
+        const prix = [
+            2, 3, 12, 35, 15,
+            25, 10, 30, 18,
+            22, 35, 20,
+            40, 90, 350
+        ];
+
+        let points = 0;
+        let indice;
+        let prixSecret;
+
+        function nouvelObjet() {
+            indice = Math.floor(Math.random() * objets.length);
+
+            document.getElementById("objet").textContent =
+                "Objet : " + objets[indice];
+
+            prixSecret = prix[indice];
+
+            document.getElementById("reponse").value = "";
+            document.getElementById("message").textContent = "";
+        }
+
+        function verifier() {
+
+    let reponse = Number(document.getElementById("reponse").value);
+    let message = document.getElementById("message");
+
+    if (reponse === prixSecret) {
+        points++;
+        message.textContent = "🎉 Bravo ! Le prix était bien " + prixSecret + " €";
+    } else {
+        message.textContent = "❌ Raté ! Le bon prix était : " + prixSecret + " €";
+    }
+
+    document.getElementById("score").textContent =
+        "Points : " + points;
+}
+
+            nouvelObjet();
+        
+
+        nouvelObjet();
+
+    </script>
+
+</body>
+</html>

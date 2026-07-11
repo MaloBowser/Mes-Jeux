@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Taboo</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+.carte{
+    width:420px;
+    margin:30px auto;
+    background:white;
+    color:black;
+    border-radius:25px;
+    padding:30px;
+    box-shadow:0 0 30px cyan;
+}
+
+#mot{
+    font-size:45px;
+    color:red;
+}
+
+#interdits{
+    font-size:25px;
+    line-height:1.7;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎯 Taboo 🎯</h1>
+
+<div class="carte">
+    <h2>Mot à faire deviner :</h2>
+    <div id="mot"></div>
+
+    <h2>🚫 Mots interdits :</h2>
+    <div id="interdits"></div>
+</div>
+
+<button onclick="nouvelleCarte()">🎲 Nouvelle carte</button>
+
+<script>
+const taboo = [
+{mot:"Chien", interdits:["Animal","Aboie","Chat","Laisse"]},
+{mot:"Chat", interdits:["Animal","Miaule","Chien","Griffes"]},
+{mot:"Pizza", interdits:["Fromage","Tomate","Italie","Pâte"]},
+{mot:"Hamburger", interdits:["Pain","Steak","McDo","Frites"]},
+{mot:"Voiture", interdits:["Roues","Conduire","Moteur","Essence"]},
+{mot:"Vélo", interdits:["Roues","Pédales","Guidon","Cycliste"]},
+{mot:"Téléphone", interdits:["Appeler","Portable","Écran","SMS"]},
+{mot:"Ordinateur", interdits:["Clavier","Souris","Écran","Internet"]},
+{mot:"Télévision", interdits:["Écran","Film","Télécommande","Chaîne"]},
+{mot:"Piano", interdits:["Touches","Musique","Instrument","Jouer"]},
+{mot:"Guitare", interdits:["Cordes","Musique","Instrument","Jouer"]},
+{mot:"Football", interdits:["Ballon","But","Sport","Joueur"]},
+{mot:"Basket", interdits:["Panier","Ballon","Sport","Dribbler"]},
+{mot:"Tennis", interdits:["Raquette","Balle","Sport","Filet"]},
+{mot:"Natation", interdits:["Piscine","Nager","Eau","Maillot"]},
+{mot:"Dragon", interdits:["Feu","Ailes","Monstre","Crache"]},
+{mot:"Licorne", interdits:["Corne","Cheval","Magique","Arc-en-ciel"]},
+{mot:"Dinosaure", interdits:["Préhistoire","T-Rex","Éteint","Fossile"]},
+{mot:"Soleil", interdits:["Étoile","Chaud","Jour","Lumière"]},
+{mot:"Lune", interdits:["Nuit","Satellite","Étoiles","Ciel"]}
+];
+
+function nouvelleCarte(){
+    let carte = taboo[Math.floor(Math.random()*taboo.length)];
+
+    document.getElementById("mot").innerHTML = carte.mot;
+
+    let texte = "";
+
+    for(let mot of carte.interdits){
+        texte += "🚫 " + mot + "<br>";
+    }
+
+    document.getElementById("interdits").innerHTML = texte;
+}
+
+nouvelleCarte();
+</script>
+
+</body>
+</html>

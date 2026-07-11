@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Capitale du Monde</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+#question{
+    font-size:35px;
+    margin:30px;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:28px;
+    margin-top:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🌍 Les Capitales 🌍</h1>
+
+<p id="question"></p>
+
+<input id="reponse" placeholder="Ta réponse">
+
+<br><br>
+
+<button onclick="verifier()">Valider</button>
+
+<button onclick="nouveauPays()">Nouveau pays</button>
+
+<p id="message"></p>
+
+<script>
+
+const pays = [
+    "France",
+    "Espagne",
+    "Portugal",
+    "Italie",
+    "Allemagne",
+    "Belgique",
+    "Pays-Bas",
+    "Luxembourg",
+    "Suisse",
+    "Autriche",
+    "Royaume-Uni",
+    "Irlande",
+    "Danemark",
+    "Norvège",
+    "Suède",
+    "Finlande",
+    "Islande",
+    "Pologne",
+    "Tchéquie",
+    "Slovaquie",
+    "Hongrie",
+    "Roumanie",
+    "Bulgarie",
+    "Grèce",
+    "Croatie",
+    "Serbie",
+    "Bosnie-Herzégovine",
+    "Slovénie",
+    "Monténégro",
+    "Albanie",
+    "Macédoine du Nord",
+    "Ukraine",
+    "Biélorussie",
+    "Lituanie",
+    "Lettonie",
+    "Estonie",
+    "Moldavie",
+    "Russie",
+    "Turquie",
+    "Chypre",
+    "Maroc",
+    "Algérie",
+    "Tunisie",
+    "Libye",
+    "Égypte",
+    "Mauritanie",
+    "Mali",
+    "Sénégal",
+    "Guinée",
+    "Côte d'Ivoire",
+    "Ghana",
+    "Nigéria",
+    "Cameroun",
+    "Tchad",
+    "Éthiopie",
+    "Kenya",
+    "Tanzanie",
+    "Ouganda",
+    "Madagascar",
+    "Afrique du Sud",
+    "Namibie",
+    "Botswana",
+    "Zimbabwe",
+    "Mozambique",
+    "Angola",
+    "Canada",
+    "États-Unis",
+    "Mexique",
+    "Guatemala",
+    "Cuba",
+    "Haïti",
+    "Jamaïque",
+    "Brésil",
+    "Argentine",
+    "Chili",
+    "Pérou",
+    "Bolivie",
+    "Paraguay",
+    "Uruguay",
+    "Colombie",
+    "Venezuela",
+    "Équateur",
+    "Guyana",
+    "Suriname",
+    "Chine",
+    "Japon",
+    "Corée du Sud",
+    "Corée du Nord",
+    "Inde",
+    "Pakistan",
+    "Bangladesh",
+    "Népal",
+    "Bhoutan",
+    "Sri Lanka",
+    "Thaïlande",
+    "Vietnam",
+    "Cambodge",
+    "Laos",
+    "Malaisie",
+    "Singapour",
+    "Indonésie",
+    "Philippines"
+]
+
+const capitales = [
+    "Paris",
+    "Madrid",
+    "Lisbonne",
+    "Rome",
+    "Berlin",
+    "Bruxelles",
+    "Amsterdam",
+    "Luxembourg",
+    "Berne",
+    "Vienne",
+    "Londres",
+    "Dublin",
+    "Copenhague",
+    "Oslo",
+    "Stockholm",
+    "Helsinki",
+    "Reykjavik",
+    "Varsovie",
+    "Prague",
+    "Bratislava",
+    "Budapest",
+    "Bucarest",
+    "Sofia",
+    "Athènes",
+    "Zagreb",
+    "Belgrade",
+    "Sarajevo",
+    "Ljubljana",
+    "Podgorica",
+    "Tirana",
+    "Skopje",
+    "Kyiv",
+    "Minsk",
+    "Vilnius",
+    "Riga",
+    "Tallinn",
+    "Chișinău",
+    "Moscou",
+    "Ankara",
+    "Nicosie",
+    "Rabat",
+    "Alger",
+    "Tunis",
+    "Tripoli",
+    "Le Caire",
+    "Nouakchott",
+    "Bamako",
+    "Dakar",
+    "Conakry",
+    "Yamoussoukro",
+    "Accra",
+    "Abuja",
+    "Yaoundé",
+    "N'Djamena",
+    "Addis-Abeba",
+    "Nairobi",
+    "Dodoma",
+    "Kampala",
+    "Antananarivo",
+    "Pretoria",
+    "Windhoek",
+    "Gaborone",
+    "Harare",
+    "Maputo",
+    "Luanda",
+    "Ottawa",
+    "Washington",
+    "Mexico",
+    "Guatemala",
+    "La Havane",
+    "Port-au-Prince",
+    "Kingston",
+    "Brasília",
+    "Buenos Aires",
+    "Santiago",
+    "Lima",
+    "Sucre",
+    "Asunción",
+    "Montevideo",
+    "Bogotá",
+    "Caracas",
+    "Quito",
+    "Georgetown",
+    "Paramaribo",
+    "Pékin",
+    "Tokyo",
+    "Séoul",
+    "Pyongyang",
+    "New Delhi",
+    "Islamabad",
+    "Dacca",
+    "Katmandou",
+    "Thimphou",
+    "Sri Jayawardenapura Kotte",
+    "Bangkok",
+    "Hanoï",
+    "Phnom Penh",
+    "Vientiane",
+    "Kuala Lumpur",
+    "Singapour",
+    "Jakarta",
+    "Manille"
+]
+
+let indice = 0;
+
+function nouveauPays(){
+
+    indice = Math.floor(Math.random() * pays.length);
+
+    document.getElementById("question").innerHTML =
+    "Quelle est la capitale de <b>" + pays[indice] + "</b> ?";
+
+    document.getElementById("reponse").value = "";
+
+    document.getElementById("message").innerHTML = "";
+
+}
+
+function verifier(){
+
+    let rep = document.getElementById("reponse").value.trim();
+
+    if(rep.toLowerCase() == capitales[indice].toLowerCase()){
+
+        document.getElementById("message").innerHTML =
+        "🎉 Bravo ! Tu es un génie de la géographie !";
+
+    }
+
+    else{
+
+        document.getElementById("message").innerHTML =
+        "❌ Raté !<br><br>La capitale était : <b>" + capitales[indice] + "</b>";
+
+    }
+
+}
+
+nouveauPays();
+
+</script>
+
+</body>
+</html>

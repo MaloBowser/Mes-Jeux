@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Les jeux de Malo</title>
+
+    <link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+    <style>
+        body {
+            background-image: url("fond.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            font-size: 70px;
+            color: white;
+            text-shadow: 0 0 10px cyan, 0 0 25px cyan;
+        }
+
+        .jeu {
+            display: inline-block;
+            margin: 25px;
+            transition: transform 0.3s;
+        }
+
+        .jeu:hover {
+            transform: scale(1.08);
+        }
+
+        .jeu img {
+            width: 260px;
+            height: 150px;
+            object-fit: cover;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 0 20px cyan;
+        }
+
+        button {
+            background-color: transparent;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+        button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px cyan;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎮 Les jeux de Malo 🎮</h1>
+
+    
+
+    <div class="jeu">
+    <img src="web/IN.png">
+    <br>
+    <a href="web/devine_nombre.html">
+        <button>🎯 Devine le nombre</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/HF.png">
+    <br>
+    <a href="web/histoire_folle.html">
+        <button>📖 Histoire Folle</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="quiz multijoueurs questions nombres">
+    <img src="web/QUIZ.png">
+    <br>
+    <a href="web/quiz_multi.html">
+        <button>🧠 Quiz Multi-Joueurs</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/IA.png">
+    <br>
+    <a href="web/malo_ia.html">
+        <button>🤖 Malo IA</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="mr white jeu role mot secret">
+    <img src="web/MR.png">
+    <br>
+    <a href="web/mr_white.html">
+        <button>🎭 Mr White</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="bataille navale bateau mer">
+    <img src="web/BN.png">
+    <br>
+    <a href="web/bataille_navale.htm">
+        <button>🚢 Bataille Navale</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="detective enquete coupable voleur">
+    <img src="web/DETECTIVE.png">
+    <br>
+    <a href="web/detective.html">
+        <button>🕵️ Détective</button>
+    </a>
+</div>
+
+
+<div class="jeu" data-nom="ballons mysteres hasard lot">
+    <img src="web/BALLON.png">
+    <br>
+    <a href="web/ballons.html">
+        <button>🎈 Ballons Mystères</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/VERITE.png">
+    <br>
+    <a href="web/verite_ou_mensonge.html">
+        <button>🔮 Vérité ou Mensonge</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="morpion tic tac toe x o ordinateur">
+    <img src="web/MORPION.png">
+    <br>
+    <a href="web/morpion.htm">
+        <button>❌ Morpion Deluxe</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="puissance 4 rouge jaune">
+    <img src="web/PUISSANCE4.png">
+    <br>
+    <a href="web/puissance4.html">
+        <button>🔴 Puissance 4</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/PFC.png">
+    <br>
+    <a href="web/pierre_feuille_ciseaux.html">
+        <button>🪨🍀✂️ Pierre Feuille Ciseaux</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/HO.png">
+    <br>
+    <a href="web/horoscope.html">
+        <button>🔮 Horoscope</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/TRESOR.png">
+    <br>
+    <a href="web/tresor_mystere.html">
+        <button>🏴‍☠️ Trésor Mystère</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/CH.png">
+    <br>
+    <a href="web/chance.html">
+        <button>🍀 Roue de la Chance</button>
+    </a>
+</div>
+
+<div class="jeu" data-nom="taboo mots interdits deviner">
+    <img src="web/TABOO.png">
+    <br>
+    <a href="web/taboo.html">
+        <button>🎯 Taboo</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/CAP.png">
+    <br>
+    <a href="web/capitales.html">
+        <button>🌍 Capitales du Monde</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/Nounours.png">
+    <br>
+    <a href="web/peluche.html">
+        <button>🧸 Peluche Mystère</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/PPG.png">
+    <br>
+    <a href="web/plus_proche.html">
+        <button>🎯 Loto Géant</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/VF.png">
+    <br>
+    <a href="web/vrai_faux.html">
+        <button>❓ Vrai ou Faux</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/PORTE.png">
+    <br>
+    <a href="web/portes.html">
+        <button>🚪 Les Portes du Château</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/MATH.png">
+    <br>
+    <a href="web/maths.html">
+        <button>🧮 Quiz de Maths</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/AV.png">
+    <br>
+    <a href="web/action_verite.html">
+        <button>✅ Action ou Vérité❌</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/ANA.png">
+    <br>
+    <a href="web/anagrammes.html">
+        <button>🔤 Anagrammes</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/JP.png">
+    <br>
+    <a href="web/juste_prix.html">
+        <button>💰 Le Juste Prix</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/CA.png">
+    <br>
+    <a href="web/code_secret.html">
+        <button>🔐 Code Secret</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/PF.png">
+    <br>
+    <a href="web/pile_face.html">
+        <button>🪙 Pile ou Face</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/HA.png">
+    <br>
+    <a href="web/Blagues.html">
+        <button>😂 Blagues aléatoires</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/BOITE.png">
+    <br>
+    <a href="web/devine_boite.html">
+        <button>🎁 Devine la Boîte</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/ESC.png">
+    <br>
+    <a href="web/course_escargots.html">
+        <button>🐌 Course d'Escargots</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/ANIMAUX.png">
+    <br>
+    <a href="web/collection_animaux.html">
+        <button>🥚 Collection d'Animaux</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/BANQUE.png">
+    <br>
+    <a href="web/banque_folle.html">
+        <button>🏦 Banque Folle</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/SLOT.png">
+    <br>
+    <a href="web/machine_sous.html">
+        <button>🎰 Machine à Sous</button>
+    </a>
+</div>
+
+<div class="jeu">
+    <img src="web/DE.png">
+    <br>
+    <a href="web/des.html">
+        <button>🎲 Lancer de Dés</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/CARTE.png">
+    <br>
+    <a href="web/cartes.html">
+        <button>🃏 Combat de Cartes</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/BO.png">
+    <br>
+    <a href="web/desamorceur.html">
+        <button>💣 Désamorce la bombe</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/ME.png">
+    <br>
+    <a href="web/memoire.html">
+        <button>🧠 Jeu de Mémoire</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/GM.png">
+    <br>
+    <a href="web/Genie.html">
+        <button>🧁 Génie du Muffin</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/GA.png">
+    <br>
+    <a href="web/gages.html">
+        <button>🎲 Gages</button>
+    </a>
+</div>
+<div class="jeu">
+    <img src="web/P.png">
+    <br>
+    <a href="web/pendu.html">
+        <button>🎮 Pendu</button>
+    </a>
+</div>
+<p>
+    <h5><a href="https://www.veryfrog.com/">Si vous avez besoin d'aide en informatique</a>  :)</br>
+c'est la personne qu'il vous faut  </p></h5>
+
+</body>
+</html>

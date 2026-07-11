@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Le Génie du Muffin</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial, sans-serif;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+p{
+    font-size:25px;
+}
+
+input{
+    width:450px;
+    padding:12px;
+    font-size:20px;
+    text-align:center;
+    border-radius:15px;
+}
+
+button{
+
+    background:transparent;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+
+}
+
+#reponse{
+
+    margin-top:30px;
+    font-size:35px;
+    text-shadow:0 0 15px cyan;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🧁 Le Génie du Muffin 🧁</h1>
+
+<p>Pose une question... Le Génie répondra !</p>
+
+<input
+id="question"
+placeholder="Écris ta question ici...">
+
+<br><br>
+
+<button onclick="repondre()">
+🔮 Consulter le Génie du Muffin
+</button>
+
+<p id="reponse"></p>
+
+<script>
+
+const reponses=[
+"✅ Oui",
+"🤔 Peut-être",
+"❌ Non",
+"🌫️ L'avenir est trouble , recomence",
+"🚫 Jamais",
+"😂 Dans tes rêves",
+"😏 Pourquoi pas",
+"⏳ Un jour peut-être"
+];
+
+function repondre(){
+
+let question=document.getElementById("question").value;
+
+if(question==""){
+
+document.getElementById("reponse").innerHTML=
+"❌ Pose d'abord une question.";
+
+return;
+
+}
+
+let choix=
+reponses[Math.floor(Math.random()*reponses.length)];
+
+document.getElementById("reponse").innerHTML=
+"🧁 Le Génie dit :<br><br><b>"+choix+"</b>";
+
+}
+
+</script>
+
+</body>
+</html>

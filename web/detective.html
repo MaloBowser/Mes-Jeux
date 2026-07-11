@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Détective</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+.zone{
+    width:75%;
+    margin:auto;
+    background:rgba(0,0,0,0.6);
+    border:2px solid cyan;
+    border-radius:25px;
+    padding:25px;
+    font-size:24px;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:26px;
+    margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🕵️ Détective 🕵️</h1>
+
+<div class="zone">
+    <p>Un objet précieux a été volé ! Trouve le coupable.</p>
+
+    <p id="infos"></p>
+
+    <h2>Suspects</h2>
+    <div id="suspects"></div>
+
+    <br>
+
+    <button onclick="chercherIndice()">🔍 Chercher un indice</button>
+
+    <p id="message"></p>
+</div>
+
+<script>
+const suspects = ["Lucas", "Emma", "Tom", "Zoé", "Hugo", "Malo"];
+const lieux = ["la cuisine", "le garage", "le jardin", "la chambre", "la cave", "le salon"];
+const objets = ["un diamant", "un téléphone", "un ordinateur", "une couronne", "un coffre", "une clé"];
+
+const phrasesNormales = [
+"Je n'ai rien vu.",
+"Je passais juste par là.",
+"Je discutais avec quelqu'un.",
+"J'étais occupé, je te jure.",
+"Je ne connais rien à cette histoire.",
+"J'ai entendu un bruit bizarre."
+];
+
+const phrasesSuspectes = [
+"Euh... j'étais sur Mars avec une pizza.",
+"Je ne dirai rien sans mon avocat.",
+"Le coffre ? Quel coffre ?",
+"Je transpirais déjà avant que tu arrives.",
+"Je n'ai PAS volé... enfin je veux dire... bon.",
+"C'est pas moi, c'est le pigeon."
+];
+
+let coupable;
+let lieuCrime;
+let objetVole;
+let essais;
+
+function nouvellePartie(){
+    coupable = suspects[Math.floor(Math.random()*suspects.length)];
+    lieuCrime = lieux[Math.floor(Math.random()*lieux.length)];
+    objetVole = objets[Math.floor(Math.random()*objets.length)];
+    essais = 3;
+
+    document.getElementById("infos").innerHTML =
+    "❤️ Accusations restantes : " + essais;
+
+    document.getElementById("message").innerHTML = "";
+
+    let html = "";
+
+    for(let suspect of suspects){
+        html += `
+        <button onclick="interroger('${suspect}')">🗣️ Interroger ${suspect}</button>
+        <button onclick="accuser('${suspect}')">⚖️ Accuser ${suspect}</button><br>
+        `;
+    }
+
+    document.getElementById("suspects").innerHTML = html;
+}
+
+function interroger(suspect){
+    if(suspect === coupable){
+        let phrase = phrasesSuspectes[Math.floor(Math.random()*phrasesSuspectes.length)];
+        document.getElementById("message").innerHTML =
+        "🗣️ <b>" + suspect + "</b> dit :<br><br>" + phrase;
+    }else{
+        let phrase = phrasesNormales[Math.floor(Math.random()*phrasesNormales.length)];
+        document.getElementById("message").innerHTML =
+        "🗣️ <b>" + suspect + "</b> dit :<br><br>" + phrase;
+    }
+}
+
+function chercherIndice(){
+    const indices = [
+        "L'objet volé est " + objetVole + ".",
+        "Le crime a eu lieu dans " + lieuCrime + ".",
+        "Le coupable semblait très stressé.",
+        coupable + " a été vu près de " + lieuCrime + "."
+    ];
+
+    let indice = indices[Math.floor(Math.random()*indices.length)];
+
+    document.getElementById("message").innerHTML =
+    "🔍 Indice :<br><br><b>" + indice + "</b>";
+}
+
+function accuser(suspect){
+    if(suspect === coupable){
+        document.getElementById("message").innerHTML =
+        "🎉 Bravo ! Tu as trouvé le coupable !<br><br>" +
+        "Le voleur était : <b>" + coupable + "</b><br>" +
+        "L'objet volé était : <b>" + objetVole + "</b><br>" +
+        "Le crime a eu lieu dans : <b>" + lieuCrime + "</b><br><br>" +
+        "<button onclick='nouvellePartie()'>🔄 Nouvelle enquête</button>";
+    }else{
+        essais--;
+
+        document.getElementById("infos").innerHTML =
+        "❤️ Accusations restantes : " + essais;
+
+        if(essais <= 0){
+            document.getElementById("message").innerHTML =
+            "😭 Perdu !<br><br>" +
+            "Le vrai coupable était : <b>" + coupable + "</b><br>" +
+            "Il avait volé <b>" + objetVole + "</b> dans <b>" + lieuCrime + "</b><br><br>" +
+            "<button onclick='nouvellePartie()'>🔄 Nouvelle enquête</button>";
+        }else{
+            document.getElementById("message").innerHTML =
+            "❌ Mauvaise accusation ! Il te reste " + essais + " essai(s).";
+        }
+    }
+}
+
+nouvellePartie();
+</script>
+
+</body>
+</html>

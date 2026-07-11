@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Banque Folle</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:55px;
+    text-shadow:0 0 15px cyan;
+}
+
+.distributeur{
+    width:420px;
+    margin:auto;
+    background:#222;
+    border:5px solid cyan;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 0 30px cyan;
+}
+
+.ecran{
+    background:#001a1a;
+    color:#00ffcc;
+    border:3px solid #00ffff;
+    border-radius:15px;
+    padding:20px;
+    min-height:130px;
+    font-size:22px;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:10px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+    width:180px;
+}
+
+.clavier button{
+    width:70px;
+    height:55px;
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:12px;
+    font-size:22px;
+    margin:5px;
+    cursor:pointer;
+}
+
+.action{
+    background:#003300;
+    color:white;
+    border:2px solid lime;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:10px;
+    cursor:pointer;
+}
+
+.action:hover, .clavier button:hover{
+    transform:scale(1.07);
+    box-shadow:0 0 15px cyan;
+}
+
+.fente{
+    background:black;
+    height:18px;
+    width:250px;
+    margin:20px auto;
+    border-radius:10px;
+    border:2px solid white;
+}
+
+.billets{
+    font-size:45px;
+    display:none;
+    animation:sortie 1s;
+}
+
+@keyframes sortie{
+    from{transform:translateY(-30px); opacity:0;}
+    to{transform:translateY(0); opacity:1;}
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏦 Banque Folle 🏦</h1>
+
+<div class="distributeur">
+
+    <div class="ecran" id="ecran">
+        💳 Bienvenue à la Banque<br>
+        Tape le montant à retirer.
+    </div>
+
+    <br>
+
+    <input id="montant" placeholder="Montant €" readonly>
+
+    <div class="clavier">
+        <button onclick="ajouter('1')">1</button>
+        <button onclick="ajouter('2')">2</button>
+        <button onclick="ajouter('3')">3</button><br>
+
+        <button onclick="ajouter('4')">4</button>
+        <button onclick="ajouter('5')">5</button>
+        <button onclick="ajouter('6')">6</button><br>
+
+        <button onclick="ajouter('7')">7</button>
+        <button onclick="ajouter('8')">8</button>
+        <button onclick="ajouter('9')">9</button><br>
+
+        <button onclick="effacer()">C</button>
+        <button onclick="ajouter('0')">0</button>
+        <button onclick="retirer()">OK</button>
+    </div>
+
+    <div class="fente"></div>
+
+    <div id="billets" class="billets">💶💶💶</div>
+
+    <button class="action" onclick="retirer()">💸 Retirer</button>
+
+</div>
+
+<script>
+const banque = [
+"💸 10 € distribués.",
+"💸 20 € distribués.",
+"💸 50 € distribués.",
+"💸 100 € distribués.",
+"💸 Jackpot ! 1000 € distribués.",
+"💰 Gain exceptionnel : 5000 €.",
+"✅ Transaction validée.",
+"🏦 Votre compte est crédité.",
+"🎁 Cadeau de la banque.",
+"❌ Solde insuffisant.",
+"🚫 Distribution impossible.",
+"⚠️ Erreur bancaire.",
+"💳 Carte refusée.",
+"📵 Carte illisible.",
+"⚠️ Distributeur vide.",
+"💸 Frais bancaires : -50 €.",
+"📉 Votre compte est débité.",
+"🔒 Carte bloquée.",
+"💳 Carte avalée.",
+"😂 Le distributeur garde votre argent.",
+"😂 Merci pour votre don.",
+"😂 Le distributeur prend une pause.",
+"😂 Erreur 404 : argent introuvable.",
+"😂 Distribution de confettis.",
+"😂 Une pièce de 1 centime distribuée.",
+"⌛ Traitement en cours...",
+"📡 Connexion à la banque...",
+"📠 Vérification du compte...",
+"💳 Lecture de la carte...",
+"🎁 Bonus mystère obtenu.",
+"🍀 Chance maximale.",
+"⭐ Multiplicateur x2.",
+"🔥 Multiplicateur x5.",
+"🎰 Super Jackpot !",
+"👑 Client VIP détecté.",
+"🤖 Erreur système.",
+"🤖 Logiciel bancaire en panne.",
+"🤖 Distributeur hors service.",
+"🤖 Authentification réussie.",
+"💵 Distribution interrompue.",
+"💸 Billets épuisés.",
+"💳 Merci de votre visite.",
+"👋 Merci d'utiliser Banque Folle.",
+"🧾 Reçu disponible.",
+"🔚 Session terminée."
+];
+
+function ajouter(chiffre){
+    document.getElementById("montant").value += chiffre;
+}
+
+function effacer(){
+    document.getElementById("montant").value = "";
+    document.getElementById("ecran").innerHTML =
+    "💳 Bienvenue à la Banque<br>Tape le montant à retirer.";
+    document.getElementById("billets").style.display = "none";
+}
+
+function retirer(){
+    let montant = document.getElementById("montant").value;
+
+    if(montant === ""){
+        document.getElementById("ecran").innerHTML =
+        "❌ Tape d'abord un montant.";
+        return;
+    }
+
+    document.getElementById("ecran").innerHTML =
+    "⌛ Traitement en cours...<br>Montant demandé : <b>"+montant+" €</b>";
+
+    document.getElementById("billets").style.display = "none";
+
+    setTimeout(function(){
+        let phrase = banque[Math.floor(Math.random()*banque.length)];
+
+        document.getElementById("ecran").innerHTML =
+        "🏧<br><br><b>"+phrase+"</b>";
+
+        if(phrase.includes("distribués") || phrase.includes("Gain") || phrase.includes("Jackpot") || phrase.includes("crédité")){
+            document.getElementById("billets").style.display = "block";
+        }
+
+    },1500);
+}
+</script>
+
+</body>
+</html>

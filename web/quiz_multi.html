@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Quiz Multi-Joueurs</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#question, #message, #score{
+    font-size:28px;
+    margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧠 Quiz Multi-Joueurs 🧠</h1>
+
+<div id="zoneDepart">
+    <p>Combien de joueurs veulent jouer ?</p>
+    <input id="nbJoueurs" type="number" min="1" placeholder="Nombre">
+    <br>
+    <button onclick="demarrer()">🚀 Commencer</button>
+</div>
+
+<div id="zoneJeu" style="display:none;">
+    <p id="joueur"></p>
+    <p id="question"></p>
+
+    <input id="reponse" type="number" placeholder="Ta réponse">
+    <br>
+
+    <button onclick="verifier()">✅ Valider</button>
+
+    <p id="message"></p>
+    <p id="score"></p>
+</div>
+
+<script>
+const questions = [
+    "Combien y a-t-il de lettres dans l'alphabet ?",
+    "Combien y a-t-il de mois dans une année ?",
+    "Combien y a-t-il de jours dans une semaine ?",
+    "Combien y a-t-il de minutes dans une heure ?",
+    "Combien y a-t-il de secondes dans une minute ?",
+    "Combien de continents y a-t-il sur Terre ?",
+    "Combien de planètes y a-t-il dans le système solaire ?",
+    "Combien de roues possède une voiture ?",
+    "Combien de doigts possède une main ?",
+    "Combien de doigts possède un humain ?",
+    "Combien de côtés possède un triangle ?",
+    "Combien de côtés possède un carré ?",
+    "Combien de côtés possède un hexagone ?",
+    "Combien de cartes y a-t-il dans un jeu classique ?",
+    "Combien de joueurs dans une équipe de football ?",
+    "Combien de cases possède un échiquier ?",
+    "Combien de zéros y a-t-il dans 1000 ?",
+    "Combien font 12 x 12 ?",
+    "Combien font 25 + 37 ?",
+    "Combien font 100 - 37 ?",
+    "Combien de couleurs possède un arc-en-ciel ?",
+    "Combien de pattes possède une araignée ?",
+    "Combien de pattes possède un chien ?",
+    "Combien de pattes possède une poule ?",
+    "Combien de vies dit-on qu'un chat possède ?",
+    "Combien de jours compte une année normale ?",
+    "Combien de jours compte une année bissextile ?",
+    "Combien de lettres possède le mot ordinateur ?",
+    "Combien de lettres possède le mot Python ?",
+    "Combien de dents possède normalement un adulte ?",
+    "Combien de mètres mesure un kilomètre ?",
+    "Combien de centimètres mesure un mètre ?",
+    "Combien de millimètres mesure un centimètre ?",
+    "À combien de degrés l'eau gèle-t-elle ?",
+    "À combien de degrés l'eau bout-elle ?",
+    "Combien y a-t-il de secondes dans une journée ?",
+    "Combien de couleurs y a-t-il sur un Rubik's Cube ?",
+    "Combien de faces possède un dé ?",
+    "Combien de faces possède un cube ?",
+    "Combien de roues possède un vélo ?",
+    "Combien de lettres possède le mot banane ?",
+    "Combien de mois ont 31 jours ?",
+    "Combien de mois ont 30 jours ?",
+    "Combien de saisons y a-t-il ?",
+    "Combien de lettres possède le mot licorne ?",
+    "Combien de cœurs possède une pieuvre ?",
+    "Combien de tentacules possède une pieuvre ?",
+    "Combien de cartes reçoit-on au Uno au départ ?",
+    "Combien de lettres possède le mot éléphant ?",
+    "Combien de côtés possède un octogone ?"
+]
+const reponses = [
+    26, 
+    12,    
+    7,      
+    60,     
+    60,     
+    7,      
+    8,      
+    4,    
+    5,      
+    20,     
+    3,      
+    4,     
+    6,      
+    52,     
+    11,     
+    64,     
+    3,      
+    144,    
+    62,    
+    63,     
+    7,      
+    8,     
+    4,      
+    2,      
+    9,      
+    365,    
+    366,    
+    10,     
+    6,      
+    32,     
+    1000,  
+    100,   
+    10,     
+    0,     
+    100,    
+    86400, 
+    6,      
+    6,      
+    6,      
+    2,     
+    6,      
+    7,     
+    4,      
+    4,      
+    8,      
+    3,     
+    8,      
+    7,     
+    8,     
+    8       
+];
+
+let nbJoueurs = 0;
+let joueurActuel = 1;
+let questionActuelle = 0;
+let scoreActuel = 0;
+let scores = [];
+let quizJoueur = [];
+
+function melanger(tableau){
+    return tableau.sort(() => Math.random() - 0.5);
+}
+
+function demarrer(){
+    nbJoueurs = Number(document.getElementById("nbJoueurs").value);
+
+    if(nbJoueurs <= 0){
+        alert("Entre au moins 1 joueur !");
+        return;
+    }
+
+    document.getElementById("zoneDepart").style.display = "none";
+    document.getElementById("zoneJeu").style.display = "block";
+
+    joueurActuel = 1;
+    scores = [];
+
+    commencerJoueur();
+}
+
+function commencerJoueur(){
+    questionActuelle = 0;
+    scoreActuel = 0;
+
+    let quiz = [];
+
+    for(let i=0;i<questions.length;i++){
+        quiz.push([questions[i], reponses[i]]);
+    }
+
+    quizJoueur = melanger(quiz).slice(0,20);
+
+    afficherQuestion();
+}
+
+function afficherQuestion(){
+    document.getElementById("joueur").innerHTML =
+    "🎮 Joueur " + joueurActuel + " — Question " + (questionActuelle + 1) + "/20";
+
+    document.getElementById("question").innerHTML =
+    "❓ " + quizJoueur[questionActuelle][0];
+
+    document.getElementById("reponse").value = "";
+    document.getElementById("message").innerHTML = "";
+
+    document.getElementById("score").innerHTML =
+    "Score actuel : " + scoreActuel + "/20";
+}
+
+function verifier(){
+    let rep = Number(document.getElementById("reponse").value);
+    let bonne = quizJoueur[questionActuelle][1];
+
+    if(rep === bonne){
+        scoreActuel++;
+        document.getElementById("message").innerHTML = "✅ Bonne réponse !";
+    }else{
+        document.getElementById("message").innerHTML =
+        "❌ Faux ! La bonne réponse était : " + bonne;
+    }
+
+    setTimeout(function(){
+        questionActuelle++;
+
+        if(questionActuelle < 20){
+            afficherQuestion();
+        }else{
+            finJoueur();
+        }
+    },1200);
+}
+
+function finJoueur(){
+    scores.push(scoreActuel);
+
+    if(joueurActuel < nbJoueurs){
+        joueurActuel++;
+        alert("Joueur suivant !");
+        commencerJoueur();
+    }else{
+        resultats();
+    }
+}
+
+function resultats(){
+    let texte = "<h2>📊 Résultats finaux</h2>";
+
+    for(let i=0;i<scores.length;i++){
+        texte += "Joueur " + (i+1) + " : " + scores[i] + "/20<br>";
+    }
+
+    let meilleur = Math.max(...scores);
+    let gagnants = [];
+
+    for(let i=0;i<scores.length;i++){
+        if(scores[i] === meilleur){
+            gagnants.push(i+1);
+        }
+    }
+
+    if(gagnants.length === 1){
+        texte += "<br>🏆 Le gagnant est le joueur " + gagnants[0] + " avec " + meilleur + "/20 !";
+    }else{
+        texte += "<br>🤝 Égalité entre les joueurs : " + gagnants.join(", ");
+    }
+
+    document.getElementById("zoneJeu").innerHTML = texte;
+}
+</script>
+
+</body>
+</html>

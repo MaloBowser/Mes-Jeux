@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Pile ou Face</title>
+
+<link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+<style>
+
+body{
+    background-image: url("../fond.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color:white;
+    text-align:center;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+button{
+
+    background:transparent;
+    color:white;
+
+    border:2px solid cyan;
+    border-radius:15px;
+
+    padding:15px 30px;
+
+    font-size:22px;
+
+    margin:15px;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+button:hover{
+
+    transform:scale(1.1);
+
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+
+    font-size:28px;
+    margin-top:30px;
+
+}
+body {
+    background-image: url("../fond.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+
+}
+#points{
+
+    font-size:24px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🪙 Pile ou Face 🪙</h1>
+
+<button onclick="jouer('pile')">Pile</button>
+
+<button onclick="jouer('face')">Face</button>
+
+<p id="message"></p>
+
+<p id="points">Points : 0</p>
+
+<script>
+
+let points = 0;
+
+function jouer(choixJoueur){
+
+    const choix = ["pile","face"];
+
+    const resultat =
+        choix[Math.floor(Math.random()*2)];
+
+    if(choixJoueur == resultat){
+
+        points++;
+
+        document.getElementById("message").innerHTML =
+        "👏 Bravo !<br>La pièce est tombée sur <b>" + resultat + "</b>";
+
+    }
+
+    else{
+
+        document.getElementById("message").innerHTML =
+        "❌ Raté !<br>La pièce est tombée sur <b>" + resultat + "</b>";
+
+    }
+
+    document.getElementById("points").innerHTML =
+    "Points : " + points;
+
+}
+
+</script>
+
+</body>
+</html>

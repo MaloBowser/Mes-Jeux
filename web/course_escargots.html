@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Course d'Escargots</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+select, button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+.piste{
+    width:80%;
+    height:55px;
+    margin:20px auto;
+    border-bottom:4px dashed white;
+    position:relative;
+    background:rgba(0,0,0,0.35);
+    border-radius:15px;
+}
+
+.escargot{
+    position:absolute;
+    left:0;
+    top:5px;
+    font-size:35px;
+    transition:left 0.4s;
+}
+
+.arrivee{
+    position:absolute;
+    right:20px;
+    top:8px;
+    font-size:30px;
+}
+
+#message, #de{
+    font-size:28px;
+    margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🐌 Course d'Escargots 🏁</h1>
+
+<p>Choisis ton escargot :</p>
+
+<select id="choix">
+    <option value="rouge">🔴 Rouge</option>
+    <option value="bleu">🔵 Bleu</option>
+    <option value="vert">🟢 Vert</option>
+    <option value="jaune">🟡 Jaune</option>
+</select>
+
+<br>
+
+<button onclick="depart()">🏁 Départ</button>
+<button onclick="lancerDe()">🎲 Lancer le dé</button>
+
+<p id="de">🎲 Dé : -</p>
+
+<div class="piste"><div id="rouge" class="escargot">🔴🐌</div><div class="arrivee">🏁</div></div>
+<div class="piste"><div id="bleu" class="escargot">🔵🐌</div><div class="arrivee">🏁</div></div>
+<div class="piste"><div id="vert" class="escargot">🟢🐌</div><div class="arrivee">🏁</div></div>
+<div class="piste"><div id="jaune" class="escargot">🟡🐌</div><div class="arrivee">🏁</div></div>
+
+<p id="message"></p>
+
+<script>
+let arrivee = 20;
+let rouge = 0;
+let bleu = 0;
+let vert = 0;
+let jaune = 0;
+let courseFinie = false;
+
+function afficher(){
+    document.getElementById("rouge").style.left = Math.min(rouge * 5, 94) + "%";
+    document.getElementById("bleu").style.left = Math.min(bleu * 5, 94) + "%";
+    document.getElementById("vert").style.left = Math.min(vert * 5, 94) + "%";
+    document.getElementById("jaune").style.left = Math.min(jaune * 5, 94) + "%";
+}
+function depart(){
+    rouge = 0;
+    bleu = 0;
+    vert = 0;
+    jaune = 0;
+    courseFinie = false;
+
+    document.getElementById("de").innerHTML = "🎲 Dé : -";
+    document.getElementById("message").innerHTML =
+    "🎲 Lance le dé pour faire avancer les escargots !";
+
+    afficher();
+}
+
+function lancerDe(){
+    if(courseFinie){
+        document.getElementById("message").innerHTML =
+        "🏁 La course est terminée ! Clique sur Départ pour recommencer.";
+        return;
+    }
+
+    let de = Math.floor(Math.random() * 6) + 1;
+
+    document.getElementById("de").innerHTML =
+    "🎲 Dé : <b>" + de + "</b>";
+
+    rouge += Math.floor(Math.random() * de) + 1;
+    bleu += Math.floor(Math.random() * de) + 1;
+    vert += Math.floor(Math.random() * de) + 1;
+    jaune += Math.floor(Math.random() * de) + 1;
+
+    afficher();
+
+    if(rouge >= arrivee || bleu >= arrivee || vert >= arrivee || jaune >= arrivee){
+        courseFinie = true;
+
+        let gagnant = "";
+
+        if(rouge >= arrivee) gagnant = "rouge";
+        else if(bleu >= arrivee) gagnant = "bleu";
+        else if(vert >= arrivee) gagnant = "vert";
+        else gagnant = "jaune";
+
+        let choix = document.getElementById("choix").value;
+
+        if(choix === gagnant){
+            document.getElementById("message").innerHTML =
+            "🏆 Le gagnant est : " + gagnant + "<br>🎉 Bravo ! Ton escargot a gagné !";
+        }else{
+            document.getElementById("message").innerHTML =
+            "🏆 Le gagnant est : " + gagnant + "<br>😭 Perdu ! Ton escargot n'a pas gagné.";
+        }
+    }
+}
+
+depart();
+</script>
+
+</body>
+</html>

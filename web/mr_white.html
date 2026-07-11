@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mr White</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+    margin:8px;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+.carte{
+    background:rgba(0,0,0,0.6);
+    border:2px solid cyan;
+    border-radius:20px;
+    padding:25px;
+    width:70%;
+    margin:25px auto;
+    font-size:26px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎭 Mr White 🎭</h1>
+
+<div id="zone" class="carte">
+    <p>Combien de joueurs ? Minimum 3.</p>
+    <input id="nb" type="number" min="3">
+    <br>
+    <button onclick="creerJoueurs()">Valider</button>
+</div>
+
+<script>
+const mots = [
+"Chien","Chat","Lapin","Lion","Tigre","Éléphant","Girafe","Zèbre","Panda","Koala",
+"Souris","Cheval","Vache","Mouton","Poule","Canard","Poisson","Requin","Dauphin","Pieuvre",
+"Pizza","Hamburger","Frites","Glace","Gâteau","Bonbon","Pomme","Banane","Orange","Pastèque",
+"Téléphone","Ordinateur","Tablette","Télévision","Clavier","Souris","Écran","Manette","Casque","Drone",
+"Voiture","Moto","Vélo","Train","Avion","Bateau","Trottinette","Bus","Camion","Tracteur",
+"École","Maison","Château","Hôpital","Magasin","Restaurant","Cinéma","Piscine","Plage","Montagne",
+"Soleil","Lune","Étoile","Nuage","Pluie","Neige","Vent","Orage","Arc-en-ciel","Désert",
+"Livre","Stylo","Crayon","Gomme","Règle","Sac","Chaise","Table","Lit","Canapé",
+"Football","Basket","Tennis","Rugby","Natation","Course","Danse","Piano","Guitare","Batterie",
+"Python","Minecraft","Roblox","Fortnite","Mario","Zelda","Pac-Man","Tetris","Pokémon","Sonic"
+];
+
+let joueurs = [];
+let motSecret = "";
+let mrWhite = "";
+let indexJoueur = 0;
+let ordre = [];
+
+function creerJoueurs(){
+    let nb = Number(document.getElementById("nb").value);
+
+    if(nb < 3){
+        alert("Il faut au moins 3 joueurs !");
+        return;
+    }
+
+    let html = "<h2>👥 Noms des joueurs</h2>";
+
+    for(let i=0;i<nb;i++){
+        html += `<input id="joueur${i}" placeholder="Joueur ${i+1}"><br>`;
+    }
+
+    html += `<button onclick="lancerPartie(${nb})">Lancer la partie</button>`;
+
+    document.getElementById("zone").innerHTML = html;
+}
+
+function lancerPartie(nb){
+    joueurs = [];
+
+    for(let i=0;i<nb;i++){
+        let nom = document.getElementById("joueur"+i).value;
+
+        if(nom == ""){
+            alert("Tous les joueurs doivent avoir un nom !");
+            return;
+        }
+
+        joueurs.push(nom);
+    }
+
+    motSecret = mots[Math.floor(Math.random()*mots.length)];
+    mrWhite = joueurs[Math.floor(Math.random()*joueurs.length)];
+    indexJoueur = 0;
+
+    montrerBoutonRole();
+}
+
+function montrerBoutonRole(){
+    if(indexJoueur >= joueurs.length){
+        afficherOrdre();
+        return;
+    }
+
+    document.getElementById("zone").innerHTML =
+    `<h2>📱 Distribution des rôles</h2>
+    <p><b>${joueurs[indexJoueur]}</b>, prends l'écran sans montrer aux autres.</p>
+    <button onclick="voirRole()">Voir mon rôle</button>`;
+}
+
+function voirRole(){
+    let joueur = joueurs[indexJoueur];
+    let texte = "";
+
+    if(joueur === mrWhite){
+        texte = "🤫 Tu es <b>MR WHITE</b><br>Tu n'as PAS de mot.";
+    }else{
+        texte = "✅ Ton mot est :<br><br><b>" + motSecret + "</b>";
+    }
+
+    document.getElementById("zone").innerHTML =
+    `<h2>${joueur}</h2>
+    <p>${texte}</p>
+    <button onclick="cacherRole()">Cacher mon rôle</button>`;
+}
+
+function cacherRole(){
+    indexJoueur++;
+    montrerBoutonRole();
+}
+
+function afficherOrdre(){
+    ordre = [...joueurs];
+
+    ordre.sort(() => Math.random() - 0.5);
+
+    while(ordre[0] === mrWhite){
+        ordre.sort(() => Math.random() - 0.5);
+    }
+
+    let html = "<h2>🎤 Ordre des indices</h2>";
+
+    for(let i=0;i<ordre.length;i++){
+        html += `<p>${i+1} - ${ordre[i]}</p>`;
+    }
+
+    html += `<p>Chaque joueur donne maintenant un indice à l'oral.</p>`;
+    html += `<button onclick="vote()">Passer au vote</button>`;
+
+    document.getElementById("zone").innerHTML = html;
+}
+
+function vote(){
+    let html = "<h2>🗳️ Vote</h2>";
+    html += "<p>Qui pensez-vous être Mr White ?</p>";
+
+    for(let joueur of joueurs){
+        html += `<button onclick="resultat('${joueur}')">${joueur}</button><br>`;
+    }
+
+    document.getElementById("zone").innerHTML = html;
+}
+
+function resultat(vote){
+    if(vote === mrWhite){
+        document.getElementById("zone").innerHTML =
+        `<h2>🎉 Bravo !</h2>
+        <p>Vous avez trouvé Mr White !</p>
+        <p>Mr White était : <b>${mrWhite}</b></p>
+        <p>📖 Le mot secret était : <b>${motSecret}</b></p>
+        <button onclick="location.reload()">Rejouer</button>`;
+    }else{
+        document.getElementById("zone").innerHTML =
+        `<h2>❌ Raté !</h2>
+        <p>Vous avez accusé : <b>${vote}</b></p>
+        <p>Mais Mr White était : <b>${mrWhite}</b></p>
+        <p>🏆 ${mrWhite} gagne la partie !</p>
+        <p>📖 Le mot secret était : <b>${motSecret}</b></p>
+        <button onclick="location.reload()">Rejouer</button>`;
+    }
+}
+</script>
+
+</body>
+</html>

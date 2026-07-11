@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Combat de Cartes</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 20px cyan;
+}
+
+#cartes{
+    font-size:50px;
+    margin-top:30px;
+}
+
+#resultat{
+    font-size:30px;
+    margin-top:30px;
+}
+
+#score{
+    font-size:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🃏 Combat de Cartes 🃏</h1>
+
+<button onclick="jouer()">Distribuer les cartes</button>
+
+<p id="cartes"></p>
+
+<p id="resultat"></p>
+
+<p id="score">🏆 Score : 0</p>
+
+<script>
+
+const cartes=[
+"as","roi","dame","valet",
+"10","9","8","7","6","5","4","3","2"
+];
+
+let points=0;
+
+function jouer(){
+
+let rob=Math.floor(Math.random()*cartes.length);
+
+let moi=Math.floor(Math.random()*cartes.length);
+
+document.getElementById("cartes").innerHTML=
+"🤖 Rob : <b>"+cartes[rob]+"</b><br><br>👤 Toi : <b>"+cartes[moi]+"</b>";
+
+if(rob==moi){
+
+document.getElementById("resultat").innerHTML=
+"🤝 Égalité !";
+
+}
+
+else if(moi<rob){
+
+points++;
+
+document.getElementById("resultat").innerHTML=
+"🎉 Tu gagnes !";
+
+}
+
+else{
+
+document.getElementById("resultat").innerHTML=
+"❌ Rob gagne !";
+
+}
+
+document.getElementById("score").innerHTML=
+"🏆 Score : "+points;
+
+}
+
+</script>
+
+</body>
+</html>

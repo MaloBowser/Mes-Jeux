@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>La Peluche Mystère</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+img{
+    width:300px;
+    border-radius:20px;
+    box-shadow:0 0 25px cyan;
+}
+
+input{
+    font-size:22px;
+    padding:10px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+#message{
+    font-size:28px;
+    margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧸 La Peluche Mystère 🧸</h1>
+
+<img src="Nounours.png"/>
+
+<p>À ton avis, quel est le nom de la peluche ?</p>
+
+<input id="reponse" placeholder="Écris le prénom">
+
+<button onclick="verifier()">Valider</button>
+
+<p id="message"></p>
+
+<script>
+const prenoms = [
+    "Bambou", "Kiwi", "Mousse", "Pistache", "Menthe",
+    "Cactus", "Lutin", "Nino", "Léa", "Noisette",
+    "Câlin", "Oscar", "Nounours", "Teddy", "Polo",
+    "Yoshi", "Émeraude", "Malo", "Léo", "Pacha",
+    "Lucky", "Cookie", "Choco", "Peluche", "Panda",
+    "Boubou", "Doudou", "Biscotte", "Pompom", "Mimi",
+    "Biscuit"
+];
+
+function verifier(){
+    let reponse = document.getElementById("reponse").value;
+
+    if(prenoms.includes(reponse)){
+        document.getElementById("message").innerHTML =
+        "🎉 Bravo, tu as trouvé le nom de la peluche !";
+    }else{
+        document.getElementById("message").innerHTML =
+        "❌ Raté, retente !";
+    }
+}
+</script>
+
+</body>
+</html>

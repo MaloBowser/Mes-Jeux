@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Les Portes du Château</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:10px;
+    font-size:22px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    margin:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:28px;
+    margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚪 Les Portes du Château 🚪</h1>
+
+<p>Il y a <b>50 portes</b> devant toi.</p>
+
+<input id="reponse" type="number" min="1" max="50" placeholder="Numéro">
+
+<br><br>
+
+<button onclick="verifier()">Ouvrir la porte</button>
+<button onclick="nouvellePartie()">Nouvelle partie</button>
+
+<p id="message"></p>
+
+<script>
+const MIN = 1;
+const MAX = 50;
+
+const phrases = [
+"Oups... cette porte mène au placard à balais !",
+"Raté ! Même les fantômes évitent cette pièce.",
+"Tu entends un rire... puis plus rien.",
+"Cette salle est complètement vide.",
+"Le roi n'est définitivement pas ici.",
+"Une chauve-souris te regarde bizarrement.",
+"Mauvaise porte ! Tu perds un peu de temps.",
+"Le dragon dort ailleurs.",
+"Un chevalier te dit : 'Essaie encore !'",
+"Tu arrives dans les toilettes royales.",
+"Même les souris semblent déçues.",
+"Une araignée applaudit ton erreur.",
+"Le trésor n'est pas là.",
+"Un fantôme te montre la sortie.",
+"Un squelette éclate de rire.",
+"Cette pièce sent les pieds.",
+"Le château semble se moquer de toi.",
+"Le coffre est vide...",
+"Le fantôme du château te dit 'Perdu !'",
+"Encore raté !",
+"La bonne porte était presque à côté.",
+"Le château gagne cette manche."
+];
+
+let porte = 0;
+
+function nouvellePartie(){
+    porte = Math.floor(Math.random() * MAX) + MIN;
+    document.getElementById("message").innerHTML = "";
+    document.getElementById("reponse").value = "";
+}
+
+function verifier(){
+    let reponse = Number(document.getElementById("reponse").value);
+
+    if(reponse < MIN || reponse > MAX){
+        document.getElementById("message").innerHTML =
+        "❌ Choisis une porte entre 1 et 50.";
+        return;
+    }
+
+    if(reponse === porte){
+        document.getElementById("message").innerHTML =
+        "🎉 Bravo, tu as trouvé la sortie !";
+    }else{
+        let phrase = phrases[Math.floor(Math.random() * phrases.length)];
+        document.getElementById("message").innerHTML = "❌ " + phrase;
+    }
+}
+
+nouvellePartie();
+</script>
+
+</body>
+</html>

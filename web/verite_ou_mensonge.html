@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Boule de Cristal</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    font-family:Arial;
+    text-align:center;
+    color:white;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+input{
+    width:500px;
+    padding:15px;
+    font-size:22px;
+    background:black;
+    color:white;
+    border:3px solid cyan;
+    border-radius:15px;
+    text-align:center;
+}
+
+button{
+    margin:20px;
+    padding:15px 35px;
+    font-size:22px;
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 25px cyan;
+}
+
+.boule{
+    width:420px;
+    height:420px;
+    margin:30px auto;
+    border-radius:50%;
+    background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.9), transparent 12%),
+        radial-gradient(circle at center, rgba(0,255,255,0.45), rgba(0,30,80,0.8), rgba(0,0,0,0.95));
+    box-shadow:
+        0 0 40px cyan,
+        0 0 80px blue,
+        inset 0 0 60px cyan;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    position:relative;
+}
+
+.fumee{
+    position:absolute;
+    width:600px;
+    height:600px;
+    background:conic-gradient(
+        from 0deg,
+        transparent,
+        rgba(0,255,255,0.25),
+        rgba(180,0,255,0.3),
+        transparent
+    );
+    animation:tourne 5s linear infinite;
+}
+
+@keyframes tourne{
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
+}
+
+#reponse{
+    position:relative;
+    z-index:2;
+    font-size:32px;
+    font-weight:bold;
+    color:white;
+    text-shadow:0 0 15px cyan, 0 0 30px blue;
+    max-width:280px;
+}
+
+.secouer{
+    animation:shake .7s;
+}
+
+@keyframes shake{
+    0%{transform:translateX(0);}
+    20%{transform:translateX(-18px);}
+    40%{transform:translateX(18px);}
+    60%{transform:translateX(-18px);}
+    80%{transform:translateX(18px);}
+    100%{transform:translateX(0);}
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔮 Boule de Vérité 🔮</h1>
+
+<p>Pose une vérité à la boule magique...</p>
+
+<input id="question" placeholder="Exemple :  J'ai un chien">
+
+<br>
+
+<button onclick="repondre()">✨ Demander</button>
+<button onclick="reset()">🔄 Nouvelle question</button>
+
+<div id="boule" class="boule">
+    <div class="fumee"></div>
+    <div id="reponse">❓</div>
+</div>
+
+<script>
+const reponses=["C'est la verité","C'est un mensonge","C'est un mensonge" ];
+function repondre(){
+    let question=document.getElementById("question").value;
+    let boule=document.getElementById("boule");
+
+    if(question==""){
+        document.getElementById("reponse").innerHTML="❓";
+        return;
+    }
+
+    boule.classList.add("secouer");
+    document.getElementById("reponse").innerHTML="Analyse...";
+
+    setTimeout(function(){
+        let hasard=Math.floor(Math.random()*reponses.length);
+        document.getElementById("reponse").innerHTML=reponses[hasard];
+        boule.classList.remove("secouer");
+    },1500);
+}
+
+function reset(){
+    document.getElementById("question").value="";
+    document.getElementById("reponse").innerHTML="❓";
+}
+</script>
+
+</body>
+</html>

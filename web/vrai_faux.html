@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Vrai ou Faux</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+#question{
+    font-size:32px;
+    margin:40px;
+}
+
+button{
+    background:black;
+    color:white ;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    margin:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:28px;
+    margin-top:30px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>❓ Vrai ou Faux ❓</h1>
+
+<p id="question"></p>
+
+<button onclick="repondre(true)">✅ Vrai</button>
+
+<button onclick="repondre(false)">❌ Faux</button>
+
+<br>
+
+<button onclick="nouvelleQuestion()">🎲 Nouvelle question</button>
+
+<p id="message"></p>
+
+<script>
+
+
+const questions = [
+    "Le Soleil est une étoile.",
+    "Les poissons respirent avec des poumons.",
+    "Paris est la capitale de la France.",
+    "Une semaine compte 8 jours.",
+    "L'eau gèle à 0°C.",
+    "Les chats peuvent voler.",
+    "La Terre tourne autour du Soleil.",
+    "Les araignées ont 8 pattes.",
+    "Le pingouin est un mammifère.",
+    "Le chocolat vient du cacao.",
+    "Les dauphins vivent dans l'eau.",
+    "Le Mont Blanc est la plus haute montagne de France.",
+    "Les tortues peuvent vivre plus de 100 ans.",
+    "La Lune est plus grande que la Terre.",
+    "Les abeilles fabriquent du miel.",
+    "Le lion est un herbivore.",
+    "Le bambou est une plante.",
+    "Une heure compte 60 minutes.",
+    "Le requin est un poisson.",
+    "Les poules pondent des œufs.",
+    "Mars est une planète.",
+    "Le panda mange principalement du bambou.",
+    "Le feu est froid.",
+    "Le cœur est un muscle.",
+    "Les chauves-souris sont des oiseaux.",
+    "L'éléphant est le plus grand animal terrestre.",
+    "Le sucre est salé.",
+    "Les grenouilles vivent uniquement dans l'eau.",
+    "Le bois flotte sur l'eau.",
+    "Le désert du Sahara est couvert de neige.",
+    "Les bananes poussent sur des arbres.",
+    "Le cheval est un reptile.",
+    "Le miel est fabriqué par les abeilles.",
+    "Les baleines respirent de l'air.",
+    "L'oxygène est indispensable à la plupart des humains.",
+    "La glace est plus chaude que l'eau bouillante.",
+    "Le kiwi est un fruit.",
+    "Les serpents ont des pattes.",
+    "Le chien est un mammifère.",
+    "Le lapin pond des œufs.",
+    "Le café est une boisson.",
+    "La Tour Eiffel est à Paris.",
+    "La neige est généralement blanche.",
+    "Les crocodiles vivent dans les océans uniquement.",
+    "Le vélo possède deux roues.",
+    "Les moustiques sont plus gros qu'un éléphant.",
+    "Le lait vient des vaches.",
+    "Le renard est un poisson.",
+    "L'ordinateur fonctionne avec de l'électricité.",
+    "Les manchots vivent dans le désert.",
+    "Une pizza est ronde.",
+    "Le fromage est fabriqué avec du lait.",
+    "Le volcan crache parfois de la lave.",
+    "Les escargots sont très rapides.",
+    "Le football se joue avec un ballon.",
+    "Les poissons vivent dans les arbres.",
+    "Les pommes poussent sur des pommiers.",
+    "Les fourmis sont des insectes.",
+    "Le sable est liquide.",
+    "Le tigre a des rayures.",
+    "Les nuages sont faits uniquement de coton.",
+    "Les étoiles brillent la nuit.",
+    "Le camion est plus grand qu'une voiture.",
+    "Les tortues courent plus vite que les guépards.",
+    "Le jus d'orange vient des oranges.",
+    "Le panda est noir et blanc.",
+    "Le vent est visible à l'œil nu.",
+    "Le cheval mange de l'herbe.",
+    "Les oiseaux peuvent généralement voler.",
+    "Le citron est sucré.",
+    "Le chocolat blanc contient du cacao.",
+    "Le requin est un mammifère.",
+    "Les carottes sont orange.",
+    "Le feu mouille.",
+    "Le soleil se lève à l'est.",
+    "Le koala vit en Australie.",
+    "Les étoiles sont visibles en plein midi.",
+    "La pluie tombe du ciel.",
+    "Le poisson rouge peut vivre dans un aquarium.",
+    "Les lions vivent naturellement en Antarctique.",
+    "Le fromage fond lorsqu'il est chauffé.",
+    "La glace fond quand il fait chaud.",
+    "Les abeilles font du miel.",
+    "Le cactus pousse dans le désert.",
+    "Le panda est un insecte.",
+    "Le vélo a quatre roues.",
+    "Le zèbre possède des rayures.",
+    "Le lait est généralement blanc.",
+    "Le serpent est un reptile.",
+    "Le Soleil tourne autour de la Terre.",
+    "Les ours polaires vivent au pôle Nord.",
+    "Les arbres produisent de l'oxygène.",
+    "Le sucre est amer.",
+    "Le cochon est un mammifère.",
+    "La banquise est faite de glace.",
+    "Le kangourou vit en Australie.",
+    "Le train roule sur des rails.",
+    "Les nuages peuvent produire de la pluie.",
+    "Les poissons boivent du café.",
+    "La Terre est ronde."
+]
+const reponses = [
+    true, false, true, false, true,
+    false, true, true, false, true,
+    true, true, true, false, true,
+    false, true, true, true, true,
+    true, true, false, true, false,
+    true, false, false, true, false,
+    false, false, true, true, true,
+    false, true, false, true, false,
+    true, true, true, false, true,
+    false, true, false, true, false,
+    true, true, true, false, true,
+    false, true, true, false, true,
+    false, true, true, false, true,
+    true, false, true, false, true,
+    true, false, true, true, false,
+    true, true, true, false, false,
+    true, true, true, false, true,
+    true, true, false, true, true,
+    true, true, false, true
+];
+
+let numero=0;
+
+function nouvelleQuestion(){
+
+    numero=Math.floor(Math.random()*questions.length);
+
+    document.getElementById("question").innerHTML=
+    questions[numero];
+
+    document.getElementById("message").innerHTML="";
+
+}
+
+function repondre(choix){
+
+    if(choix===reponses[numero]){
+
+        document.getElementById("message").innerHTML=
+        "🎉 Bravo ! C'est la bonne réponse.";
+
+    }
+
+    else{
+
+        document.getElementById("message").innerHTML=
+        "❌ Mauvaise réponse.<br><br>La bonne réponse était : <b>"+(reponses[numero]?"Vrai":"Faux")+"</b>";
+
+    }
+
+}
+
+nouvelleQuestion();
+
+</script>
+
+</body>
+</html>

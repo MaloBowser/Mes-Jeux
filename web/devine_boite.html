@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+
+<meta charset="UTF-8">
+
+<title>🎁 Devine la Boîte</title>
+
+<style>
+
+body{
+background-image:url("../fond.jpg");
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+background-attachment:fixed;
+
+text-align:center;
+font-family:Arial;
+color:white;
+}
+
+h1{
+font-size:60px;
+text-shadow:0 0 15px cyan;
+}
+
+.boite{
+font-size:90px;
+cursor:pointer;
+display:inline-block;
+margin:20px;
+transition:.3s;
+}
+
+.boite:hover{
+transform:scale(1.15);
+}
+
+button{
+background:black;
+color:white;
+border:2px solid cyan;
+border-radius:15px;
+padding:12px 25px;
+font-size:22px;
+cursor:pointer;
+margin-top:25px;
+}
+
+button:hover{
+box-shadow:0 0 20px cyan;
+}
+
+#resultat{
+font-size:30px;
+margin-top:35px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎁 Devine la Boîte 🎁</h1>
+
+<p>Clique sur une boîte !</p>
+
+<div class="boite" onclick="ouvrir()">📦</div>
+
+<div class="boite" onclick="ouvrir()">🎁</div>
+
+<div class="boite" onclick="ouvrir()">📦</div>
+
+<div class="boite" onclick="ouvrir()">🎁</div>
+
+<div class="boite" onclick="ouvrir()">📦</div>
+
+<br>
+
+<button onclick="nouvellePartie()">🔄 Nouvelle partie</button>
+
+<p id="resultat"></p>
+
+<script>
+
+const lots = [
+    "1000 €",
+    "500 €",
+    "250 €",
+    "200 €",
+    "150 €",
+    "100 €",
+    "75 €",
+    "50 €",
+    "30 €",
+    "20 €",
+    "10 €",
+    "5 €",
+    "2 €",
+    "1 €",
+    "Une voiture 🚗",
+    "Un vélo 🚲",
+    "Une console de jeux 🎮",
+    "Un ordinateur 💻",
+    "Un téléphone 📱",
+    "Une tablette",
+    "Une télévision 📺",
+    "Un casque audio 🎧",
+    "Une montre ⌚",
+    "Un drone 🚁",
+    "Une trottinette électrique",
+    "Une enceinte Bluetooth",
+    "Un appareil photo 📷",
+    "Une Nintendo Switch",
+    "Une PlayStation",
+    "Une Xbox",
+    "Une carte cadeau de 100 €",
+    "Une carte cadeau de 50 €",
+    "Une peluche 🧸",
+    "Une boîte de chocolats 🍫",
+    "Un paquet de bonbons 🍬",
+    "Une pizza 🍕",
+    "Un hamburger 🍔",
+    "Une glace 🍦",
+    "Un gâteau 🎂",
+    "Une canette",
+    "Une bouteille d'eau",
+    "Un stylo",
+    "Un cahier",
+    "Une gomme",
+    "Un crayon",
+    "Une règle",
+    "Une surprise 🎁",
+    "Un ticket gagnant",
+    "Un joker",
+    "Un trèfle à quatre feuilles 🍀",
+    "Tu gagnes un tour supplémentaire !",
+    "Tu échanges ton lot avec un autre joueur.",
+    "Tu peux ouvrir une deuxième boîte.",
+    "Tu gardes ton lot.",
+    "Double gain !",
+    "Triple gain !",
+    "Tu gagnes un bon point.",
+    "Tu gagnes un applaudissement 👏",
+    "Tu gagnes un cookie 🍪",
+    "Une médaille 🥇",
+    "Perdu...",
+    "Rien du tout.",
+    "Boîte vide.",
+    "Tu perds ton tour.",
+    "Tu retournes au départ.",
+    "Tu donnes ton lot à un autre joueur.",
+    "Le banquier récupère ton lot.",
+    "Tu perds 10 €.",
+    "Tu perds 50 €.",
+    "Tu perds 100 €.",
+    "Tu perds tous tes gains.",
+    "Tu repars avec 1 €.",
+    "Tu repars avec une chaussette 🧦",
+    "Tu gagnes... un caillou 🪨",
+    "Tu trouves une vieille cuillère.",
+    "Une patate 🥔",
+    "Une banane 🍌",
+    "Une brosse à dents 🪥",
+    "Une vieille chaussure 👟",
+    "Un poisson en plastique 🐟",
+    "Un trombone",
+    "Une feuille morte 🍂",
+    "Un ballon dégonflé 🎈",
+    "Une cuillère en bois",
+    "Un rouleau de papier toilette 🧻",
+    "Un élastique",
+    "Une pile usée 🔋",
+    "Une pierre brillante",
+    "Un autocollant",
+    "Un chapeau 🎩",
+    "Des lunettes de soleil 🕶️",
+    "Une couronne 👑",
+    "Une baguette magique ✨",
+    "Un coffre vide.",
+    "Le roi te félicite !",
+    "Le dragon garde ton lot 🐉",
+    "Tu remportes le jackpot ! 💰",
+    "Tu peux rejouer immédiatement.",
+    "Tu choisis la boîte d'un adversaire.",
+    "Le destin est avec toi 🍀",
+    "Mystère... ouvre une autre boîte !"
+]
+
+function ouvrir(){
+
+let lot = lots[Math.floor(Math.random()*lots.length)];
+
+document.getElementById("resultat").innerHTML =
+"🎉 Tu as gagné :<br><br><b>"+lot+"</b>";
+
+}
+
+function nouvellePartie(){
+
+document.getElementById("resultat").innerHTML="";
+
+}
+
+</script>
+
+</body>
+
+</html>

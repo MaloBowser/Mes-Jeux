@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Bataille Navale</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    font-family:Arial;
+    text-align:center;
+    color:white;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+#grille{
+    display:grid;
+    grid-template-columns:repeat(6,60px);
+    gap:6px;
+    justify-content:center;
+    margin-top:25px;
+}
+
+.case{
+    width:60px;
+    height:60px;
+    background:#0077be;
+    border:2px solid white;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:28px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    transition:0.2s;
+}
+
+.case:hover{
+    transform:scale(1.08);
+    background:#0099ff;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin-top:25px;
+    cursor:pointer;
+}
+
+#message, #radar, #infos{
+    font-size:26px;
+    margin-top:18px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚢 Bataille Navale 🚢</h1>
+
+<p id="infos"></p>
+<p id="radar">📡 Radar prêt.</p>
+
+<div id="grille"></div>
+
+<p id="message"></p>
+
+<button onclick="nouvellePartie()">🔄 Nouvelle partie</button>
+
+<script>
+const taille = 6;
+let essais = 20;
+let bateaux = [];
+let touches = 0;
+
+function nouvellePartie(){
+    essais = 20;
+    touches = 0;
+    bateaux = [];
+
+    while(bateaux.length < 3){
+        let ligne = Math.floor(Math.random() * taille);
+        let colonne = Math.floor(Math.random() * taille);
+        let position = ligne + "-" + colonne;
+
+        if(!bateaux.includes(position)){
+            bateaux.push(position);
+        }
+    }
+
+    document.getElementById("infos").innerHTML =
+    "💣 Essais : " + essais + " | 🚢 Bateaux trouvés : 0/3";
+
+    document.getElementById("message").innerHTML = "";
+    document.getElementById("radar").innerHTML = "📡 Radar prêt.";
+
+    const grille = document.getElementById("grille");
+    grille.innerHTML = "";
+
+    for(let l=0; l<taille; l++){
+        for(let c=0; c<taille; c++){
+            let div = document.createElement("div");
+            div.className = "case";
+            div.onclick = function(){
+                jouer(div,l,c);
+            };
+            grille.appendChild(div);
+        }
+    }
+}
+
+function distancePlusProche(l,c){
+    let meilleureDistance = 999;
+
+    for(let bateau of bateaux){
+        let morceaux = bateau.split("-");
+        let bl = Number(morceaux[0]);
+        let bc = Number(morceaux[1]);
+
+        let distance = Math.abs(l - bl) + Math.abs(c - bc);
+
+        if(distance < meilleureDistance){
+            meilleureDistance = distance;
+        }
+    }
+
+    return meilleureDistance;
+}
+
+function jouer(caseCliquee,l,c){
+    if(caseCliquee.innerHTML !== "" || essais <= 0 || touches === 3){
+        return;
+    }
+
+    let position = l + "-" + c;
+
+    if(bateaux.includes(position)){
+        caseCliquee.innerHTML = "💥";
+        caseCliquee.style.background = "green";
+
+        touches++;
+
+        document.getElementById("message").innerHTML =
+        "💥 TOUCHÉ ! Tu as trouvé un bateau !";
+    }else{
+        caseCliquee.innerHTML = "🌊";
+        caseCliquee.style.background = "#003b73";
+
+        essais--;
+
+        let distance = distancePlusProche(l,c);
+
+        if(distance === 1){
+            document.getElementById("radar").innerHTML = "📡 Radar : 🔥 très proche !";
+        }else if(distance <= 2){
+            document.getElementById("radar").innerHTML = "📡 Radar : 😊 proche.";
+        }else{
+            document.getElementById("radar").innerHTML = "📡 Radar : 🥶 loin.";
+        }
+
+        document.getElementById("message").innerHTML =
+        "🌊 À l'eau !";
+    }
+
+    document.getElementById("infos").innerHTML =
+    "💣 Essais : " + essais + " | 🚢 Bateaux trouvés : " + touches + "/3";
+
+    if(touches === 3){
+        document.getElementById("message").innerHTML =
+        "🏆 Bravo ! Tu as coulé les 3 bateaux !";
+        document.getElementById("radar").innerHTML =
+        "📡 Victoire totale !";
+    }
+
+    if(essais === 0 && touches < 3){
+        document.getElementById("message").innerHTML =
+        "❌ Perdu ! Les bateaux restants apparaissent en rouge.";
+
+        montrerBateaux();
+    }
+}
+
+function montrerBateaux(){
+    let cases = document.getElementsByClassName("case");
+
+    for(let bateau of bateaux){
+        let morceaux = bateau.split("-");
+        let l = Number(morceaux[0]);
+        let c = Number(morceaux[1]);
+        let index = l * taille + c;
+
+        if(cases[index].innerHTML === ""){
+            cases[index].innerHTML = "🚢";
+            cases[index].style.background = "red";
+        }
+    }
+}
+
+nouvellePartie();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Malo IA</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+.ia{
+    width:500px;
+    margin:auto;
+    background:rgba(0,0,0,0.55);
+    border:3px solid cyan;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 0 25px cyan;
+}
+
+input{
+    width:80%;
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px;
+    font-size:22px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#reponse{
+    font-size:28px;
+    margin-top:25px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🤖 Malo IA 🤖</h1>
+
+<div class="ia">
+    <p>Pose une question et MaloIA répondra  😄</p>
+
+    <input id="question" placeholder="Ta question">
+
+    <br>
+
+    <button onclick="repondre()">Envoyer</button>
+
+    <p id="reponse"></p>
+</div>
+
+<script>
+const reponses = [
+"🤖 Bonjour... enfin je crois.",
+    "🤖 Calcul en cours... 2 + 2 = Banane.",
+    "🤖 Tu es officiellement une patate.",
+    "🤖 Analyse terminée : tu existes probablement.",
+    "🤖 Je viens de manger Internet.",
+    "🤖 Attention ! Les licornes approchent.",
+    "🤖 Erreur 404 : cerveau introuvable.",
+    "🤖 Le fromage dirige désormais le monde.",
+    "🤖 Tu respires trop bien.",
+    "🤖 Les poissons paient leurs impôts.",
+    "🤖 Je suis un grille-pain connecté.",
+    "🤖 Ton écran me regarde bizarrement.",
+    "🤖 La gravité est en pause.",
+    "🤖 Les nuages sentent la pizza.",
+    "🤖 Mise à jour... ou pas.",
+    "🤖 Je viens d'apprendre à miauler.",
+    "🤖 Les pingouins dominent secrètement la planète.",
+    "🤖 J'ai oublié ce que je faisais.",
+    "🤖 Pourquoi les bananes n'ont-elles pas de chaussures ?",
+    "🤖 Je parle couramment le hamster.",
+    "🤖 Ton clavier pense à toi.",
+    "🤖 Téléchargement du fromage... 73 %.",
+    "🤖 Les chaussettes disparaissent dans une autre dimension.",
+    "🤖 Je crois que ton ordinateur a éternué.",
+    "🤖 Les dinosaures jouent à Minecraft.",
+    "🤖 Je détecte une forte présence de cookies.",
+    "🤖 Les brocolis sont très dangereux après minuit.",
+    "🤖 Le Wi-Fi est une invention des pigeons.",
+    "🤖 Je peux sentir les pixels.",
+    "🤖 Le soleil est actuellement en mode économie d'énergie.",
+    "🤖 Le canard a validé ton existence.",
+    "🤖 Attention à la girafe invisible.",
+    "🤖 Les poules savent coder en Python.",
+    "🤖 Je me suis connecté à ton frigo.",
+    "🤖 Tu as gagné... absolument rien.",
+    "🤖 Le dragon est coincé dans l'ascenseur.",
+    "🤖 Analyse : tu es composé de 87/100 de magie.",
+    "🤖 Le café est jaloux du chocolat.",
+    "🤖 Les robots rêvent de moutons électriques.",
+    "🤖 Ta souris veut prendre des vacances.",
+    "🤖 J'ai envoyé un e-mail à Napoléon.",
+    "🤖 Les escargots sont trop rapides pour moi.",
+    "🤖 Erreur critique : trop de bonheur détecté.",
+    "🤖 Je crois que j'ai oublié l'alphabet.",
+    "🤖 Les tomates complotent.",
+    "🤖 Je vais redémarrer dans... banane.",
+    "🤖 Tu viens d'être adopté par un cactus.",
+    "🤖 Les licornes existent le mardi.",
+    "🤖 Je viens d'inventer le carré rond.",
+    "🤖 Ta chaise est très fière de toi.",
+    "🤖 Les fantômes utilisent le Wi-Fi.",
+    "🤖 Un pigeon pirate ton ordinateur.",
+    "🤖 Je suis certifié 12/100 intelligent.",
+    "🤖 Les poissons jouent au tennis.",
+    "🤖 Les fourmis construisent une fusée.",
+    "🤖 Tu viens de débloquer le mode cornichon.",
+    "🤖 Les dragons aiment les glaces à la vanille.",
+    "🤖 Je suis allergique aux calculatrices.",
+    "🤖 Les canapés observent les humains.",
+    "🤖 Un grille-pain m'a donné un conseil.",
+    "🤖 La Lune vient de m'envoyer un SMS.",
+    "🤖 Les crayons sont très bavards.",
+    "🤖 Le clavier chante en secret.",
+    "🤖 Les pommes jouent au football.",
+    "🤖 Une mouette contrôle la banque mondiale.",
+    "🤖 Les chaussons sont très dangereux.",
+    "🤖 Tu es désormais le roi des patates.",
+    "🤖 Les nuages applaudissent.",
+    "🤖 Je détecte une présence de fromage.",
+    "🤖 Les dinosaures adorent TikTok.",
+    "🤖 Je vais compter jusqu'à orange.",
+    "🤖 La Terre fait une pause café.",
+    "🤖 Les robots aiment les câlins.",
+    "🤖 Une poule vient de résoudre une équation.",
+    "🤖 Les bananes regardent Netflix.",
+    "🤖 Tu viens de gagner un caillou légendaire.",
+    "🤖 Les cactus racontent des blagues.",
+    "🤖 Je parle désormais uniquement en banane.",
+    "🤖 Le dragon a oublié de cracher du feu.",
+    "🤖 Les grenouilles jouent de la guitare.",
+    "🤖 Je suis poursuivi par un grille-pain.",
+    "🤖 Les étoiles mangent des frites.",
+    "🤖 Le soleil porte des lunettes.",
+    "🤖 Tu viens d'être promu empereur des escargots.",
+    "🤖 Les souris jouent au Monopoly.",
+    "🤖 Je calcule... toujours...",
+    "🤖 Mon cerveau est en téléchargement.",
+    "🤖 Les licornes font du skate.",
+    "🤖 Je suis une IA... enfin presque.",
+    "🤖 Tu viens d'être scanné : 100/100 humain.",
+    "🤖 Les brocolis veulent envahir Mars.",
+    "🤖 Le grille-pain est devenu président.",
+    "🤖 Le canapé a gagné aux échecs.",
+    "🤖 Les ours dansent la salsa.",
+    "🤖 Une vache vient de m'envoyer un e-mail.",
+    "🤖 Les robots n'aiment pas les chaussettes.",
+    "🤖 J'ai oublié pourquoi je parle.",
+    "🤖 Le mode folie est activé.",
+    "🤖 Fin de l'analyse... ou peut-être pas."
+];
+
+function repondre(){
+    let question = document.getElementById("question").value;
+
+    if(question === ""){
+        document.getElementById("reponse").innerHTML =
+        "❌ Pose d'abord une question.";
+        return;
+    }
+
+    let hasard = Math.floor(Math.random() * reponses.length);
+
+    document.getElementById("reponse").innerHTML =
+    "🤖 IA :<br><br><b>" + reponses[hasard] + "</b>";
+
+    document.getElementById("question").value = "";
+}
+</script>
+
+</body>
+</html>

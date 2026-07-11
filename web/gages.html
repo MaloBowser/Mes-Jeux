@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Gages</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+input{
+    font-size:22px;
+    padding:10px;
+    text-align:center;
+}
+
+button{
+
+    background:transparent;
+    color:white;
+
+    border:2px solid cyan;
+    border-radius:15px;
+
+    padding:12px 25px;
+
+    font-size:20px;
+
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    transform:scale(1.08);
+
+    box-shadow:0 0 20px cyan;
+
+}
+
+#gage{
+
+    font-size:30px;
+    margin-top:30px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎲 Gages 🎲</h1>
+
+<p>À qui veux-tu donner un gage ?</p>
+
+<input id="nom" placeholder="Prénom">
+
+<br><br>
+
+<button onclick="donnerGage()">
+🎁 Donner un gage
+</button>
+
+<p id="gage"></p>
+
+<script>
+
+const Gages = [
+    "Fais 10 sauts sur place.",
+    "Chante 'Joyeux anniversaire' en miaulant.",
+    "Parle avec une voix de robot pendant 2 minutes.",
+    "Imite un poulet pendant 30 secondes.",
+    "Fais une danse ridicule.",
+    "Marche comme un pingouin pendant 1 minute.",
+    "Raconte une blague.",
+    "Fais 10 squats.",
+    "Dis l'alphabet a l'envers (essaie).",
+    "Fais semblant d'etre un super-heros.",
+    "Imite un lion.",
+    "Chante une chanson sans dire les paroles.",
+    "Saute a cloche-pied pendant 30 secondes.",
+    "Fais 5 pompes (ou essaie).",
+    "Parle en chuchotant pendant 2 minutes.",
+    "Imite un bebe qui pleure.",
+    "Fais une grimace pendant 20 secondes.",
+    "Marche en reculant pendant 30 secondes.",
+    "Fais tourner tes bras comme un moulin.",
+    "Fais le bruit d'une voiture.",
+    "Danse sans musique pendant 1 minute.",
+    "Imite un singe.",
+    "Fais un compliment a tout le monde.",
+    "Fais semblant de presenter la meteo.",
+    "Reste en equilibre sur un pied 30 secondes.",
+    "Parle comme un pirate.",
+    "Imite un chat.",
+    "Fais un coeur avec tes mains.",
+    "Raconte ton film prefere en 10 secondes.",
+    "Fais semblant de dormir.",
+    "Fais un tour sur toi-meme 10 fois.",
+    "Imite un cheval.",
+    "Fais une pose de statue pendant 1 minute.",
+    "Fais semblant d'etre un serveur.",
+    "Compte jusqu'a 20 en chantant.",
+    "Fais un sourire exagere pendant 30 secondes.",
+    "Imite une grenouille.",
+    "Marche sur la pointe des pieds pendant 1 minute.",
+    "Fais une reverence.",
+    "Fais le bruit d'une moto.",
+    "Raconte un reve invente.",
+    "Fais semblant de pecher.",
+    "Tape dans tes mains 20 fois.",
+    "Imite un elephant.",
+    "Dis trois mots qui riment.",
+    "Fais un salut militaire.",
+    "Marche comme un crabe.",
+    "Fais semblant de jouer du piano.",
+    "Imite un chien.",
+    "Reste sans rire pendant 30 secondes.",
+    "Chante une comptine.",
+    "Fais une pirouette.",
+    "Imite un serpent.",
+    "Saute comme un kangourou.",
+    "Fais semblant de telephoner.",
+    "Marche comme un zombie.",
+    "Fais une pose de super-heros.",
+    "Imite une poule qui pond un oeuf.",
+    "Raconte une histoire en 5 mots.",
+    "Fais semblant de jouer de la guitare.",
+    "Imite un canard.",
+    "Fais 15 battements de mains.",
+    "Marche comme un geant.",
+    "Fais semblant de conduire une voiture.",
+    "Imite un mouton.",
+    "Reste les yeux fermes pendant 20 secondes.",
+    "Fais un pas de danse.",
+    "Imite une chouette.",
+    "Fais semblant de nager.",
+    "Saute 15 fois.",
+    "Imite un lapin.",
+    "Fais un cri de dinosaure.",
+    "Parle tres lentement pendant 1 minute.",
+    "Fais semblant de jouer au basket.",
+    "Imite un coq.",
+    "Marche comme si le sol etait brulant.",
+    "Fais semblant de skier.",
+    "Imite une abeille.",
+    "Fais une tete tres serieuse pendant 1 minute.",
+    "Raconte ton plat prefere.",
+    "Fais un tour en tournant sur toi.",
+    "Imite un poisson.",
+    "Fais semblant de voler comme un avion.",
+    "Dis un mot drole.",
+    "Marche comme un robot.",
+    "Imite un hibou.",
+    "Fais une danse de victoire.",
+    "Fais semblant d'ouvrir un cadeau.",
+    "Imite un ours.",
+    "Tape des pieds 20 fois.",
+    "Fais semblant de jongler.",
+    "Imite un cochon.",
+    "Fais une grimace en silence.",
+    "Marche comme un mannequin.",
+    "Imite un dauphin.",
+    "Fais semblant de cuisiner.",
+    "Imite un chevalier.",
+    "Fais un applaudissement geant.",
+    "Imite un extraterrestre.",
+    "Fais semblant d'etre invisible.",
+    "Invente un slogan amusant.",
+    "Fais une danse finale."
+]
+
+
+function donnerGage(){
+
+let nom=document.getElementById("nom").value;
+
+if(nom==""){
+
+document.getElementById("gage").innerHTML=
+"❌ Entre un prénom.";
+
+return;
+
+}
+
+let hasard=
+Math.floor(Math.random()*Gages.length);
+
+document.getElementById("gage").innerHTML=
+
+"🎉 <b>"+nom+"</b><br><br>" +
+
+"Ton gage est :<br><br>" +
+
+"<b>"+Gages[hasard]+"</b>";
+
+}
+
+</script>
+
+</body>
+</html>

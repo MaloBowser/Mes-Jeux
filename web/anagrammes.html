@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Anagrammes</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+#question{
+    font-size:40px;
+    margin:30px;
+}
+
+input{
+    font-size:22px;
+    padding:10px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    cursor:pointer;
+    margin:10px;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:28px;
+    margin-top:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🔤 Anagrammes 🔤</h1>
+
+<p>Retrouve l'anagramme du mot !</p>
+
+<p id="question"></p>
+
+<input id="reponse" placeholder="Ta réponse">
+
+<br><br>
+
+<button onclick="verifier()">Valider</button>
+
+<button onclick="nouveauMot()">Nouveau mot</button>
+
+<p id="message"></p>
+
+<script>
+
+const mots = [
+ "chien", "chine", "carte", "carte", "acier", "acier", "aimer", "image", "repos", "poule",
+    "verre", "ecran", "ecran", "ecran", "ecran", "pirate", "pirate", "pirate", "parisien", "police",
+    "sujet", "imaginer", "soigneur", "engrais", "dispute", "nectar", "argent", "argent", "argent", "argent",
+    "argent", "manoir", "sortie", "sortie", "train", "arbre", "demon", "desir", "crime", "digue",
+    "epine", "metre", "stade", "sacre", "sacre", "lange", "signe", "ange", "louer", "amer",
+    "amer", "amer", "amis", "baiser", "calme", "caner", "centre", "conter", "danger", "entrer",
+    "etaler", "fraise", "garde", "gare", "geler", "genre", "gerbe", "grive", "large", "maree",
+    "mesure", "monter", "neige", "ombre", "ordre", "organe", "perdu", "pierre", "plainte", "poire",
+    "pores", "prise", "prise", "recit", "reine", "repli", "rival", "route", "rouge", "sable",
+    "sangle", "servi", "servi", "sucre", "table", "termes", "valse", "voile", "voler", "voter"
+];
+
+const ana = [
+"niche", "niche", "trace", "ecart", "carie", "craie", "maire", "magie", "spore", "loupe",
+    "rever", "ancre", "rance", "nacre", "carne", "patrie", "partie", "parite", "aspirine", "picole",
+    "juste", "migraine", "guerison", "graines", "stupide", "carnet", "gerant", "grenat", "garent", "ragent",
+    "ganter", "romain", "toiser", "roties", "riant", "barre", "monde", "rides", "merci", "guide",
+    "peine", "terme", "dates", "cesar", "caser", "angle", "singe", "nage", "roule", "rame",
+    "arme", "mare", "mais", "braise", "clame", "crane", "recent", "contre", "grande", "rentre",
+    "alerte", "ferais", "grade", "rage", "regle", "regne", "berge", "givre", "regal", "armee",
+    "remues", "montre", "genie", "brome", "dorer", "orange", "duper", "priere", "platine", "proie",
+    "prose", "pires", "pries", "ecrit", "renie", "piler", "livra", "troue", "orgue", "blase",
+    "angles", "rives", "viser", "crues", "balte", "remets", "salve", "olive", "lover", "votre"
+];
+
+let indice=0;
+
+function nouveauMot(){
+
+    indice=Math.floor(Math.random()*mots.length);
+
+    document.getElementById("question").innerHTML=
+    mots[indice];
+
+    document.getElementById("message").innerHTML="";
+    document.getElementById("reponse").value="";
+}
+
+function verifier(){
+
+    let reponse=document.getElementById("reponse").value.toLowerCase();
+
+    if(reponse===ana[indice]){
+
+        document.getElementById("message").innerHTML=
+        "🎉 Bravo !";
+
+    }
+
+    else{
+
+        document.getElementById("message").innerHTML=
+        "❌ Mauvaise réponse.<br><br>L'anagramme était : <b>"+ana[indice]+"</b>";
+
+    }
+
+}
+
+nouveauMot();
+
+</script>
+
+</body>
+</html>

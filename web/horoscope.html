@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Horoscope</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+select{
+    font-size:22px;
+    padding:10px;
+    border-radius:10px;
+    background:black;
+    color:white;
+    border:2px solid cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    margin:20px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#resultat{
+    font-size:28px;
+    margin-top:30px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🔮 Horoscope 🔮</h1>
+
+<p>Choisis ton signe astrologique :</p>
+
+<select id="signe">
+<option>Bélier ♈</option>
+<option>Taureau ♉</option>
+<option>Gémeaux ♊</option>
+<option>Cancer ♋</option>
+<option>Lion ♌</option>
+<option>Vierge ♍</option>
+<option>Balance ♎</option>
+<option>Scorpion ♏</option>
+<option>Sagittaire ♐</option>
+<option>Capricorne ♑</option>
+<option>Verseau ♒</option>
+<option>Poissons ♓</option>
+</select>
+
+<br>
+
+<button onclick="horoscope()">✨ Voir mon horoscope</button>
+
+<p id="resultat"></p>
+
+<script>
+
+const horo = [
+"une excellente journée pour commencer un nouveau projet.",
+"le moment idéal pour tenter ta chance.",
+"une journée pleine de surprises agréables.",
+"le bon moment pour retrouver un ami.",
+"une journée parfaite pour te détendre.",
+"une occasion de montrer tout ton talent.",
+"le moment de croire en toi.",
+"une journée remplie de bonne humeur.",
+"une surprise inattendue qui t'attend.",
+"une excellente occasion de faire rire quelqu'un.",
+"une journée où la chance sera avec toi.",
+"le moment parfait pour relever un défi.",
+"une journée où tout semble possible.",
+"le temps de réaliser un de tes rêves.",
+"une journée idéale pour apprendre quelque chose de nouveau.",
+"une journée pleine d'énergie.",
+"une belle rencontre pourrait changer ta journée.",
+"le bon moment pour essayer quelque chose de différent.",
+"une journée où ton sourire fera plaisir à tout le monde.",
+"une excellente nouvelle pourrait arriver.",
+"une journée pleine de petits bonheurs.",
+"le moment de suivre ton intuition.",
+"une journée où tu feras une belle découverte.",
+"une journée parfaite pour partager de bons moments.",
+"le début d'une grande aventure.",
+"une journée où la créativité sera au rendez-vous.",
+"une journée très chanceuse.",
+"une journée où quelqu'un pensera à toi.",
+"une journée où tu trouveras facilement une solution.",
+"une journée pleine de réussite.",
+"une journée où tout ira dans ton sens.",
+"une journée riche en émotions positives.",
+"une belle occasion de te dépasser.",
+"une journée qui restera dans les mémoires.",
+"une journée où les étoiles sont de ton côté.",
+"une belle surprise avant ce soir.",
+"une journée parfaite pour faire plaisir à quelqu'un.",
+"une journée où ton courage sera récompensé.",
+"une journée où tout te réussira.",
+"une journée remplie de joie.",
+"une journée qui commencera très bien.",
+"une journée pleine de bonnes nouvelles.",
+"une journée où tu vas impressionner quelqu'un.",
+"une journée idéale pour t'amuser.",
+"une journée qui te donnera le sourire.",
+"une journée où les bonnes idées ne manqueront pas.",
+"une journée remplie de chance.",
+"une journée parfaite pour passer du temps en famille.",
+"une journée où tu découvriras un nouveau talent.",
+"une journée où le hasard te fera un cadeau."
+];
+
+function horoscope(){
+
+let signe=document.getElementById("signe").value;
+
+let prediction=horo[Math.floor(Math.random()*horo.length)];
+
+document.getElementById("resultat").innerHTML=
+"🔮 <b>"+signe+"</b><br><br>Aujourd'hui, c'est <b>"+prediction+"</b>";
+
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Collection d'Animaux</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    margin:20px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#animal{
+    font-size:50px;
+    margin:25px;
+}
+
+#message{
+    font-size:28px;
+}
+
+#collection{
+    width:80%;
+    margin:auto;
+    margin-top:30px;
+    background:rgba(0,0,0,0.5);
+    padding:15px;
+    border-radius:20px;
+    font-size:22px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🥚 Collection d'Animaux 🥚</h1>
+
+<button onclick="ouvrir()">🥚 Ouvrir un œuf</button>
+
+<div id="animal">🥚</div>
+
+<p id="message"></p>
+
+<div id="collection">
+<b>📚 Collection :</b><br>
+<span id="liste">Aucun animal.</span>
+</div>
+
+<script>
+
+const animaux = [
+"🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien","🐶 Chien",
+"🐱 Chat","🐱 Chat","🐱 Chat","🐱 Chat","🐱 Chat","🐱 Chat","🐱 Chat","🐱 Chat","🐱 Chat",
+"🐭 Souris","🐭 Souris","🐭 Souris","🐭 Souris","🐭 Souris","🐭 Souris","🐭 Souris",
+"🐹 Hamster","🐹 Hamster","🐹 Hamster","🐹 Hamster","🐹 Hamster",
+"🐰 Lapin","🐰 Lapin","🐰 Lapin","🐰 Lapin",
+"🦊 Renard","🦊 Renard","🦊 Renard",
+"🐻 Ours","🐻 Ours","🐻 Ours",
+"🐼 Panda","🐼 Panda",
+"🐨 Koala","🐨 Koala",
+"🦁 Lion","🦁 Lion",
+"🐯 Tigre","🐯 Tigre",
+"🐺 Loup",
+"🦄 Licorne",
+"🐲 Dragon",
+"🦖 Dinosaure",
+"🦒 Girafe",
+"🐘 Éléphant",
+"🦛 Hippopotame",
+"🦏 Rhinocéros",
+"🐉 Dragon légendaire"
+];
+
+let collection=[];
+
+function ouvrir(){
+
+let animal=animaux[Math.floor(Math.random()*animaux.length)];
+
+document.getElementById("animal").innerHTML=animal;
+
+if(collection.includes(animal)){
+
+document.getElementById("message").innerHTML=
+"📚 Tu l'avais déjà !";
+
+}else{
+
+collection.push(animal);
+
+document.getElementById("message").innerHTML=
+"🎉 Nouvel animal ajouté à ta collection !";
+
+}
+
+document.getElementById("liste").innerHTML=
+collection.join(" | ");
+
+if(collection.length==20){
+
+document.getElementById("message").innerHTML=
+"🏆 Félicitations ! Tu as obtenu tous les animaux !";
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

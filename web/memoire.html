@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Jeu de Mémoire</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial, sans-serif;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+#code{
+    font-size:70px;
+    letter-spacing:15px;
+    margin:40px;
+    text-shadow:0 0 20px cyan;
+}
+
+input{
+    font-size:25px;
+    text-align:center;
+    padding:10px;
+}
+
+button{
+    background:transparent;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:30px;
+    margin-top:25px;
+}
+
+#points{
+    font-size:24px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🧠 Jeu de Mémoire 🧠</h1>
+
+<p>Retiens le code ! Tu as 5 secondes.</p>
+
+<div id="code"></div>
+
+<input id="reponse" placeholder="Le code">
+
+<br><br>
+
+<button onclick="verifier()">Valider</button>
+<button onclick="nouvellePartie()">jouer</button>
+
+<p id="message"></p>
+
+<p id="points">Points : 0</p>
+
+<script>
+
+let code = "";
+let points = 0;
+
+function nouvellePartie(){
+
+    code="";
+
+    for(let i=0;i<5;i++){
+        code += Math.floor(Math.random()*10);
+    }
+
+    document.getElementById("code").textContent=code;
+    document.getElementById("reponse").value="";
+    document.getElementById("message").textContent="";
+
+    setTimeout(function(){
+        document.getElementById("code").textContent="?????";
+    },5000);
+
+}
+
+function verifier(){
+
+    let reponse=document.getElementById("reponse").value;
+
+    if(reponse===code){
+
+        points++;
+
+        document.getElementById("message").innerHTML=
+        "🎉 Bravo ! Tu as une excellente mémoire !";
+
+    }
+
+    else{
+
+        document.getElementById("message").innerHTML=
+        "❌ Raté ! Le code était <b>"+code+"</b>";
+
+    }
+
+    document.getElementById("points").innerHTML=
+    "Points : "+points;
+
+}
+
+nouvellePartie();
+
+</script>
+
+</body>
+</html>

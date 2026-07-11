@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Devine le nombre</title>
+
+    <link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+    <style>
+
+    body {
+        background-image: url("../fond.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+
+        color: white;
+        text-align: center;
+        font-family: Arial, sans-serif;
+    }
+
+    button{
+        background-color: transparent;
+        color: white;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    input{
+        font-size:20px;
+        text-align:center;
+    }
+
+    h1{
+        font-size:60px;
+        text-shadow:0 0 15px cyan;
+    }
+
+    p{
+        font-size:25px;
+    }
+
+    </style>
+
+</head>
+
+<body>
+
+    <h1>🎯 Devine le nombre 🎯</h1>
+
+    <p>Choisis un nombre entre 1 et 10</p>
+
+    <input id="reponse" type="number">
+
+    <button onclick="verifier()">Valider</button>
+
+    <p id="message"></p>
+
+    <script>
+        let min = 1;
+        let max = 10;
+        let nombreSecret = Math.floor(Math.random() * 10) + 1;
+
+        function verifier() {
+            let reponse = Number(document.getElementById("reponse").value);
+            let message = document.getElementById("message");
+
+            if (reponse < min || reponse > max) {
+                message.textContent = "Choisis un nombre entre 1 et 10";
+            } else if (reponse < nombreSecret) {
+                message.textContent = "C'est plus grand";
+            } else if (reponse > nombreSecret) {
+                message.textContent = "C'est plus petit";
+            } else {
+                message.textContent = "Bravo 👌👏";
+            }
+        }
+    </script>
+
+</body>
+</html>

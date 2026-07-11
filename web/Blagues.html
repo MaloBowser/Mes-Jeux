@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Blague aléatoire 😂</title>
+
+<style>
+body {
+    background-image: url("../fond.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    color: white;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+body{
+    font-size:40px;
+    text-align:center;
+    color: white;
+}
+
+h1 {
+    font-size: 60px;
+    text-shadow: 0 0 15px cyan;
+}
+
+input {
+    font-size: 50px;
+    text-align: center;
+    width: 100px;
+}
+
+button {
+    background-color: transparent;
+    color: white;
+    border: 2px solid cyan;
+    border-radius: 15px;
+    padding: 10px 20px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px cyan;
+}
+
+#mot {
+    font-size: 100px;
+    letter-spacing: 10px;
+}
+
+#message, #vies, #lettres {
+    font-size: 50px;
+}
+</style>
+</head>
+
+<body>
+
+    <h1>🎮 Blague aléatoire 🎮</h1>
+    <div id="question"></div>
+
+<button onclick="voirReponse()">
+    Voir la réponse
+</button>
+
+<button onclick="nouvelleBlague()">
+    Nouvelle blague
+</button>
+
+<div id="reponse"></div>
+
+<link rel="icon" type="image/png" href="web/console-de-jeu.png">
+
+<script>
+const blague = [
+    "Que dit un escargot sur le dos d'une tortue ?",
+    "Pourquoi les plongeurs plongent-ils toujours en arrière ?",
+    "Quel est le comble pour un électricien ?",
+    "Pourquoi les poissons n'aiment pas l'ordinateur ?",
+    "Que fait une fraise sur un cheval ?",
+    "Pourquoi le livre de maths est triste ?",
+    "Quel animal est toujours content ?",
+    "Pourquoi les canards sont toujours à l'heure ?",
+    "Que dit un zéro à un huit ?",
+    "Pourquoi le fantôme est nul en mensonge ?",
+    "Quel est le fruit préféré des profs ?",
+    "Pourquoi le vélo ne tient pas debout ?",
+    "Que dit une imprimante dans l'eau ?",
+    "Quel est le sport préféré des insectes ?",
+    "Pourquoi les moutons aiment l'école ?",
+    "Que dit un mur à un autre mur ?",
+    "Pourquoi le soleil va à l'école ?",
+    "Quel est le comble pour un jardinier ?",
+    "Pourquoi les squelettes ne se battent jamais ?",
+    "Que fait un geek quand il a froid ?",
+    "Pourquoi les chats n'aiment pas l'eau ?",
+    "Quel est le comble pour un boulanger ?",
+    "Pourquoi le café va chez le psy ?",
+    "Que dit un sapin qui arrive en retard ?",
+    "Pourquoi les bananes ne bronzent pas ?",
+    "Quel est le comble pour un coiffeur ?",
+    "Pourquoi les maths portent des lunettes ?",
+    "Que dit une tomate à une autre tomate ?",
+    "Pourquoi l'ordinateur tousse ?",
+    "Quel est le comble pour un poisson ?",
+    "Pourquoi les arbres détestent les examens ?",
+    "Que dit un crayon à une gomme ?",
+    "Pourquoi les poules ont-elles peur d'Internet ?",
+    "Quel est le comble pour un pilote ?",
+    "Pourquoi le fromage est-il toujours invité ?",
+    "Que dit une chaussette à l'autre ?",
+    "Pourquoi le calendrier est fatigué ?",
+    "Quel est le comble pour un vampire ?",
+    "Pourquoi le téléphone est jaloux ?",
+    "Que dit un nuage à l'autre ?",
+    "Pourquoi les éléphants ne prennent pas l'avion ?",
+    "Quel est le comble pour un peintre ?",
+    "Pourquoi le pain raconte des blagues ?",
+    "Que dit un pingouin à la plage ?",
+    "Pourquoi les lunettes sont gentilles ?",
+    "Quel est le comble pour un facteur ?",
+    "Pourquoi les champignons sont sympas ?",
+    "Que dit une porte à une clé ?",
+    "Pourquoi le robot va à l'école ?",
+    "Quel est le comble pour un dentiste ?",
+    "Pourquoi la mer est salée ?",
+    "Que dit un volcan triste ?",
+    "Pourquoi les oiseaux chantent ?",
+    "Quel est le comble pour un astronaute ?",
+    "Pourquoi les chaussures dorment ?",
+    "Que dit un éclair au tonnerre ?",
+    "Pourquoi la pizza est drôle ?",
+    "Quel est le comble pour un magicien ?",
+    "Pourquoi le miroir ment rarement ?",
+    "Que dit un poisson à un autre poisson ?",
+    "Pourquoi les escaliers sont fatiguants ?",
+    "Quel est le comble pour un serveur ?",
+    "Pourquoi le clavier est stressé ?",
+    "Que dit une abeille à son amie ?",
+    "Pourquoi les patates dansent ?",
+    "Quel est le comble pour un médecin ?",
+    "Pourquoi la lune est timide ?",
+    "Que dit un ballon à une aiguille ?",
+    "Pourquoi les carottes sont calmes ?",
+    "Quel est le comble pour un policier ?",
+    "Pourquoi les horloges ne courent jamais ?",
+    "Que dit un serpent à un ordinateur ?",
+    "Pourquoi les pommes sont studieuses ?",
+    "Quel est le comble pour un nageur ?",
+    "Pourquoi le frigo est populaire ?",
+    "Que dit un gâteau à son anniversaire ?",
+    "Pourquoi les clés aiment la musique ?",
+    "Quel est le comble pour un marin ?",
+    "Pourquoi le stylo est timide ?",
+    "Que dit un mouton qui n'a plus de laine ?",
+    "Pourquoi les nuages sont légers ?",
+    "Quel est le comble pour un cuisinier ?",
+    "Pourquoi le tapis ne bouge jamais ?",
+    "Que dit une souris à du fromage ?",
+    "Pourquoi les livres voyagent ?",
+    "Quel est le comble pour un prof de sport ?",
+    "Pourquoi le réveil est méchant ?",
+    "Que dit une banane à une pomme ?",
+    "Pourquoi les robots ne dorment pas ?",
+    "Quel est le comble pour un photographe ?",
+    "Pourquoi le chocolat est intelligent ?",
+    "Que dit un caillou à un autre caillou ?",
+    "Pourquoi les fantômes aiment l'ascenseur ?",
+    "Quel est le comble pour un musicien ?",
+    "Pourquoi le cartable est lourd ?",
+    "Que dit une étoile à la nuit ?",
+    "Pourquoi les poissons aiment les blagues ?",
+    "Quel est le comble pour un horloger ?",
+    "Pourquoi le pingouin porte un costume ?",
+    "Que dit un ordinateur fatigué ?"
+]
+const reponses = [
+    "Wouhou, ça va vite !",
+    "Sinon ils tombent dans le bateau.",
+    "Ne pas être au courant.",
+    "Ils ont peur du net.",
+    "Tagada tagada !",
+    "Il a trop de problèmes.",
+    "Le hibou, parce qu'il dit hou-hou.",
+    "Parce qu'ils sont dans l'étang.",
+    "Belle ceinture !",
+    "On voit à travers lui.",
+    "La poire, parce qu'elle est bonne élève.",
+    "Parce qu'il est deux-roues fatigué.",
+    "J'ai papier !",
+    "Le criquet.",
+    "Parce qu'ils aiment bêêêler.",
+    "On se retrouve au coin.",
+    "Pour être brillant.",
+    "De raconter des salades.",
+    "Ils n'ont pas de cœur.",
+    "Il met un pull-over.",
+    "Parce que ça les chatouille.",
+    "D'être dans le pétrin.",
+    "Il a trop de pression.",
+    "Je suis sapin-tard.",
+    "Parce qu'elles s'épluchent.",
+    "De couper les cheveux en quatre.",
+    "Pour mieux voir les calculs.",
+    "Rougis pas !",
+    "Il a attrapé un virus.",
+    "De se noyer dans un verre d'eau.",
+    "Ils ont peur des feuilles.",
+    "Tu m'effaces la mémoire.",
+    "Elles ont peur du web.",
+    "D'avoir la tête dans les nuages.",
+    "Parce qu'il met l'ambiance.",
+    "On se suit ?",
+    "Il a trop de jours chargés.",
+    "D'avoir mal aux dents.",
+    "Parce qu'il perd ses contacts.",
+    "On va pleuvoir de rire.",
+    "Parce qu'ils ont trop de bagages.",
+    "De broyer du noir.",
+    "Parce qu'il a de la mie.",
+    "Il fait gla-gla.",
+    "Elles voient toujours clair.",
+    "De perdre le courrier.",
+    "Parce qu'ils sont champi-gnons.",
+    "Tu es la clé de mon cœur.",
+    "Pour apprendre le code.",
+    "D'avoir une dent contre quelqu'un.",
+    "Parce que les poissons pleurent dedans.",
+    "Je suis en éruption d'émotions.",
+    "Parce qu'ils ont la note.",
+    "D'être dans la lune.",
+    "Elles sont au pied du lit.",
+    "Tu fais trop de bruit.",
+    "Parce qu'elle a une bonne pâte.",
+    "De disparaître sans prévenir.",
+    "Il réfléchit.",
+    "On se fait une bulle ?",
+    "Parce qu'ils montent tout le temps.",
+    "De servir à rien.",
+    "Il a peur des touches.",
+    "Bee happy !",
+    "Parce qu'elles ont la frite.",
+    "De tomber malade.",
+    "Elle se cache derrière les nuages.",
+    "Ne me pique pas !",
+    "Parce qu'elles restent zen.",
+    "De perdre le contrôle.",
+    "Elles ont tout leur temps.",
+    "Sssssalut.",
+    "Elles veulent avoir la pêche.",
+    "De boire la tasse.",
+    "Parce qu'il garde son sang-froid.",
+    "Je vais me faire couper !",
+    "Parce qu'elles ont le bon ton.",
+    "De prendre le large.",
+    "Il n'ose pas écrire.",
+    "Je suis tout nu !",
+    "Parce qu'ils sont dans les airs.",
+    "De ne pas avoir de goût.",
+    "Il reste à plat.",
+    "Tu me fais fondre.",
+    "Ils ont plein de pages.",
+    "De courir après ses élèves.",
+    "Il sonne toujours trop tôt.",
+    "T'es pas mon genre de fruit.",
+    "Ils se mettent en veille.",
+    "De rater son objectif.",
+    "Il a des carrés.",
+    "On roule ensemble ?",
+    "Parce qu'ils montent sans payer.",
+    "De jouer faux.",
+    "Il porte tout le savoir.",
+    "Tu brilles ce soir.",
+    "Parce qu'elles tombent à l'eau.",
+    "De perdre la notion du temps.",
+    "Parce qu'il est chic et froid.",
+    "J'ai besoin de redémarrer."
+]
+// Assemblage
+const blaguesCompletes = blague.map((question, index) => ({
+    question: question,
+    reponse: reponses[index]
+}));
+
+let numero;
+
+// Choisit une blague au hasard
+function nouvelleBlague(){
+
+    numero = Math.floor(Math.random() * blaguesCompletes.length);
+
+    document.getElementById("question").textContent =
+        blaguesCompletes[numero].question;
+
+    document.getElementById("reponse").style.display = "none";
+}
+
+// Affiche la réponse
+function voirReponse(){
+
+    document.getElementById("reponse").textContent =
+        blaguesCompletes[numero].reponse;
+
+    document.getElementById("reponse").style.display = "block";
+}
+
+// Première blague
+nouvelleBlague();
+
+</script>
+
+</body>
+</html>

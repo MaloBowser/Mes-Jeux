@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Lancer de Dés</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:15px 30px;
+    font-size:22px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.1);
+    box-shadow:0 0 20px cyan;
+}
+
+#resultat{
+    font-size:30px;
+    margin-top:30px;
+}
+
+#des{
+    font-size:80px;
+    margin-top:20px;
+}
+
+#score{
+    font-size:28px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎲 Lancer de Dés 🎲</h1>
+
+<button onclick="jouer()">🎲 Lancer les dés</button>
+
+<div id="des"></div>
+
+<p id="resultat"></p>
+
+<p id="score">🏆 Score : 0</p>
+
+<script>
+
+let points = 0;
+
+const faces = ["⚀","⚁","⚂","⚃","⚄","⚅"];
+
+function jouer(){
+
+    let deMoi = Math.floor(Math.random()*6)+1;
+    let deOrdi = Math.floor(Math.random()*6)+1;
+
+    document.getElementById("des").innerHTML =
+    "🧑‍💻 " + faces[deMoi-1] + " &nbsp;&nbsp; 🤖 " + faces[deOrdi-1];
+
+    if(deMoi==deOrdi){
+
+        document.getElementById("resultat").innerHTML =
+        "🤝 Égalité ! Vous avez fait " + deMoi;
+
+    }
+
+    else if(deMoi>deOrdi){
+
+        points++;
+
+        document.getElementById("resultat").innerHTML =
+        "🎉 Tu as gagné !";
+
+    }
+
+    else{
+
+        document.getElementById("resultat").innerHTML =
+        "❌ Tu as perdu !<br>L'ordinateur a fait " + deOrdi + " et toi " + deMoi;
+
+    }
+
+    document.getElementById("score").innerHTML =
+    "🏆 Score : " + points;
+
+}
+
+</script>
+
+</body>
+</html>

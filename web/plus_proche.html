@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Le Plus Proche Gagne</title>
+
+<style>
+
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 15px cyan;
+}
+
+input{
+    font-size:22px;
+    padding:10px;
+    text-align:center;
+    width:120px;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:20px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#resultat{
+    font-size:25px;
+    margin-top:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🎯 Loto Géant 🎯</h1>
+
+<p>Choisis un nombre entre <b>1</b> et <b>50</b></p>
+
+<input id="choix" type="number" min="1" max="50">
+
+<br><br>
+
+<button onclick="jouer()">Jouer</button>
+
+<p id="resultat"></p>
+
+<script>
+
+function jouer(){
+
+    const MIN = 1;
+    const MAX = 50;
+
+    let nombre = Math.floor(Math.random()*(MAX-MIN+1))+MIN;
+
+    let robots=[];
+
+    for(let i=0;i<9;i++){
+        robots.push(Math.floor(Math.random()*(MAX-MIN+1))+MIN);
+    }
+
+    let joueur = Number(document.getElementById("choix").value);
+
+    if(joueur<1 || joueur>50){
+
+        document.getElementById("resultat").innerHTML=
+        "❌ Choisis un nombre entre 1 et 50.";
+
+        return;
+    }
+
+    let resultat="<h2>🎲 Nombre gagnant : "+nombre+"</h2><br>";
+
+    let ecarts=[];
+
+    for(let i=0;i<robots.length;i++){
+
+        resultat+="🤖 Robot "+(i+1)+" : "+robots[i]+"<br>";
+
+        ecarts.push(Math.abs(robots[i]-nombre));
+
+    }
+
+    resultat+="<br>🧑 Toi : "+joueur+"<br><br>";
+
+    let ecartJoueur=Math.abs(joueur-nombre);
+
+    let plusPetit=ecartJoueur;
+
+    for(let e of ecarts){
+
+        if(e<plusPetit){
+
+            plusPetit=e;
+
+        }
+
+    }
+
+    if(ecartJoueur==plusPetit){
+
+        resultat+="🏆 <b>Tu gagnes !</b><br>";
+
+    }
+
+    for(let i=0;i<ecarts.length;i++){
+
+        if(ecarts[i]==plusPetit){
+
+            resultat+="🏆 Robot "+(i+1)+" gagne !<br>";
+
+        }
+
+    }
+
+    document.getElementById("resultat").innerHTML=resultat;
+
+}
+
+</script>
+
+</body>
+</html>

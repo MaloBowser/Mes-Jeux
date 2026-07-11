@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Histoire Folle</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    font-family:Arial;
+    text-align:center;
+    color:white;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+input{
+    width:320px;
+    padding:12px;
+    margin:8px;
+    font-size:20px;
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+}
+
+button{
+    margin:20px;
+    padding:15px 35px;
+    font-size:22px;
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 20px cyan;
+}
+
+#parchemin{
+    margin:auto;
+    margin-top:30px;
+    width:75%;
+    background:#f8edc4;
+    color:black;
+    padding:40px;
+    border-radius:20px;
+    font-size:24px;
+    font-family:Georgia;
+    box-shadow:0 0 30px black;
+    min-height:250px;
+    line-height:1.5;
+}
+</style>
+</head>
+
+<body>
+
+<h1>📖 Machine à Histoires Folles 📖</h1>
+
+<input id="prenom" placeholder="👤 Prénom"><br>
+<input id="animal" placeholder="🐶 Animal"><br>
+<input id="lieu" placeholder="📍 Lieu"><br>
+<input id="objet" placeholder="📦 Objet"><br>
+<input id="metier" placeholder="🧑‍🚀 Métier bizarre"><br>
+<input id="nourriture" placeholder="🍕 Nourriture"><br>
+<input id="superpouvoir" placeholder="⚡ Super-pouvoir"><br>
+
+<button onclick="generer()">✨ Générer l'histoire</button>
+
+<div id="parchemin">Ton histoire apparaîtra ici...</div>
+
+<script>
+const DEBUT=[
+"{prenom}, célèbre {metier}, se promenait tranquillement à {lieu} avec un {objet}.",
+"Tout allait bien jusqu'à ce que {prenom} arrive à {lieu} avec son {animal}.",
+"Par un lundi matin, {prenom} s'est réveillé à {lieu} en mangeant {nourriture}.",
+"{prenom} voulait passer une journée normale à {lieu}, mais son {animal} avait un plan.",
+"En ouvrant les yeux, {prenom} s'est retrouvé à {lieu} avec le pouvoir de {superpouvoir}."
+];
+
+const EVENEMENT=[
+"Un énorme {animal} est arrivé en skate et a volé {nourriture}.",
+"Une pluie de {nourriture} est tombée du ciel.",
+"Le maire de {lieu} faisait du trampoline avec un {animal}.",
+"Un bébé dragon a confondu {objet} avec un ballon de football.",
+"Une banane parlante a demandé à {prenom} un selfie avec son {animal}."
+];
+
+const CATASTROPHE=[
+"{prenom} a lancé {objet} sur un robot géant.",
+"Le {animal} a mangé {objet}, puis a demandé encore {nourriture}.",
+"Tout le monde à {lieu} s'est transformé en {animal}.",
+"Grâce à son pouvoir de {superpouvoir}, {prenom} a cassé la moitié de {lieu}.",
+"Le {metier} royal a déclaré que {objet} était désormais interdit."
+];
+
+const FIN=[
+"Depuis ce jour, {prenom} est connu comme le maître de {superpouvoir}.",
+"Tout le monde a applaudi, sauf le {animal}, qui voulait plus de {nourriture}.",
+"La police n'a jamais compris pourquoi {objet} était au milieu de {lieu}.",
+"Netflix en a fait une série appelée : « {prenom} et le {animal} magique ».",
+"Et personne n'a jamais retrouvé {objet}. Enfin... sauf le {animal}."
+];
+
+function hasard(liste){
+    return liste[Math.floor(Math.random()*liste.length)];
+}
+
+function remplir(texte, infos){
+    return texte
+        .replaceAll("{prenom}", infos.prenom)
+        .replaceAll("{animal}", infos.animal)
+        .replaceAll("{lieu}", infos.lieu)
+        .replaceAll("{objet}", infos.objet)
+        .replaceAll("{metier}", infos.metier)
+        .replaceAll("{nourriture}", infos.nourriture)
+        .replaceAll("{superpouvoir}", infos.superpouvoir);
+}
+
+function generer(){
+    const infos = {
+        prenom: document.getElementById("prenom").value,
+        animal: document.getElementById("animal").value,
+        lieu: document.getElementById("lieu").value,
+        objet: document.getElementById("objet").value,
+        metier: document.getElementById("metier").value,
+        nourriture: document.getElementById("nourriture").value,
+        superpouvoir: document.getElementById("superpouvoir").value
+    };
+
+    for(let cle in infos){
+        if(infos[cle] === ""){
+            alert("Remplis toutes les cases !");
+            return;
+        }
+    }
+
+    let histoire =
+        remplir(hasard(DEBUT), infos) + "<br><br>" +
+        remplir(hasard(EVENEMENT), infos) + "<br><br>" +
+        remplir(hasard(CATASTROPHE), infos) + "<br><br>" +
+        remplir(hasard(FIN), infos);
+
+    document.getElementById("parchemin").innerHTML = histoire;
+}
+</script>
+
+</body>
+</html>

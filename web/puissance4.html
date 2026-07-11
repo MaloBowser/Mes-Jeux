@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Puissance 4</title>
+
+<style>
+body{
+    background:url("../fond.jpg");
+    background-size:cover;
+    background-attachment:fixed;
+    text-align:center;
+    color:white;
+    font-family:Arial;
+}
+
+h1{
+    font-size:60px;
+    text-shadow:0 0 20px cyan;
+}
+
+#plateau{
+    display:grid;
+    grid-template-columns:repeat(7,70px);
+    gap:8px;
+    justify-content:center;
+    background:#0044aa;
+    padding:15px;
+    border-radius:20px;
+    width:max-content;
+    margin:auto;
+}
+
+.case{
+    width:70px;
+    height:70px;
+    background:white;
+    border-radius:50%;
+    font-size:45px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+}
+
+.case:hover{
+    box-shadow:0 0 20px cyan;
+}
+
+#message{
+    font-size:28px;
+    margin:20px;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 25px;
+    font-size:22px;
+    margin:15px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🔴 Puissance 4 🟡</h1>
+
+<p id="message">Tour du joueur 🔴</p>
+
+<div id="plateau"></div>
+
+<button onclick="nouvellePartie()">🔄 Rejouer</button>
+
+<script>
+let plateau = [];
+let joueur = "🔴";
+let partieFinie = false;
+
+function nouvellePartie(){
+    plateau = [
+        [" "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "],
+        [" "," "," "," "," "," "," "]
+    ];
+
+    joueur = "🔴";
+    partieFinie = false;
+
+    document.getElementById("message").innerHTML = "Tour du joueur 🔴";
+    afficher();
+}
+
+function afficher(){
+    const zone = document.getElementById("plateau");
+    zone.innerHTML = "";
+
+    for(let ligne=0; ligne<6; ligne++){
+        for(let colonne=0; colonne<7; colonne++){
+            let div = document.createElement("div");
+            div.className = "case";
+            div.innerHTML = plateau[ligne][colonne];
+            div.onclick = function(){
+                jouer(colonne);
+            };
+            zone.appendChild(div);
+        }
+    }
+}
+
+function jouer(colonne){
+    if(partieFinie) return;
+
+    if(plateau[0][colonne] !== " "){
+        document.getElementById("message").innerHTML = "❌ Cette colonne est pleine.";
+        return;
+    }
+
+    for(let ligne=5; ligne>=0; ligne--){
+        if(plateau[ligne][colonne] === " "){
+            plateau[ligne][colonne] = joueur;
+            break;
+        }
+    }
+
+    afficher();
+
+    if(gagnant(joueur)){
+        document.getElementById("message").innerHTML =
+        "🏆 Le joueur " + joueur + " a gagné !";
+        partieFinie = true;
+        return;
+    }
+
+    joueur = joueur === "🔴" ? "🟡" : "🔴";
+    document.getElementById("message").innerHTML =
+    "Tour du joueur " + joueur;
+}
+
+function gagnant(pion){
+    for(let ligne=0; ligne<6; ligne++){
+        for(let colonne=0; colonne<4; colonne++){
+            if(
+                plateau[ligne][colonne] === pion &&
+                plateau[ligne][colonne+1] === pion &&
+                plateau[ligne][colonne+2] === pion &&
+                plateau[ligne][colonne+3] === pion
+            ){
+                return true;
+            }
+        }
+    }
+
+    for(let ligne=0; ligne<3; ligne++){
+        for(let colonne=0; colonne<7; colonne++){
+            if(
+                plateau[ligne][colonne] === pion &&
+                plateau[ligne+1][colonne] === pion &&
+                plateau[ligne+2][colonne] === pion &&
+                plateau[ligne+3][colonne] === pion
+            ){
+                return true;
+            }
+        }
+    }
+
+    for(let ligne=0; ligne<3; ligne++){
+        for(let colonne=0; colonne<4; colonne++){
+            if(
+                plateau[ligne][colonne] === pion &&
+                plateau[ligne+1][colonne+1] === pion &&
+                plateau[ligne+2][colonne+2] === pion &&
+                plateau[ligne+3][colonne+3] === pion
+            ){
+                return true;
+            }
+        }
+    }
+
+    for(let ligne=3; ligne<6; ligne++){
+        for(let colonne=0; colonne<4; colonne++){
+            if(
+                plateau[ligne][colonne] === pion &&
+                plateau[ligne-1][colonne+1] === pion &&
+                plateau[ligne-2][colonne+2] === pion &&
+                plateau[ligne-3][colonne+3] === pion
+            ){
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+nouvellePartie();
+</script>
+
+</body>
+</html>
