@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Les jeux de Malo</title>
 
     <link rel="icon" type="image/png" href="web/console-de-jeu.png">
@@ -34,6 +35,10 @@
             transform: scale(1.08);
         }
 
+        .jeu.masque {
+            display: none;
+        }
+
         .jeu img {
             width: 260px;
             height: 150px;
@@ -57,6 +62,80 @@
             transform: scale(1.1);
             box-shadow: 0 0 30px cyan;
         }
+
+        .outils {
+            margin: 0 auto 15px;
+            padding: 0 15px;
+        }
+
+        .recherche {
+            width: min(420px, calc(100% - 40px));
+            padding: 12px 18px;
+            margin: 0 8px 12px;
+            color: white;
+            background: rgba(0, 0, 0, 0.55);
+            border: 2px solid cyan;
+            border-radius: 20px;
+            font-size: 18px;
+            outline: none;
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.45);
+        }
+
+        .recherche:focus {
+            box-shadow: 0 0 25px cyan;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 8px auto 12px;
+        }
+
+        .categorie,
+        #jeu-aleatoire {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(0, 255, 255, 0.55);
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+
+        .categorie.active {
+            background: rgba(0, 255, 255, 0.22);
+            border-color: cyan;
+            box-shadow: 0 0 22px cyan;
+        }
+
+        #compteur-jeux {
+            display: inline-block;
+            min-width: 95px;
+            margin: 8px;
+            font-size: 18px;
+            text-shadow: 0 0 8px cyan;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 42px;
+            }
+
+            .categories {
+                gap: 7px;
+            }
+
+            .categorie {
+                padding: 9px 12px;
+                font-size: 15px;
+            }
+
+            .jeu {
+                margin: 18px 8px;
+            }
+
+            .jeu img {
+                width: min(260px, calc(100vw - 30px));
+            }
+        }
     </style>
 </head>
 
@@ -64,7 +143,24 @@
 
     <h1>🎮 Les jeux de Malo 🎮</h1>
 
-<div class="jeu" data-nom="snake serpent arcade pomme">
+    <div class="outils">
+        <input id="recherche" class="recherche" type="search" placeholder="🔎 Rechercher un jeu..." aria-label="Rechercher un jeu">
+
+        <div class="categories" aria-label="Catégories de jeux">
+            <button class="categorie active" type="button" data-categorie="tous">🎮 Tous les jeux</button>
+            <button class="categorie" type="button" data-categorie="solo">👤 Solo</button>
+            <button class="categorie" type="button" data-categorie="multijoueur">👥 Multijoueur</button>
+            <button class="categorie" type="button" data-categorie="drole">😂 Drôle</button>
+            <button class="categorie" type="button" data-categorie="reflexion">🧠 Réflexion</button>
+            <button class="categorie" type="button" data-categorie="hasard">🎲 Hasard</button>
+            <button class="categorie" type="button" data-categorie="culture">📚 Culture</button>
+        </div>
+
+        <button id="jeu-aleatoire" type="button">🎲 Jeu aléatoire</button>
+        <span id="compteur-jeux" aria-live="polite"></span>
+    </div>
+
+<div class="jeu" data-nom="snake serpent arcade pomme" data-categories="solo reflexion">
     <img alt="Aperçu du jeu Snake" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 150'%3E%3Crect width='260' height='150' fill='%23020b10'/%3E%3Cpath d='M35 105h95V75H85V45h95v30h35' fill='none' stroke='%2322cc55' stroke-width='22' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='220' cy='75' r='12' fill='%23ff334f'/%3E%3Ccircle cx='38' cy='105' r='3' fill='white'/%3E%3Ctext x='130' y='137' text-anchor='middle' fill='cyan' font-family='Arial' font-size='20' font-weight='bold'%3ESNAKE%3C/text%3E%3C/svg%3E">
     <br>
     <a href="web/snake.html">
@@ -73,7 +169,7 @@
 </div>
 
 
-    <div class="jeu">
+    <div class="jeu" data-categories="solo reflexion">
     <img src="web/IN.png">
     <br>
     <a href="web/devine_nombre.html">
@@ -81,7 +177,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo drole hasard">
     <img src="web/HF.png">
     <br>
     <a href="web/histoire_folle.html">
@@ -89,7 +185,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="quiz multijoueurs questions nombres">
+<div class="jeu" data-nom="quiz multijoueurs questions nombres" data-categories="multijoueur reflexion culture">
     <img src="web/QUIZ.png">
     <br>
     <a href="web/quiz_multi.html">
@@ -97,7 +193,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo drole">
     <img src="web/IA.png">
     <br>
     <a href="web/malo_ia.html">
@@ -105,7 +201,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="mr white jeu role mot secret">
+<div class="jeu" data-nom="mr white jeu role mot secret" data-categories="multijoueur reflexion drole">
     <img src="web/MR.png">
     <br>
     <a href="web/mr_white.html">
@@ -113,7 +209,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="bataille navale bateau mer">
+<div class="jeu" data-nom="bataille navale bateau mer" data-categories="multijoueur reflexion">
     <img src="web/BN.png">
     <br>
     <a href="web/bataille_navale.htm">
@@ -121,7 +217,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="detective enquete coupable voleur">
+<div class="jeu" data-nom="detective enquete coupable voleur" data-categories="solo reflexion">
     <img src="web/DETECTIVE.png">
     <br>
     <a href="web/detective.html">
@@ -130,14 +226,14 @@
 </div>
 
 
-<div class="jeu" data-nom="ballons mysteres hasard lot">
+<div class="jeu" data-nom="ballons mysteres hasard lot" data-categories="solo hasard">
     <img src="web/BALLON.png">
     <br>
     <a href="web/ballons.html">
         <button>🎈 Ballons Mystères</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion culture">
     <img src="web/VERITE.png">
     <br>
     <a href="web/verite_ou_mensonge.html">
@@ -145,7 +241,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="morpion tic tac toe x o ordinateur">
+<div class="jeu" data-nom="morpion tic tac toe x o ordinateur" data-categories="multijoueur reflexion">
     <img src="web/MORPION.png">
     <br>
     <a href="web/morpion.htm">
@@ -153,7 +249,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="puissance 4 rouge jaune">
+<div class="jeu" data-nom="puissance 4 rouge jaune" data-categories="multijoueur reflexion">
     <img src="web/PUISSANCE4.png">
     <br>
     <a href="web/puissance4.html">
@@ -161,7 +257,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo multijoueur hasard">
     <img src="web/PFC.png">
     <br>
     <a href="web/pierre_feuille_ciseaux.html">
@@ -169,7 +265,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo drole hasard">
     <img src="web/HO.png">
     <br>
     <a href="web/horoscope.html">
@@ -177,14 +273,14 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion hasard">
     <img src="web/TRESOR.png">
     <br>
     <a href="web/tresor_mystere.html">
         <button>🏴‍☠️ Trésor Mystère</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo hasard">
     <img src="web/CH.png">
     <br>
     <a href="web/chance.html">
@@ -192,7 +288,7 @@
     </a>
 </div>
 
-<div class="jeu" data-nom="taboo mots interdits deviner">
+<div class="jeu" data-nom="taboo mots interdits deviner" data-categories="multijoueur reflexion culture">
     <img src="web/TABOO.png">
     <br>
     <a href="web/taboo.html">
@@ -200,7 +296,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion culture">
     <img src="web/CAP.png">
     <br>
     <a href="web/capitales.html">
@@ -208,7 +304,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo hasard">
     <img src="web/Nounours.png">
     <br>
     <a href="web/peluche.html">
@@ -216,7 +312,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="multijoueur hasard">
     <img src="web/PPG.png">
     <br>
     <a href="web/plus_proche.html">
@@ -224,7 +320,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion culture">
     <img src="web/VF.png">
     <br>
     <a href="web/vrai_faux.html">
@@ -232,7 +328,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion hasard">
     <img src="web/PORTE.png">
     <br>
     <a href="web/portes.html">
@@ -240,7 +336,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion culture">
     <img src="web/MATH.png">
     <br>
     <a href="web/maths.html">
@@ -248,7 +344,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="multijoueur drole hasard">
     <img src="web/AV.png">
     <br>
     <a href="web/action_verite.html">
@@ -256,7 +352,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion culture">
     <img src="web/ANA.png">
     <br>
     <a href="web/anagrammes.html">
@@ -264,7 +360,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion">
     <img src="web/JP.png">
     <br>
     <a href="web/juste_prix.html">
@@ -272,7 +368,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion">
     <img src="web/CA.png">
     <br>
     <a href="web/code_secret.html">
@@ -280,14 +376,14 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo hasard">
     <img src="web/PF.png">
     <br>
     <a href="web/pile_face.html">
         <button>🪙 Pile ou Face</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo drole hasard">
     <img src="web/HA.png">
     <br>
     <a href="web/Blagues.html">
@@ -295,7 +391,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion hasard">
     <img src="web/BOITE.png">
     <br>
     <a href="web/devine_boite.html">
@@ -303,7 +399,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="multijoueur drole hasard">
     <img src="web/ESC.png">
     <br>
     <a href="web/course_escargots.html">
@@ -311,7 +407,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo hasard">
     <img src="web/ANIMAUX.png">
     <br>
     <a href="web/collection_animaux.html">
@@ -319,7 +415,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo hasard">
     <img src="web/BANQUE.png">
     <br>
     <a href="web/banque_folle.html">
@@ -327,7 +423,7 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo hasard">
     <img src="web/SLOT.png">
     <br>
     <a href="web/machine_sous.html">
@@ -335,49 +431,49 @@
     </a>
 </div>
 
-<div class="jeu">
+<div class="jeu" data-categories="solo multijoueur hasard">
     <img src="web/DE.png">
     <br>
     <a href="web/des.html">
         <button>🎲 Lancer de Dés</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo multijoueur reflexion hasard">
     <img src="web/CARTE.png">
     <br>
     <a href="web/cartes.html">
         <button>🃏 Combat de Cartes</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion">
     <img src="web/BO.png">
     <br>
     <a href="web/desamorceur.html">
         <button>💣 Désamorce la bombe</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion">
     <img src="web/ME.png">
     <br>
     <a href="web/memoire.html">
         <button>🧠 Jeu de Mémoire</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion drole">
     <img src="web/GM.png">
     <br>
     <a href="web/Genie.html">
         <button>🧁 Génie du Muffin</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="multijoueur drole hasard">
     <img src="web/GA.png">
     <br>
     <a href="web/gages.html">
         <button>🎲 Gages</button>
     </a>
 </div>
-<div class="jeu">
+<div class="jeu" data-categories="solo reflexion culture">
     <img src="web/P.png">
     <br>
     <a href="web/pendu.html">
@@ -387,6 +483,63 @@
 <p>
     <h5><a href="https://www.veryfrog.com/">Si vous avez besoin d'aide en informatique</a>  :)</br>
 c'est la personne qu'il vous faut  </p></h5>
+
+<script>
+    const cartesJeux = Array.from(document.querySelectorAll('.jeu'));
+    const boutonsCategories = document.querySelectorAll('.categorie');
+    const recherche = document.getElementById('recherche');
+    const compteurJeux = document.getElementById('compteur-jeux');
+    const boutonAleatoire = document.getElementById('jeu-aleatoire');
+    let categorieActive = 'tous';
+
+    function normaliser(texte) {
+        return texte
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function filtrerJeux() {
+        const rechercheActive = normaliser(recherche.value.trim());
+        let nombreVisible = 0;
+
+        cartesJeux.forEach((carte) => {
+            const categories = carte.dataset.categories.split(' ');
+            const nom = normaliser(`${carte.dataset.nom || ''} ${carte.textContent}`);
+            const bonneCategorie = categorieActive === 'tous' || categories.includes(categorieActive);
+            const bonneRecherche = nom.includes(rechercheActive);
+            const estVisible = bonneCategorie && bonneRecherche;
+
+            carte.classList.toggle('masque', !estVisible);
+            if (estVisible) nombreVisible++;
+        });
+
+        compteurJeux.textContent = `${nombreVisible} jeu${nombreVisible === 1 ? '' : 'x'}`;
+    }
+
+    boutonsCategories.forEach((bouton) => {
+        bouton.addEventListener('click', () => {
+            categorieActive = bouton.dataset.categorie;
+            boutonsCategories.forEach((autreBouton) => autreBouton.classList.remove('active'));
+            bouton.classList.add('active');
+            filtrerJeux();
+        });
+    });
+
+    recherche.addEventListener('input', filtrerJeux);
+
+    boutonAleatoire.addEventListener('click', () => {
+        const jeuxVisibles = cartesJeux.filter((carte) => !carte.classList.contains('masque'));
+
+        if (jeuxVisibles.length === 0) return;
+
+        const jeuChoisi = jeuxVisibles[Math.floor(Math.random() * jeuxVisibles.length)];
+        const lien = jeuChoisi.querySelector('a');
+        if (lien) window.location.href = lien.href;
+    });
+
+    filtrerJeux();
+</script>
 
 </body>
 </html>
