@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>La Grande Salle des Enchères</title>
+
+<style>
+body{
+    background-image:url("../fond.jpg");
+    background-size:cover;
+    background-position:center;
+    background-attachment:fixed;
+    color:white;
+    font-family:Arial, sans-serif;
+    text-align:center;
+    margin:0;
+    min-height:100vh;
+}
+
+h1{
+    font-size:55px;
+    text-shadow:0 0 15px cyan, 0 0 30px blue;
+}
+
+.zone{
+    width:min(850px, 90%);
+    margin:25px auto;
+    padding:25px;
+    background:rgba(0,0,0,0.75);
+    border:2px solid cyan;
+    border-radius:25px;
+    box-shadow:0 0 25px cyan;
+}
+
+input{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:12px;
+    padding:11px;
+    margin:7px;
+    font-size:20px;
+    text-align:center;
+}
+
+button{
+    background:black;
+    color:white;
+    border:2px solid cyan;
+    border-radius:15px;
+    padding:12px 24px;
+    margin:9px;
+    font-size:19px;
+    cursor:pointer;
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 18px cyan;
+}
+
+button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+}
+
+#objet{
+    font-size:38px;
+    color:gold;
+    text-shadow:0 0 15px orange;
+}
+
+#message{
+    font-size:23px;
+    min-height:50px;
+}
+
+.joueur{
+    display:inline-block;
+    min-width:190px;
+    margin:8px;
+    padding:12px;
+    background:rgba(0,20,40,0.8);
+    border:1px solid cyan;
+    border-radius:15px;
+}
+
+.meilleur{
+    border-color:gold;
+    box-shadow:0 0 18px gold;
+}
+
+.cache{
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏛️ La Grande Salle des Enchères 🏛️</h1>
+
+<div id="creation" class="zone">
+
+    <h2>Créer la partie</h2>
+
+    <p>Chaque joueur commence avec <b>50 000 €</b>.</p>
+
+    <input
+        id="nombreJoueurs"
+        type="number"
+        min="2"
+        max="6"
+        value="2"
+        placeholder="Nombre de joueurs"
+    >
+
+    <br>
+
+    <button onclick="creerCasesJoueurs()">
+        👥 Valider
+    </button>
+
+    <div id="nomsJoueurs"></div>
+
+    <button
+        id="boutonCommencer"
+        class="cache"
+        onclick="commencerPartie()"
+    >
+        🔨 Commencer les enchères
+    </button>
+
+</div>
+
+<div id="jeu" class="zone cache">
+
+    <p id="manche"></p>
+
+    <h2 id="objet"></h2>
+
+    <p id="prixDepart"></p>
+
+    <div id="joueurs"></div>
+
+    <hr>
+
+    <p id="tour"></p>
+
+    <input
+        id="offre"
+        type="number"
+        placeholder="Ton offre"
+    >
+
+    <br>
+
+    <button onclick="proposerOffre()">
+        💰 Enchérir
+    </button>
+
+    <button onclick="passer()">
+        ✋ Passer
+    </button>
+
+    <p id="message"></p>
+
+</div>
+
+<div id="classement" class="zone cache"></div>
+
+<script>
+
+/* =========================================================
+   COLLE TES DEUX LISTES JUSTE ICI
+   ========================================================= */
+
+const objets = [
+    // Colle ici ta liste des objets.
+    // Exemple :
+    "Une console",
+    "Un vélo",
+    "Une montre"
+];
+
+const valeurs = [
+    // Colle ici la valeur de chaque objet,
+    // dans exactement le même ordre.
+    // Exemple :
+    500,
+    300,
+    100
+];
+
+/* =========================================================
+   NE COLLE PAS TES LISTES PLUS BAS
+   ========================================================= */
+
+const BUDGET_DE_DEPART = 50000;
+const NOMBRE_DE_LOTS = 8;
+
+let joueurs = [];
+let lots = [];
+
+let manche = 0;
+let joueurActuel = 0;
+
+let prixDepart = 0;
+let offreActuelle = 0;
+let meneur = null;
+
+let joueursActifs = [];
+
+function argent(montant){
+    return montant.toLocaleString("fr-FR") + " €";
+}
+
+function melanger(tableau){
+    let copie = [...tableau];
+
+    for(let i = copie.length - 1; i > 0; i--){
+        let hasard = Math.floor(Math.random() * (i + 1));
+
+        [copie[i], copie[hasard]] =
+        [copie[hasard], copie[i]];
+    }
+
+    return copie;
+}
+
+function creerCasesJoueurs(){
+
+    let nombre = Number(
+        document.getElementById("nombreJoueurs").value
+    );
+
+    if(nombre < 2 || nombre > 6){
+        alert("Choisis entre 2 et 6 joueurs.");
+        return;
+    }
+
+    let html = "<h3>Noms des joueurs</h3>";
+
+    for(let i = 0; i < nombre; i++){
+
+        html += `
+            <input
+                id="nom${i}"
+                placeholder="Joueur ${i + 1}"
+            >
+            <br>
+        `;
+    }
+
+    document.getElementById("nomsJoueurs").innerHTML = html;
+
+    document
+        .getElementById("boutonCommencer")
+        .classList.remove("cache");
+}
+
+function commencerPartie(){
+
+    let nombre = Number(
+        document.getElementById("nombreJoueurs").value
+    );
+
+    joueurs = [];
+
+    for(let i = 0; i < nombre; i++){
+
+        let nom = document
+            .getElementById("nom" + i)
+            .value
+            .trim();
+
+        if(nom === ""){
+            alert("Tous les joueurs doivent avoir un nom.");
+            return;
+        }
+
+        let dejaUtilise = joueurs.some(function(joueur){
+            return joueur.nom.toLowerCase() === nom.toLowerCase();
+        });
+
+        if(dejaUtilise){
+            alert("Chaque joueur doit avoir un nom différent.");
+            return;
+        }
+
+        joueurs.push({
+            nom: nom,
+            argent: BUDGET_DE_DEPART,
+            lots: []
+        });
+    }
+
+    if(objets.length !== valeurs.length){
+        alert(
+            "Erreur : la liste objets et la liste valeurs " +
+            "n'ont pas la même longueur."
+        );
+        return;
+    }
+
+    lots = objets.map(function(objet, index){
+        return {
+            objet: objet,
+            valeur: valeurs[index]
+        };
+    });
+
+    lots = melanger(lots);
+
+    manche = 0;
+
+    document.getElementById("creation").classList.add("cache");
+    document.getElementById("jeu").classList.remove("cache");
+
+    nouveauLot();
+}
+
+function nouveauLot(){
+
+    if(
+        manche >= NOMBRE_DE_LOTS ||
+        manche >= lots.length
+    ){
+        afficherClassement();
+        return;
+    }
+
+    let lot = lots[manche];
+
+    prixDepart = Math.max(
+        10,
+        Math.floor(lot.valeur / 20)
+    );
+
+    offreActuelle = 0;
+    meneur = null;
+
+    joueursActifs = [];
+
+    for(let i = 0; i < joueurs.length; i++){
+
+        if(joueurs[i].argent >= prixDepart){
+            joueursActifs.push(i);
+        }
+    }
+
+    joueurActuel = manche % joueurs.length;
+
+    document.getElementById("manche").innerHTML =
+        "🔨 Manche " + (manche + 1) +
+        " / " + Math.min(NOMBRE_DE_LOTS, lots.length);
+
+    document.getElementById("objet").innerHTML =
+        "📦 " + lot.objet;
+
+    document.getElementById("prixDepart").innerHTML =
+        "Prix de départ : <b>" +
+        argent(prixDepart) +
+        "</b><br>" +
+        "La valeur réelle sera révélée après la vente.";
+
+    document.getElementById("message").innerHTML = "";
+
+    afficherJoueurs();
+    prochainJoueur();
+}
+
+function afficherJoueurs(){
+
+    let html = "";
+
+    for(let i = 0; i < joueurs.length; i++){
+
+        let classe = "joueur";
+
+        if(i === meneur){
+            classe += " meilleur";
+        }
+
+        let statut = joueursActifs.includes(i)
+            ? "✅ En course"
+            : "❌ A passé";
+
+        html += `
+            <div class="${classe}">
+                <b>${joueurs[i].nom}</b>
+                <br>
+                💰 ${argent(joueurs[i].argent)}
+                <br>
+                🎁 ${joueurs[i].lots.length} lot(s)
+                <br>
+                ${statut}
+            </div>
+        `;
+    }
+
+    document.getElementById("joueurs").innerHTML = html;
+}
+
+function prochainJoueur(){
+
+    if(enchereTerminee()){
+        terminerEnchere();
+        return;
+    }
+
+    let securite = 0;
+
+    while(
+        !joueursActifs.includes(joueurActuel) &&
+        securite < joueurs.length
+    ){
+        joueurActuel =
+            (joueurActuel + 1) % joueurs.length;
+
+        securite++;
+    }
+
+    let joueur = joueurs[joueurActuel];
+
+    let minimum;
+
+    if(meneur === null){
+        minimum = prixDepart;
+    }else{
+        minimum =
+            offreActuelle +
+            Math.max(
+                10,
+                Math.floor(offreActuelle / 20)
+            );
+    }
+
+    document.getElementById("tour").innerHTML =
+        "🎤 À <b>" + joueur.nom + "</b> de jouer." +
+        "<br>Offre minimum : <b>" +
+        argent(minimum) +
+        "</b>";
+
+    document.getElementById("offre").value = "";
+    document.getElementById("offre").min = minimum;
+    document.getElementById("offre").max = joueur.argent;
+}
+
+function proposerOffre(){
+
+    if(!joueursActifs.includes(joueurActuel)){
+        return;
+    }
+
+    let joueur = joueurs[joueurActuel];
+
+    let nouvelleOffre = Number(
+        document.getElementById("offre").value
+    );
+
+    let minimum;
+
+    if(meneur === null){
+        minimum = prixDepart;
+    }else{
+        minimum =
+            offreActuelle +
+            Math.max(
+                10,
+                Math.floor(offreActuelle / 20)
+            );
+    }
+
+    if(
+        !Number.isInteger(nouvelleOffre) ||
+        nouvelleOffre < minimum ||
+        nouvelleOffre > joueur.argent
+    ){
+        document.getElementById("message").innerHTML =
+            "❌ Ton offre doit être comprise entre " +
+            argent(minimum) +
+            " et " +
+            argent(joueur.argent) +
+            ".";
+
+        return;
+    }
+
+    offreActuelle = nouvelleOffre;
+    meneur = joueurActuel;
+
+    document.getElementById("message").innerHTML =
+        "🔥 Meilleure offre : <b>" +
+        argent(offreActuelle) +
+        "</b> par <b>" +
+        joueur.nom +
+        "</b> !";
+
+    joueurActuel =
+        (joueurActuel + 1) % joueurs.length;
+
+    afficherJoueurs();
+    prochainJoueur();
+}
+
+function passer(){
+
+    if(!joueursActifs.includes(joueurActuel)){
+        return;
+    }
+
+    let joueur = joueurs[joueurActuel];
+
+    joueursActifs =
+        joueursActifs.filter(function(index){
+            return index !== joueurActuel;
+        });
+
+    document.getElementById("message").innerHTML =
+        "✋ " + joueur.nom +
+        " passe définitivement sur ce lot.";
+
+    joueurActuel =
+        (joueurActuel + 1) % joueurs.length;
+
+    afficherJoueurs();
+    prochainJoueur();
+}
+
+function enchereTerminee(){
+
+    if(joueursActifs.length === 0){
+        return true;
+    }
+
+    if(
+        joueursActifs.length === 1 &&
+        meneur !== null &&
+        joueursActifs[0] === meneur
+    ){
+        return true;
+    }
+
+    return false;
+}
+
+function terminerEnchere(){
+
+    let lot = lots[manche];
+
+    if(meneur === null){
+
+        document.getElementById("message").innerHTML =
+            "😶 Personne n'achète ce lot." +
+            "<br><br>" +
+            "<button onclick='lotSuivant()'>" +
+            "Lot suivant ➡️" +
+            "</button>";
+
+        return;
+    }
+
+    let gagnant = joueurs[meneur];
+
+    gagnant.argent -= offreActuelle;
+
+    gagnant.lots.push({
+        objet: lot.objet,
+        valeur: lot.valeur,
+        prix: offreActuelle
+    });
+
+    let difference =
+        lot.valeur - offreActuelle;
+
+    let resultat;
+
+    if(difference >= 0){
+
+        resultat =
+            "✅ Bonne affaire : gain potentiel de " +
+            argent(difference) +
+            ".";
+
+    }else{
+
+        resultat =
+            "❌ Mauvaise affaire : perte potentielle de " +
+            argent(-difference) +
+            ".";
+    }
+
+    afficherJoueurs();
+
+    document.getElementById("message").innerHTML =
+        "🔨 Adjugé à <b>" +
+        gagnant.nom +
+        "</b> pour <b>" +
+        argent(offreActuelle) +
+        "</b> !" +
+        "<br><br>" +
+        "Valeur réelle : <b>" +
+        argent(lot.valeur) +
+        "</b>" +
+        "<br>" +
+        resultat +
+        "<br><br>" +
+        "<button onclick='lotSuivant()'>" +
+        "Lot suivant ➡️" +
+        "</button>";
+}
+
+function lotSuivant(){
+
+    manche++;
+    nouveauLot();
+}
+
+function afficherClassement(){
+
+    document.getElementById("jeu").classList.add("cache");
+    document.getElementById("classement").classList.remove("cache");
+
+    let classement = [...joueurs];
+
+    classement.sort(function(a, b){
+
+        let fortuneA =
+            a.argent +
+            a.lots.reduce(function(total, lot){
+                return total + lot.valeur;
+            }, 0);
+
+        let fortuneB =
+            b.argent +
+            b.lots.reduce(function(total, lot){
+                return total + lot.valeur;
+            }, 0);
+
+        return fortuneB - fortuneA;
+    });
+
+    let html = "<h2>🏆 Classement final</h2>";
+
+    classement.forEach(function(joueur, index){
+
+        let valeurCollection =
+            joueur.lots.reduce(function(total, lot){
+                return total + lot.valeur;
+            }, 0);
+
+        let fortuneTotale =
+            joueur.argent + valeurCollection;
+
+        html += `
+            <div class="joueur">
+                <h3>${index + 1}. ${joueur.nom}</h3>
+
+                💰 Argent restant :
+                ${argent(joueur.argent)}
+
+                <br>
+
+                🎁 Valeur de la collection :
+                ${argent(valeurCollection)}
+
+                <br>
+
+                🏦 Fortune totale :
+                <b>${argent(fortuneTotale)}</b>
+
+                <hr>
+
+                ${joueur.lots.length === 0
+                    ? "Aucun lot acheté."
+                    : joueur.lots.map(function(lot){
+                        return `
+                            ${lot.objet}
+                            <br>
+                            Vaut ${argent(lot.valeur)},
+                            payé ${argent(lot.prix)}
+                            <br><br>
+                        `;
+                    }).join("")
+                }
+            </div>
+        `;
+    });
+
+    html += `
+        <h2>
+            🥇 ${classement[0].nom}
+            remporte la partie !
+        </h2>
+
+        <button onclick="location.reload()">
+            🔄 Rejouer
+        </button>
+    `;
+
+    document.getElementById("classement").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
