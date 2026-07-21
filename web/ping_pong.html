@@ -136,6 +136,9 @@
             margin: 20px auto;
 
             overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
 
             background:
                 radial-gradient(
@@ -397,6 +400,52 @@
             animation: secousse 0.22s;
         }
 
+        .commandes-mobile {
+            display: none;
+            margin-top: 18px;
+        }
+
+        .commandes-mobile p {
+            color: #bafaff;
+            font-size: 18px;
+        }
+
+        #boutonSmashMobile {
+            min-width: 240px;
+            min-height: 70px;
+            border-color: orange;
+            font-size: 25px;
+            touch-action: manipulation;
+            box-shadow:
+                0 0 12px orange,
+                0 0 25px rgba(255, 100, 0, 0.7);
+        }
+
+        #boutonSmashMobile:active {
+            transform: scale(0.94);
+            background: #301500;
+        }
+
+        #boutonSmashMobile:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        @media (pointer: coarse), (max-width: 800px) {
+            .commandes-mobile {
+                display: block;
+            }
+
+            .commandes {
+                display: none;
+            }
+
+            #terrain {
+                touch-action: none;
+            }
+        }
+
         @media screen and (max-width: 650px) {
             .jeu {
                 padding: 12px;
@@ -537,6 +586,17 @@
 
         </div>
 
+        <div id="commandesMobile" class="commandes-mobile">
+            <p>
+                📱 Glisse ton doigt verticalement sur le terrain
+                pour déplacer ta raquette.
+            </p>
+
+            <button id="boutonSmashMobile" type="button">
+                ⚡ SMASH
+            </button>
+        </div>
+
         <p id="message">
             Clique sur « Commencer le match ».
         </p>
@@ -562,6 +622,9 @@
         const boutonRejouer =
             document.getElementById("boutonRejouer");
 
+        const boutonSmashMobile =
+            document.getElementById("boutonSmashMobile");
+
         const difficulte =
             document.getElementById("difficulte");
 
@@ -584,6 +647,7 @@
 
         let toucheHaut = false;
         let toucheBas = false;
+        let doigtSurTerrain = false;
 
         let smashPret = false;
         let energieSmash = 100;
@@ -637,6 +701,18 @@
                 "texteSmash"
             ).textContent =
                 Math.floor(energieSmash) + " %";
+
+            if(energieSmash >= 100) {
+                boutonSmashMobile.disabled = false;
+
+                if(!smashPret) {
+                    boutonSmashMobile.textContent = "⚡ SMASH";
+                }
+            } else {
+                boutonSmashMobile.disabled = true;
+                boutonSmashMobile.textContent =
+                    "⚡ " + Math.floor(energieSmash) + " %";
+            }
         }
 
         function actualiserDimensions() {
@@ -984,7 +1060,7 @@
                     nouvelleVitesse =
                         Math.min(
                             19,
-                            nouvelleVitesse + 2,5
+                            nouvelleVitesse + 2.5
                         );
 
                     vitesseY +=
@@ -992,6 +1068,8 @@
 
                     smashPret = false;
                     energieSmash = 0;
+
+                    boutonSmashMobile.textContent = "⚡ SMASH";
 
                     afficherMessage(
                         "💥 SMASH INCROYABLE !",
@@ -1196,6 +1274,46 @@
             );
         }
 
+        function preparerSmash() {
+            if(
+                partieEnCours &&
+                energieSmash >= 100
+            ) {
+                smashPret = true;
+
+                afficherMessage(
+                    "⚡ Smash prêt ! " +
+                    "Rattrape la balle avec ta raquette !"
+                );
+
+                boutonSmashMobile.textContent =
+                    "🔥 SMASH PRÊT";
+            }
+        }
+
+        function obtenirPositionTactile(event) {
+            const rectangle = terrain.getBoundingClientRect();
+            return event.clientY - rectangle.top;
+        }
+
+        function deplacerRaquetteAvecDoigt(event) {
+            if(!partieEnCours) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const demiRaquette = hauteurRaquette / 2;
+
+            joueurY = limiter(
+                obtenirPositionTactile(event),
+                demiRaquette,
+                hauteurTerrain - demiRaquette
+            );
+
+            raquetteJoueur.style.top = joueurY + "px";
+        }
+
         function nombreAleatoire(
             minimum,
             maximum
@@ -1226,18 +1344,7 @@
                     event.code === "Space"
                 ) {
                     event.preventDefault();
-
-                    if(
-                        partieEnCours &&
-                        energieSmash >= 100
-                    ) {
-                        smashPret = true;
-
-                        afficherMessage(
-                            "⚡ Smash prêt ! " +
-                            "Touche la balle avec ta raquette !"
-                        );
-                    }
+                    preparerSmash();
                 }
             }
         );
@@ -1256,6 +1363,58 @@
                 ) {
                     toucheBas = false;
                 }
+            }
+        );
+
+        terrain.addEventListener(
+            "pointerdown",
+            function(event) {
+                if(event.pointerType === "mouse") {
+                    return;
+                }
+
+                doigtSurTerrain = true;
+                terrain.setPointerCapture(event.pointerId);
+                deplacerRaquetteAvecDoigt(event);
+            }
+        );
+
+        terrain.addEventListener(
+            "pointermove",
+            function(event) {
+                if(
+                    !doigtSurTerrain ||
+                    event.pointerType === "mouse"
+                ) {
+                    return;
+                }
+
+                deplacerRaquetteAvecDoigt(event);
+            }
+        );
+
+        function terminerGlissement(event) {
+            doigtSurTerrain = false;
+
+            if(
+                event &&
+                terrain.hasPointerCapture(event.pointerId)
+            ) {
+                terrain.releasePointerCapture(event.pointerId);
+            }
+        }
+
+        terrain.addEventListener("pointerup", terminerGlissement);
+        terrain.addEventListener("pointercancel", terminerGlissement);
+        terrain.addEventListener("lostpointercapture", function() {
+            doigtSurTerrain = false;
+        });
+
+        boutonSmashMobile.addEventListener(
+            "pointerdown",
+            function(event) {
+                event.preventDefault();
+                preparerSmash();
             }
         );
 
