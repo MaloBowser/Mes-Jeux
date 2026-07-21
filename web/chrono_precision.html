@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Le Maître du Temps</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+
+            background:
+                linear-gradient(
+                    rgba(0, 0, 0, 0.55),
+                    rgba(0, 0, 0, 0.85)
+                ),
+                url("../fond.jpg");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 25px 10px 5px;
+
+            font-size: clamp(40px, 7vw, 70px);
+
+            text-shadow:
+                0 0 10px cyan,
+                0 0 25px cyan,
+                0 0 50px blue;
+        }
+
+        .sous-titre {
+            margin-top: 5px;
+            color: #bafaff;
+            font-size: 20px;
+        }
+
+        .jeu {
+            width: min(850px, 94%);
+            margin: 25px auto 50px;
+            padding: 28px;
+
+            background: rgba(0, 0, 0, 0.88);
+
+            border: 2px solid cyan;
+            border-radius: 28px;
+
+            box-shadow:
+                0 0 20px cyan,
+                0 0 50px rgba(0, 120, 255, 0.45);
+        }
+
+        .ecran {
+            display: none;
+        }
+
+        .ecran.actif {
+            display: block;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+
+            font-size: 21px;
+        }
+
+        input,
+        select {
+            width: min(420px, 90%);
+            padding: 13px;
+
+            color: white;
+            background: #050505;
+
+            border: 2px solid cyan;
+            border-radius: 14px;
+
+            font-size: 19px;
+            text-align: center;
+
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            box-shadow: 0 0 15px cyan;
+        }
+
+        button {
+            min-width: 210px;
+
+            margin: 12px;
+            padding: 14px 24px;
+
+            color: white;
+            background: black;
+
+            border: 2px solid cyan;
+            border-radius: 16px;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+
+            box-shadow:
+                0 0 12px cyan,
+                0 0 28px cyan;
+        }
+
+        .joueurs-zone {
+            margin: 20px auto;
+        }
+
+        .nom-joueur {
+            display: block;
+            margin: 12px auto;
+        }
+
+        .cible {
+            margin: 25px auto;
+            padding: 22px;
+
+            width: min(500px, 95%);
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(0, 255, 255, 0.18),
+                    rgba(0, 0, 0, 0.8)
+                );
+
+            border: 3px solid cyan;
+            border-radius: 22px;
+
+            box-shadow:
+                0 0 20px cyan,
+                inset 0 0 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .cible span {
+            display: block;
+
+            margin-top: 8px;
+
+            color: #fff54f;
+            font-size: clamp(42px, 8vw, 72px);
+            font-weight: bold;
+
+            text-shadow:
+                0 0 10px yellow,
+                0 0 25px orange;
+        }
+
+        .chrono {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 260px;
+            height: 260px;
+
+            margin: 30px auto;
+
+            border: 8px solid cyan;
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    #12384a,
+                    #02070c 70%
+                );
+
+            box-shadow:
+                0 0 25px cyan,
+                inset 0 0 35px rgba(0, 255, 255, 0.3);
+
+            font-size: 60px;
+            font-weight: bold;
+        }
+
+        .chrono.en-cours {
+            animation: pulsation 1s infinite;
+        }
+
+        @keyframes pulsation {
+            0% {
+                box-shadow:
+                    0 0 20px cyan,
+                    inset 0 0 25px cyan;
+            }
+
+            50% {
+                box-shadow:
+                    0 0 45px cyan,
+                    0 0 70px blue,
+                    inset 0 0 45px cyan;
+            }
+
+            100% {
+                box-shadow:
+                    0 0 20px cyan,
+                    inset 0 0 25px cyan;
+            }
+        }
+
+        #boutonChrono {
+            width: min(400px, 90%);
+            min-height: 80px;
+
+            font-size: 28px;
+        }
+
+        #boutonChrono.stop {
+            border-color: #ff405f;
+
+            box-shadow:
+                0 0 15px #ff405f,
+                0 0 35px red;
+        }
+
+        .resultat {
+            width: min(600px, 95%);
+            margin: 25px auto;
+            padding: 22px;
+
+            background: #05080c;
+
+            border: 2px solid cyan;
+            border-radius: 20px;
+
+            font-size: 22px;
+            line-height: 1.6;
+        }
+
+        .parfait {
+            color: #68ff8e;
+            font-size: 28px;
+            font-weight: bold;
+
+            text-shadow: 0 0 14px #00ff66;
+        }
+
+        .proche {
+            color: #fff04f;
+            font-weight: bold;
+        }
+
+        .loin {
+            color: #ff6b80;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            margin: 25px auto;
+
+            border-collapse: collapse;
+            overflow: hidden;
+
+            background: rgba(0, 0, 0, 0.75);
+
+            border-radius: 18px;
+        }
+
+        th,
+        td {
+            padding: 14px 8px;
+            border-bottom: 1px solid #17677c;
+        }
+
+        th {
+            color: cyan;
+            background: #06141c;
+        }
+
+        tr:first-child td {
+            color: #fff54f;
+            font-weight: bold;
+            font-size: 21px;
+        }
+
+        .message-erreur {
+            min-height: 28px;
+            margin-top: 12px;
+
+            color: #ff627a;
+            font-weight: bold;
+        }
+
+        @media screen and (max-width: 600px) {
+            .jeu {
+                padding: 17px;
+            }
+
+            .chrono {
+                width: 210px;
+                height: 210px;
+
+                font-size: 48px;
+            }
+
+            #boutonChrono {
+                font-size: 23px;
+            }
+
+            th,
+            td {
+                font-size: 14px;
+                padding: 10px 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>⏱️ Le Maître du Temps</h1>
+
+    <p class="sous-titre">
+        Arrête le chrono au moment parfait !
+    </p>
+
+    <main class="jeu">
+
+        <!-- ÉCRAN DE PRÉPARATION -->
+
+        <section id="ecranPreparation" class="ecran actif">
+
+            <h2>🎮 Préparation de la partie</h2>
+
+            <label for="nombreJoueurs">
+                Combien de joueurs ?
+            </label>
+
+            <select id="nombreJoueurs">
+                <option value="1">1 joueur</option>
+                <option value="2" selected>2 joueurs</option>
+                <option value="3">3 joueurs</option>
+                <option value="4">4 joueurs</option>
+                <option value="5">5 joueurs</option>
+                <option value="6">6 joueurs</option>
+                <option value="7">7 joueurs</option>
+                <option value="8">8 joueurs</option>
+            </select>
+
+            <div id="zoneNoms" class="joueurs-zone"></div>
+
+            <button onclick="commencerPartie()">
+                ▶️ Commencer la partie
+            </button>
+
+            <p id="erreurPreparation" class="message-erreur"></p>
+
+        </section>
+
+        <!-- ÉCRAN DU JOUEUR -->
+
+        <section id="ecranJeu" class="ecran">
+
+            <h2 id="nomTour">
+                Tour du joueur
+            </h2>
+
+            <div class="cible">
+                Temps à réaliser :
+
+                <span id="tempsCible">
+                    10,00 s
+                </span>
+            </div>
+
+            <p>
+                Clique une première fois pour démarrer.<br>
+                Clique une deuxième fois pour arrêter.
+            </p>
+
+            <div id="chrono" class="chrono">
+                PRÊT
+            </div>
+
+            <button
+                id="boutonChrono"
+                onclick="gererChrono()"
+            >
+                ▶️ DÉMARRER
+            </button>
+
+            <div id="resultatJoueur" class="resultat" hidden></div>
+
+            <button
+                id="boutonSuivant"
+                onclick="joueurSuivant()"
+                hidden
+            >
+                Joueur suivant ➡️
+            </button>
+
+        </section>
+
+        <!-- ÉCRAN FINAL -->
+
+        <section id="ecranClassement" class="ecran">
+
+            <h2>🏆 Classement final</h2>
+
+            <p>
+                Le joueur avec le plus petit écart gagne !
+            </p>
+
+            <div id="classement"></div>
+
+            <button onclick="rejouer()">
+                🔄 Rejouer
+            </button>
+
+        </section>
+
+    </main>
+
+    <script>
+        const tempsPossibles = [
+            0.8, 1.3, 1.7, 2.4, 2.9,
+            3.7, 4.6, 5.0, 5.8, 6.4,
+            7.3, 8.9, 9.7, 10.5, 11.2,
+            12.8, 13.6, 14.4, 15.9, 16.7,
+            17.5, 18.8, 19.9, 20.6, 21.4,
+            22.7, 23.5, 24.9, 25.8, 26.6,
+            27.3, 28.7, 29.5, 30.2, 31.8,
+            32.6, 33.9, 34.4, 35.7, 36.5,
+            37.8, 38.6, 39.4, 40.9, 41.7,
+            42.2, 43.6, 44.8, 45.4, 46.7,
+            47.9, 48.3, 49.6, 50.5, 51.8,
+            52.4, 53.9, 54.6, 55.2, 56.8,
+            57.5, 58.4, 59.1, 60.0, 7.7,
+            13.7, 17.7, 21.7, 27.7, 33.7,
+            39.7, 45.7, 51.7, 57.7, 4.4,
+            8.8, 12.1, 16.3, 20.2, 24.4,
+            28.8, 32.1, 36.3, 40.4, 44.6,
+            48.8, 52.2, 56.4, 59.8, 9.9,
+            19.1, 29.9, 39.1, 49.9, 54.3,
+            58.9, 11.1, 22.2, 33.3, 44.4
+        ];
+
+        const nombreJoueurs =
+            document.getElementById("nombreJoueurs");
+
+        const zoneNoms =
+            document.getElementById("zoneNoms");
+
+        const chrono =
+            document.getElementById("chrono");
+
+        const boutonChrono =
+            document.getElementById("boutonChrono");
+
+        let joueurs = [];
+
+        let joueurActuel = 0;
+
+        let tempsCible = 0;
+
+        let debutChrono = 0;
+
+        let chronoEnCours = false;
+
+        nombreJoueurs.addEventListener(
+            "change",
+            creerChampsJoueurs
+        );
+
+        function creerChampsJoueurs() {
+            const nombre =
+                Number(nombreJoueurs.value);
+
+            zoneNoms.innerHTML = "";
+
+            for(let i = 1; i <= nombre; i++) {
+                const input =
+                    document.createElement("input");
+
+                input.type = "text";
+                input.className = "nom-joueur";
+                input.placeholder = "Nom du joueur " + i;
+                input.maxLength = 20;
+
+                zoneNoms.appendChild(input);
+            }
+        }
+
+        function afficherEcran(id) {
+            const ecrans =
+                document.querySelectorAll(".ecran");
+
+            ecrans.forEach(function(ecran) {
+                ecran.classList.remove("actif");
+            });
+
+            document
+                .getElementById(id)
+                .classList.add("actif");
+        }
+
+        function commencerPartie() {
+            const champs =
+                document.querySelectorAll(".nom-joueur");
+
+            joueurs = [];
+
+            for(let i = 0; i < champs.length; i++) {
+                const nom =
+                    champs[i].value.trim();
+
+                if(nom === "") {
+                    document.getElementById(
+                        "erreurPreparation"
+                    ).textContent =
+                        "⚠️ Entre le nom de tous les joueurs.";
+
+                    return;
+                }
+
+                joueurs.push({
+                    nom: nom,
+                    temps: 0,
+                    ecart: 0,
+                    cible: 0
+                });
+            }
+
+            joueurActuel = 0;
+
+            document.getElementById(
+                "erreurPreparation"
+            ).textContent = "";
+
+            afficherEcran("ecranJeu");
+
+            preparerTour();
+        }
+
+        function preparerTour() {
+            chronoEnCours = false;
+
+            tempsCible =
+                choisirTempsAleatoire();
+
+            document.getElementById(
+                "nomTour"
+            ).textContent =
+                "🎯 Tour de " +
+                joueurs[joueurActuel].nom;
+
+            document.getElementById(
+                "tempsCible"
+            ).textContent =
+                formaterTemps(tempsCible);
+
+            chrono.textContent = "PRÊT";
+            chrono.classList.remove("en-cours");
+
+            boutonChrono.textContent =
+                "▶️ DÉMARRER";
+
+            boutonChrono.classList.remove("stop");
+            boutonChrono.disabled = false;
+
+            document.getElementById(
+                "resultatJoueur"
+            ).hidden = true;
+
+            document.getElementById(
+                "boutonSuivant"
+            ).hidden = true;
+        }
+
+        function choisirTempsAleatoire() {
+            const index =
+                Math.floor(
+                    Math.random() *
+                    tempsPossibles.length
+                );
+
+            return tempsPossibles[index];
+        }
+
+        function gererChrono() {
+            if(!chronoEnCours) {
+                demarrerChrono();
+            } else {
+                arreterChrono();
+            }
+        }
+
+        function demarrerChrono() {
+            debutChrono =
+                performance.now();
+
+            chronoEnCours = true;
+
+            chrono.textContent = "???";
+            chrono.classList.add("en-cours");
+
+            boutonChrono.textContent =
+                "⏹️ ARRÊTER";
+
+            boutonChrono.classList.add("stop");
+        }
+
+        function arreterChrono() {
+            const finChrono =
+                performance.now();
+
+            const tempsRealise =
+                (finChrono - debutChrono) / 1000;
+
+            const ecart =
+                Math.abs(tempsRealise - tempsCible);
+
+            chronoEnCours = false;
+
+            chrono.classList.remove("en-cours");
+
+            chrono.textContent =
+                tempsRealise.toFixed(2) + " s";
+
+            boutonChrono.disabled = true;
+
+            joueurs[joueurActuel].temps =
+                tempsRealise;
+
+            joueurs[joueurActuel].ecart =
+                ecart;
+
+            joueurs[joueurActuel].cible =
+                tempsCible;
+
+            afficherResultat(
+                tempsRealise,
+                ecart
+            );
+        }
+
+        function afficherResultat(
+            tempsRealise,
+            ecart
+        ) {
+            const resultat =
+                document.getElementById(
+                    "resultatJoueur"
+                );
+
+            let message = "";
+            let classe = "";
+
+            if(ecart <= 0.03) {
+                message =
+                    "🤯 INCROYABLE ! Tu es presque exactement dessus !";
+
+                classe = "parfait";
+
+            } else if(ecart <= 0.20) {
+                message =
+                    "🔥 Exceptionnel ! Tu étais vraiment tout près !";
+
+                classe = "parfait";
+
+            } else if(ecart <= 0.75) {
+                message =
+                    "👏 Très bien ! Tu n'étais pas loin.";
+
+                classe = "proche";
+
+            } else if(tempsRealise > tempsCible) {
+                message =
+                    "🐢 Tu as arrêté le chrono un peu trop tard.";
+
+                classe = "loin";
+
+            } else {
+                message =
+                    "🐇 Tu as arrêté le chrono un peu trop tôt.";
+
+                classe = "loin";
+            }
+
+            resultat.innerHTML =
+                "<strong class='" +
+                classe +
+                "'>" +
+                message +
+                "</strong>" +
+
+                "<br><br>Temps demandé : " +
+                formaterTemps(tempsCible) +
+
+                "<br>Ton temps : " +
+                formaterTemps(tempsRealise) +
+
+                "<br>Écart : <strong>" +
+                formaterTemps(ecart) +
+                "</strong>";
+
+            resultat.hidden = false;
+
+            const boutonSuivant =
+                document.getElementById(
+                    "boutonSuivant"
+                );
+
+            boutonSuivant.hidden = false;
+
+            if(joueurActuel === joueurs.length - 1) {
+                boutonSuivant.textContent =
+                    "🏆 Voir le classement";
+            } else {
+                boutonSuivant.textContent =
+                    "Joueur suivant ➡️";
+            }
+        }
+
+        function joueurSuivant() {
+            joueurActuel++;
+
+            if(joueurActuel >= joueurs.length) {
+                afficherClassement();
+            } else {
+                preparerTour();
+            }
+        }
+
+        function afficherClassement() {
+            afficherEcran("ecranClassement");
+
+            const classementTrie =
+                [...joueurs].sort(
+                    function(a, b) {
+                        return a.ecart - b.ecart;
+                    }
+                );
+
+            let tableau = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Place</th>
+                            <th>Joueur</th>
+                            <th>Cible</th>
+                            <th>Temps</th>
+                            <th>Écart</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+            `;
+
+            classementTrie.forEach(
+                function(joueur, index) {
+                    let medaille = index + 1;
+
+                    if(index === 0) {
+                        medaille = "🥇";
+                    } else if(index === 1) {
+                        medaille = "🥈";
+                    } else if(index === 2) {
+                        medaille = "🥉";
+                    }
+
+                    tableau += `
+                        <tr>
+                            <td>${medaille}</td>
+                            <td>${echapperHTML(joueur.nom)}</td>
+                            <td>${formaterTemps(joueur.cible)}</td>
+                            <td>${formaterTemps(joueur.temps)}</td>
+                            <td>${formaterTemps(joueur.ecart)}</td>
+                        </tr>
+                    `;
+                }
+            );
+
+            tableau += `
+                    </tbody>
+                </table>
+
+                <h2>
+                    👑 ${echapperHTML(classementTrie[0].nom)}
+                    est le Maître du Temps !
+                </h2>
+            `;
+
+            document.getElementById(
+                "classement"
+            ).innerHTML = tableau;
+        }
+
+        function formaterTemps(nombre) {
+            return nombre
+                .toFixed(2)
+                .replace(".", ",") + " s";
+        }
+
+        function echapperHTML(texte) {
+            const element =
+                document.createElement("div");
+
+            element.textContent = texte;
+
+            return element.innerHTML;
+        }
+
+        function rejouer() {
+            joueurs = [];
+            joueurActuel = 0;
+            chronoEnCours = false;
+
+            afficherEcran("ecranPreparation");
+
+            creerChampsJoueurs();
+        }
+
+        document.addEventListener(
+            "keydown",
+            function(event) {
+                if(
+                    event.code === "Space" &&
+                    document
+                        .getElementById("ecranJeu")
+                        .classList.contains("actif") &&
+                    !boutonChrono.disabled
+                ) {
+                    event.preventDefault();
+
+                    gererChrono();
+                }
+            }
+        );
+
+        creerChampsJoueurs();
+    </script>
+
+</body>
+
+</html>
