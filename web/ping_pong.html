@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ping-Pong Arcade</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            background:
+                linear-gradient(
+                    rgba(0, 0, 0, 0.55),
+                    rgba(0, 0, 0, 0.85)
+                ),
+                url("../fond.jpg");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+
+            overflow-x: hidden;
+        }
+
+        h1 {
+            margin: 25px 0 5px;
+
+            font-size: clamp(42px, 7vw, 75px);
+
+            text-shadow:
+                0 0 10px cyan,
+                0 0 25px cyan,
+                0 0 50px blue;
+        }
+
+        .sous-titre {
+            margin-top: 0;
+            color: #baf8ff;
+            font-size: 20px;
+        }
+
+        .jeu {
+            width: min(1000px, 96%);
+            margin: 25px auto 50px;
+            padding: 25px;
+
+            background: rgba(0, 0, 0, 0.85);
+
+            border: 2px solid cyan;
+            border-radius: 28px;
+
+            box-shadow:
+                0 0 20px cyan,
+                0 0 50px rgba(0, 140, 255, 0.5);
+        }
+
+        .menu {
+            margin-bottom: 20px;
+        }
+
+        select,
+        button {
+            margin: 8px;
+            padding: 13px 22px;
+
+            color: white;
+            background: black;
+
+            border: 2px solid cyan;
+            border-radius: 15px;
+
+            font-size: 19px;
+        }
+
+        button {
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+
+            box-shadow:
+                0 0 12px cyan,
+                0 0 26px cyan;
+        }
+
+        .scores {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+
+            margin: 18px 0;
+        }
+
+        .score {
+            min-width: 200px;
+            padding: 15px;
+
+            background: #02060c;
+
+            border: 2px solid cyan;
+            border-radius: 17px;
+
+            font-size: 23px;
+
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+        .score strong {
+            display: block;
+            margin-top: 5px;
+            font-size: 40px;
+        }
+
+        #terrain {
+            position: relative;
+
+            width: 100%;
+            max-width: 900px;
+            height: 500px;
+
+            margin: 20px auto;
+
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(0, 255, 255, 0.13),
+                    transparent 45%
+                ),
+                linear-gradient(
+                    90deg,
+                    #052f4d,
+                    #061827,
+                    #052f4d
+                );
+
+            border: 5px solid white;
+            border-radius: 22px;
+
+            box-shadow:
+                inset 0 0 45px rgba(0, 0, 0, 0.8),
+                0 0 30px cyan;
+        }
+
+        #terrain::before {
+            content: "";
+
+            position: absolute;
+            top: 0;
+            left: 50%;
+
+            width: 4px;
+            height: 100%;
+
+            transform: translateX(-50%);
+
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    white 0,
+                    white 18px,
+                    transparent 18px,
+                    transparent 36px
+                );
+
+            opacity: 0.75;
+        }
+
+        #terrain::after {
+            content: "";
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+
+            width: 130px;
+            height: 130px;
+
+            transform: translate(-50%, -50%);
+
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+        }
+
+        .raquette {
+            position: absolute;
+
+            width: 20px;
+            height: 105px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            border-radius: 12px;
+
+            z-index: 5;
+        }
+
+        #raquetteJoueur {
+            left: 35px;
+
+            background:
+                linear-gradient(
+                    white,
+                    cyan,
+                    #0077ff
+                );
+
+            box-shadow:
+                0 0 10px white,
+                0 0 25px cyan;
+        }
+
+        #raquetteRobot {
+            right: 35px;
+
+            background:
+                linear-gradient(
+                    white,
+                    #ff6a89,
+                    #ff0044
+                );
+
+            box-shadow:
+                0 0 10px white,
+                0 0 25px #ff315c;
+        }
+
+        #balle {
+            position: absolute;
+
+            width: 28px;
+            height: 28px;
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle at 35% 35%,
+                    white,
+                    #fff94c 40%,
+                    #ff9100 100%
+                );
+
+            box-shadow:
+                0 0 12px white,
+                0 0 25px yellow,
+                0 0 45px orange;
+
+            z-index: 6;
+        }
+
+        #message {
+            min-height: 70px;
+            margin: 18px 0;
+
+            font-size: 23px;
+            line-height: 1.45;
+        }
+
+        .commandes {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+
+            margin: 18px auto;
+        }
+
+        .commande {
+            min-width: 180px;
+            padding: 12px;
+
+            background: rgba(0, 20, 30, 0.9);
+
+            border: 1px solid cyan;
+            border-radius: 15px;
+        }
+
+        .commande strong {
+            display: block;
+            margin-bottom: 5px;
+            color: cyan;
+            font-size: 23px;
+        }
+
+        .barre-zone {
+            width: min(600px, 90%);
+            margin: 16px auto;
+        }
+
+        .barre-fond {
+            height: 18px;
+
+            overflow: hidden;
+
+            background: #020509;
+
+            border: 2px solid white;
+            border-radius: 999px;
+        }
+
+        #barreSmash {
+            width: 100%;
+            height: 100%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    cyan,
+                    yellow,
+                    orange,
+                    red
+                );
+
+            transition: width 0.1s;
+        }
+
+        .gagne {
+            color: #60ff91;
+            text-shadow: 0 0 12px #00ff5e;
+        }
+
+        .perdu {
+            color: #ff6c84;
+            text-shadow: 0 0 12px red;
+        }
+
+        .cache {
+            display: none;
+        }
+
+        #flash {
+            position: fixed;
+            inset: 0;
+
+            background: white;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            z-index: 100;
+
+            transition: opacity 0.12s;
+        }
+
+        #flash.actif {
+            opacity: 0.3;
+        }
+
+        @keyframes secousse {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-7px);
+            }
+
+            50% {
+                transform: translateX(7px);
+            }
+
+            75% {
+                transform: translateX(-4px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .secousse {
+            animation: secousse 0.22s;
+        }
+
+        @media screen and (max-width: 650px) {
+            .jeu {
+                padding: 12px;
+            }
+
+            #terrain {
+                height: 420px;
+            }
+
+            .raquette {
+                height: 85px;
+            }
+
+            .score {
+                min-width: 145px;
+                font-size: 19px;
+            }
+
+            .score strong {
+                font-size: 30px;
+            }
+
+            #message {
+                font-size: 19px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="flash"></div>
+
+    <h1>🏓 Ping-Pong Arcade</h1>
+
+    <p class="sous-titre">
+        Premier joueur à 10 points
+    </p>
+
+    <div class="jeu">
+
+        <div class="menu">
+
+            <label for="difficulte">
+                Difficulté :
+            </label>
+
+            <select id="difficulte">
+                <option value="facile">
+                    Facile
+                </option>
+
+                <option value="moyen" selected>
+                    Moyen
+                </option>
+
+                <option value="difficile">
+                    Difficile
+                </option>
+
+                <option value="impossible">
+                    Impossible
+                </option>
+            </select>
+
+            <button id="boutonCommencer">
+                ▶️ Commencer le match
+            </button>
+
+            <button
+                id="boutonRejouer"
+                class="cache"
+            >
+                🔄 Rejouer
+            </button>
+
+        </div>
+
+        <div class="scores">
+
+            <div class="score">
+                👤 TOI
+                <strong id="scoreJoueur">0</strong>
+            </div>
+
+            <div class="score">
+                🤖 ROBOT
+                <strong id="scoreRobot">0</strong>
+            </div>
+
+        </div>
+
+        <div id="terrain">
+
+            <div
+                id="raquetteJoueur"
+                class="raquette"
+            ></div>
+
+            <div
+                id="raquetteRobot"
+                class="raquette"
+            ></div>
+
+            <div id="balle"></div>
+
+        </div>
+
+        <div class="barre-zone">
+
+            <p>
+                ⚡ Énergie du smash :
+                <strong id="texteSmash">100 %</strong>
+            </p>
+
+            <div class="barre-fond">
+                <div id="barreSmash"></div>
+            </div>
+
+        </div>
+
+        <div class="commandes">
+
+            <div class="commande">
+                <strong>⬆️ Flèche du haut</strong>
+                Monter
+            </div>
+
+            <div class="commande">
+                <strong>⬇️ Flèche du bas</strong>
+                Descendre
+            </div>
+
+            <div class="commande">
+                <strong>ESPACE</strong>
+                Préparer un smash
+            </div>
+
+        </div>
+
+        <p id="message">
+            Clique sur « Commencer le match ».
+        </p>
+
+    </div>
+
+    <script>
+        const terrain =
+            document.getElementById("terrain");
+
+        const raquetteJoueur =
+            document.getElementById("raquetteJoueur");
+
+        const raquetteRobot =
+            document.getElementById("raquetteRobot");
+
+        const balle =
+            document.getElementById("balle");
+
+        const boutonCommencer =
+            document.getElementById("boutonCommencer");
+
+        const boutonRejouer =
+            document.getElementById("boutonRejouer");
+
+        const difficulte =
+            document.getElementById("difficulte");
+
+        const SCORE_MAXIMUM = 10;
+
+        let scoreJoueur = 0;
+        let scoreRobot = 0;
+
+        let partieEnCours = false;
+        let pause = true;
+
+        let joueurY = 250;
+        let robotY = 250;
+
+        let balleX = 450;
+        let balleY = 250;
+
+        let vitesseX = 3;
+        let vitesseY = 3;
+
+        let toucheHaut = false;
+        let toucheBas = false;
+
+        let smashPret = false;
+        let energieSmash = 100;
+
+        let derniereFrappe = "";
+
+        let animationId = null;
+
+        let largeurTerrain = 900;
+        let hauteurTerrain = 500;
+
+        let hauteurRaquette = 105;
+        let largeurRaquette = 20;
+
+        let tailleBalle = 28;
+
+        function afficherMessage(
+            texte,
+            classe = ""
+        ) {
+            const message =
+                document.getElementById("message");
+
+            message.className = classe;
+            message.innerHTML = texte;
+        }
+
+        function mettreAJourScores() {
+            document.getElementById(
+                "scoreJoueur"
+            ).textContent = scoreJoueur;
+
+            document.getElementById(
+                "scoreRobot"
+            ).textContent = scoreRobot;
+        }
+
+        function mettreAJourSmash() {
+            energieSmash =
+                Math.max(
+                    0,
+                    Math.min(100, energieSmash)
+                );
+
+            document.getElementById(
+                "barreSmash"
+            ).style.width =
+                energieSmash + "%";
+
+            document.getElementById(
+                "texteSmash"
+            ).textContent =
+                Math.floor(energieSmash) + " %";
+        }
+
+        function actualiserDimensions() {
+            largeurTerrain =
+                terrain.clientWidth;
+
+            hauteurTerrain =
+                terrain.clientHeight;
+
+            hauteurRaquette =
+                raquetteJoueur.offsetHeight;
+
+            largeurRaquette =
+                raquetteJoueur.offsetWidth;
+
+            tailleBalle =
+                balle.offsetWidth;
+        }
+
+        function positionnerElements() {
+            raquetteJoueur.style.top =
+                joueurY + "px";
+
+            raquetteRobot.style.top =
+                robotY + "px";
+
+            balle.style.left =
+                balleX + "px";
+
+            balle.style.top =
+                balleY + "px";
+        }
+
+        function commencerMatch() {
+            scoreJoueur = 0;
+            scoreRobot = 0;
+
+            energieSmash = 100;
+
+            mettreAJourScores();
+            mettreAJourSmash();
+
+            difficulte.disabled = true;
+
+            boutonCommencer.classList.add(
+                "cache"
+            );
+
+            boutonRejouer.classList.add(
+                "cache"
+            );
+
+            partieEnCours = true;
+
+            actualiserDimensions();
+
+            joueurY =
+                hauteurTerrain / 2;
+
+            robotY =
+                hauteurTerrain / 2;
+
+            lancerNouvelleBalle();
+
+            if(animationId === null) {
+                boucle();
+            }
+        }
+
+        function lancerNouvelleBalle() {
+            pause = true;
+
+            balleX =
+                largeurTerrain / 2;
+
+            balleY =
+                hauteurTerrain / 2;
+
+            joueurY =
+                hauteurTerrain / 2;
+
+            robotY =
+                hauteurTerrain / 2;
+
+            vitesseY =
+                nombreAleatoire(-4, 4);
+
+            if(
+                vitesseY > -1 &&
+                vitesseY < 1
+            ) {
+                vitesseY = 2;
+            }
+
+            const direction =
+                Math.random() < 0.5
+                    ? -1
+                    : 1;
+
+            vitesseX =
+                6 * direction;
+
+            smashPret = false;
+
+            positionnerElements();
+
+            afficherMessage(
+                "🏓 Prépare-toi..."
+            );
+
+            setTimeout(function() {
+                if(!partieEnCours) {
+                    return;
+                }
+
+                pause = false;
+
+                afficherMessage(
+                    "🔥 Le point commence !"
+                );
+            }, 1000);
+        }
+
+        function boucle() {
+            actualiserDimensions();
+
+            if(
+                partieEnCours &&
+                !pause
+            ) {
+                deplacerJoueur();
+                deplacerRobot();
+                deplacerBalle();
+                rechargerSmash();
+                positionnerElements();
+            }
+
+            animationId =
+                requestAnimationFrame(boucle);
+        }
+
+        function deplacerJoueur() {
+            const vitesseJoueur = 8;
+
+            if(toucheHaut) {
+                joueurY -= vitesseJoueur;
+            }
+
+            if(toucheBas) {
+                joueurY += vitesseJoueur;
+            }
+
+            const demiHauteur =
+                hauteurRaquette / 2;
+
+            joueurY =
+                limiter(
+                    joueurY,
+                    demiHauteur,
+                    hauteurTerrain - demiHauteur
+                );
+        }
+
+        function deplacerRobot() {
+            let vitesseRobot;
+            let precision;
+
+            if(difficulte.value === "facile") {
+                vitesseRobot = 3.4;
+                precision = 30;
+            }
+
+            if(difficulte.value === "moyen") {
+                vitesseRobot = 4.7;
+                precision = 18;
+            }
+
+            if(difficulte.value === "difficile") {
+                vitesseRobot = 6;
+                precision = 8;
+            }
+
+            if(difficulte.value === "impossible") {
+                vitesseRobot = 7.5;
+                precision = 1;
+            }
+
+            let cible =
+                balleY +
+                nombreAleatoire(
+                    -precision,
+                    precision
+                );
+
+            if(vitesseX < 0) {
+                cible =
+                    hauteurTerrain / 2;
+            }
+
+            if(robotY < cible - 8) {
+                robotY += vitesseRobot;
+            }
+
+            if(robotY > cible + 8) {
+                robotY -= vitesseRobot;
+            }
+
+            const demiHauteur =
+                hauteurRaquette / 2;
+
+            robotY =
+                limiter(
+                    robotY,
+                    demiHauteur,
+                    hauteurTerrain - demiHauteur
+                );
+        }
+
+        function deplacerBalle() {
+            balleX += vitesseX;
+            balleY += vitesseY;
+
+            const rayon =
+                tailleBalle / 2;
+
+            if(
+                balleY - rayon <= 0
+            ) {
+                balleY = rayon;
+                vitesseY =
+                    Math.abs(vitesseY);
+
+                effetImpact();
+            }
+
+            if(
+                balleY + rayon >=
+                hauteurTerrain
+            ) {
+                balleY =
+                    hauteurTerrain - rayon;
+
+                vitesseY =
+                    -Math.abs(vitesseY);
+
+                effetImpact();
+            }
+
+            verifierCollisionJoueur();
+            verifierCollisionRobot();
+
+            if(
+                balleX + rayon < 0
+            ) {
+                scoreRobot++;
+
+                mettreAJourScores();
+
+                afficherMessage(
+                    "🤖 Point pour le robot !",
+                    "perdu"
+                );
+
+                verifierFin();
+
+                if(partieEnCours) {
+                    setTimeout(
+                        lancerNouvelleBalle,
+                        900
+                    );
+                }
+            }
+
+            if(
+                balleX - rayon >
+                largeurTerrain
+            ) {
+                scoreJoueur++;
+
+                mettreAJourScores();
+
+                afficherMessage(
+                    "🎉 Tu gagnes le point !",
+                    "gagne"
+                );
+
+                verifierFin();
+
+                if(partieEnCours) {
+                    setTimeout(
+                        lancerNouvelleBalle,
+                        900
+                    );
+                }
+            }
+        }
+
+        function verifierCollisionJoueur() {
+            const rayon =
+                tailleBalle / 2;
+
+            const gaucheRaquette = 35;
+            const droiteRaquette =
+                gaucheRaquette +
+                largeurRaquette;
+
+            const hautRaquette =
+                joueurY -
+                hauteurRaquette / 2;
+
+            const basRaquette =
+                joueurY +
+                hauteurRaquette / 2;
+
+            if(
+                vitesseX < 0 &&
+                balleX - rayon <=
+                    droiteRaquette &&
+                balleX + rayon >=
+                    gaucheRaquette &&
+                balleY + rayon >=
+                    hautRaquette &&
+                balleY - rayon <=
+                    basRaquette
+            ) {
+                balleX =
+                    droiteRaquette + rayon;
+
+                const difference =
+                    (
+                        balleY -
+                        joueurY
+                    ) /
+                    (
+                        hauteurRaquette / 2
+                    );
+
+                let nouvelleVitesse =
+                    Math.min(
+                        15,
+                        Math.abs(vitesseX) + 0.18
+                    );
+
+                if(smashPret) {
+                    nouvelleVitesse =
+                        Math.min(
+                            19,
+                            nouvelleVitesse + 2,5
+                        );
+
+                    vitesseY +=
+                        difference * 5;
+
+                    smashPret = false;
+                    energieSmash = 0;
+
+                    afficherMessage(
+                        "💥 SMASH INCROYABLE !",
+                        "gagne"
+                    );
+
+                    effetSmash();
+                }
+
+                vitesseX =
+                    nouvelleVitesse;
+
+                vitesseY +=
+                    difference * 4;
+
+                vitesseY =
+                    limiter(
+                        vitesseY,
+                        -12,
+                        12
+                    );
+
+                derniereFrappe = "joueur";
+
+                effetImpact();
+            }
+        }
+
+        function verifierCollisionRobot() {
+            const rayon =
+                tailleBalle / 2;
+
+            const droiteRaquette =
+                largeurTerrain - 35;
+
+            const gaucheRaquette =
+                droiteRaquette -
+                largeurRaquette;
+
+            const hautRaquette =
+                robotY -
+                hauteurRaquette / 2;
+
+            const basRaquette =
+                robotY +
+                hauteurRaquette / 2;
+
+            if(
+                vitesseX > 0 &&
+                balleX + rayon >=
+                    gaucheRaquette &&
+                balleX - rayon <=
+                    droiteRaquette &&
+                balleY + rayon >=
+                    hautRaquette &&
+                balleY - rayon <=
+                    basRaquette
+            ) {
+                balleX =
+                    gaucheRaquette - rayon;
+
+                const difference =
+                    (
+                        balleY -
+                        robotY
+                    ) /
+                    (
+                        hauteurRaquette / 2
+                    );
+
+                const nouvelleVitesse =
+                    Math.min(
+                        15,
+                        Math.abs(vitesseX) + 0.18
+                    );
+
+                vitesseX =
+                    -nouvelleVitesse;
+
+                vitesseY +=
+                    difference * 4;
+
+                vitesseY =
+                    limiter(
+                        vitesseY,
+                        -12,
+                        12
+                    );
+
+                derniereFrappe = "robot";
+
+                effetImpact();
+            }
+        }
+
+        function rechargerSmash() {
+            if(energieSmash < 100) {
+                energieSmash += 0.18;
+                mettreAJourSmash();
+            }
+        }
+
+        function verifierFin() {
+            pause = true;
+
+            if(
+                scoreJoueur >= SCORE_MAXIMUM
+            ) {
+                partieEnCours = false;
+
+                afficherMessage(
+                    "🏆 VICTOIRE !<br>" +
+                    "Tu bats le robot " +
+                    scoreJoueur +
+                    " à " +
+                    scoreRobot +
+                    " !",
+                    "gagne"
+                );
+
+                boutonRejouer.classList.remove(
+                    "cache"
+                );
+
+                difficulte.disabled = false;
+            }
+
+            if(
+                scoreRobot >= SCORE_MAXIMUM
+            ) {
+                partieEnCours = false;
+
+                afficherMessage(
+                    "🤖 Le robot remporte le match " +
+                    scoreRobot +
+                    " à " +
+                    scoreJoueur +
+                    ".<br>" +
+                    "Prends ta revanche !",
+                    "perdu"
+                );
+
+                boutonRejouer.classList.remove(
+                    "cache"
+                );
+
+                difficulte.disabled = false;
+            }
+        }
+
+        function effetImpact() {
+            terrain.classList.remove(
+                "secousse"
+            );
+
+            void terrain.offsetWidth;
+
+            terrain.classList.add(
+                "secousse"
+            );
+
+            const flash =
+                document.getElementById("flash");
+
+            flash.classList.add("actif");
+
+            setTimeout(function() {
+                flash.classList.remove(
+                    "actif"
+                );
+            }, 100);
+        }
+
+        function effetSmash() {
+            balle.style.transform =
+                "translate(-50%, -50%) scale(1.6)";
+
+            balle.style.boxShadow =
+                "0 0 20px white, " +
+                "0 0 40px yellow, " +
+                "0 0 80px red";
+
+            setTimeout(function() {
+                balle.style.transform =
+                    "translate(-50%, -50%) scale(1)";
+
+                balle.style.boxShadow =
+                    "0 0 12px white, " +
+                    "0 0 25px yellow, " +
+                    "0 0 45px orange";
+            }, 300);
+        }
+
+        function limiter(
+            nombre,
+            minimum,
+            maximum
+        ) {
+            return Math.max(
+                minimum,
+                Math.min(maximum, nombre)
+            );
+        }
+
+        function nombreAleatoire(
+            minimum,
+            maximum
+        ) {
+            return Math.random() *
+                (maximum - minimum) +
+                minimum;
+        }
+
+        document.addEventListener(
+            "keydown",
+            function(event) {
+                if(
+                    event.key === "ArrowUp"
+                ) {
+                    event.preventDefault();
+                    toucheHaut = true;
+                }
+
+                if(
+                    event.key === "ArrowDown"
+                ) {
+                    event.preventDefault();
+                    toucheBas = true;
+                }
+
+                if(
+                    event.code === "Space"
+                ) {
+                    event.preventDefault();
+
+                    if(
+                        partieEnCours &&
+                        energieSmash >= 100
+                    ) {
+                        smashPret = true;
+
+                        afficherMessage(
+                            "⚡ Smash prêt ! " +
+                            "Touche la balle avec ta raquette !"
+                        );
+                    }
+                }
+            }
+        );
+
+        document.addEventListener(
+            "keyup",
+            function(event) {
+                if(
+                    event.key === "ArrowUp"
+                ) {
+                    toucheHaut = false;
+                }
+
+                if(
+                    event.key === "ArrowDown"
+                ) {
+                    toucheBas = false;
+                }
+            }
+        );
+
+        boutonCommencer.addEventListener(
+            "click",
+            commencerMatch
+        );
+
+        boutonRejouer.addEventListener(
+            "click",
+            commencerMatch
+        );
+
+        window.addEventListener(
+            "resize",
+            function() {
+                actualiserDimensions();
+
+                joueurY =
+                    limiter(
+                        joueurY,
+                        hauteurRaquette / 2,
+                        hauteurTerrain -
+                            hauteurRaquette / 2
+                    );
+
+                robotY =
+                    limiter(
+                        robotY,
+                        hauteurRaquette / 2,
+                        hauteurTerrain -
+                            hauteurRaquette / 2
+                    );
+            }
+        );
+
+        actualiserDimensions();
+
+        joueurY =
+            hauteurTerrain / 2;
+
+        robotY =
+            hauteurTerrain / 2;
+
+        balleX =
+            largeurTerrain / 2;
+
+        balleY =
+            hauteurTerrain / 2;
+
+        positionnerElements();
+    </script>
+
+</body>
+</html>
