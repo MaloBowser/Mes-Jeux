@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yams - Les jeux de Malo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Arial;color:#fff;background:radial-gradient(circle at top,#244d70,#07131f 70%);text-align:center}
+button,input,select{font:inherit}.cache{display:none!important}header{padding:22px}h1{font-size:clamp(45px,8vw,85px);margin:0;text-shadow:0 0 12px cyan,0 0 28px #765cff}
+.panneau{width:min(1150px,94%);margin:18px auto;padding:20px;border-radius:24px;background:#06101fc9;border:1px solid #ffffff25;box-shadow:0 0 28px #00ffff25}
+.demarrage{width:min(650px,94%)}.ligne{display:grid;gap:8px;margin:14px 0}input,select{padding:12px;border-radius:12px;border:1px solid #ffffff40;background:#ffffff10;color:#fff}
+option{color:#000}.principal,.secondaire,.danger{padding:11px 18px;border:0;border-radius:14px;color:#fff;font-weight:bold;cursor:pointer;margin:5px}
+.principal{background:linear-gradient(135deg,#4f7cff,#8d5cff);box-shadow:0 0 15px #5ee7ff88}.secondaire{background:#ffffff18;border:1px solid #ffffff30}.danger{background:#a52a3a}
+.haut{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}.message{flex:1;padding:13px;border-radius:14px;background:#ffffff10;font-weight:bold;text-align:left}
+.badges{display:flex;flex-wrap:wrap;gap:8px}.badge{padding:8px 11px;border-radius:999px;background:#ffffff10}.grille{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}
+.boite{padding:17px;border-radius:20px;background:#ffffff0d}.des{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:22px 0}.de{width:92px;height:92px;border-radius:20px;border:3px solid white;background:#f7fbff;color:#102133;font-size:48px;box-shadow:0 10px 18px #0008;transition:.2s}
+.de.garde{transform:translateY(-9px);border-color:#ffd95a;box-shadow:0 0 22px #ffd95a}.de.roule{animation:roule .5s}@keyframes roule{50%{transform:rotate(180deg) scale(1.15)}100%{transform:rotate(360deg)}}
+.categories{display:grid;gap:8px}.categorie{display:flex;justify-content:space-between;padding:10px 12px;border-radius:12px;border:1px solid #ffffff22;background:#ffffff0c;color:#fff;cursor:pointer}.categorie:hover{border-color:cyan}.categorie.utilisee{opacity:.35;cursor:not-allowed}
+.feuilles{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:20px}.feuille{padding:14px;border-radius:16px;background:#ffffff0b;border:2px solid transparent}.feuille.actif{border-color:cyan;box-shadow:0 0 16px #00ffff88}
+table{width:100%;border-collapse:collapse;font-size:14px}td{padding:5px;border-bottom:1px solid #ffffff12}td:last-child{text-align:right;font-weight:bold}.total{font-size:20px;color:#ffd95a;font-weight:bold}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:#020812e8}.modal{width:min(620px,96%);padding:28px;border-radius:24px;border:2px solid cyan;background:#10223b;box-shadow:0 0 30px cyan}
+.classement{display:grid;gap:9px;margin:15px 0}.ligne-classement{display:flex;justify-content:space-between;padding:11px;border-radius:12px;background:#ffffff10}
+@media(max-width:850px){.grille{grid-template-columns:1fr}}@media(max-width:520px){.de{width:68px;height:68px;font-size:36px}}
+</style>
+</head>
+<body>
+<header><h1>🎲 YAMS 🎲</h1><p>Lance les dés, garde les meilleurs et complète ta feuille de score.</p></header>
+
+<section id="demarrage" class="panneau demarrage">
+<h2>Préparer la partie</h2>
+<div class="ligne"><label>Nombre de joueurs (1 à 6)</label>
+<select id="nbJoueurs"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+<div id="noms"></div>
+<button id="start" class="principal">🎮 Commencer</button>
+</section>
+
+<main id="jeu" class="panneau cache">
+<div class="haut"><div id="message" class="message"></div><div class="badges">
+<div class="badge">Manche <span id="manche">1</span>/13</div>
+<div class="badge">Joueur : <span id="joueurNom"></span></div>
+<div class="badge">Lancer <span id="lancerNum">0</span>/3</div></div></div>
+
+<div class="grille">
+<section class="boite"><h2>🎲 Tes dés</h2><div id="des" class="des"></div><p id="info">Clique sur « Lancer ».</p>
+<button id="lancer" class="principal">🎲 Lancer</button>
+<button id="toutGarder" class="secondaire cache">🔒 Tout garder</button>
+<button id="toutRelancer" class="secondaire cache">🔄 Tout relancer</button>
+<button id="stop" class="danger cache">⏹️ Arrêter</button></section>
+
+<section class="boite"><h2>📋 Catégories</h2><div id="categories" class="categories"></div></section>
+</div>
+
+<section id="feuilles" class="feuilles"></section>
+<button id="nouvelle" class="secondaire">🔄 Nouvelle partie</button>
+</main>
+
+<div id="passage" class="overlay cache"><div class="modal"><h1>🙈</h1><h2 id="textePassage"></h2><button id="continuer" class="principal">Afficher mon tour</button></div></div>
+<div id="finManche" class="overlay cache"><div class="modal"><h1>📊</h1><h2 id="titreFinManche"></h2><div id="classementManche" class="classement"></div><button id="suite" class="principal">Continuer</button></div></div>
+<div id="resultats" class="overlay cache"><div class="modal"><h1>🏆</h1><h2>Résultats finaux</h2><div id="classementFinal" class="classement"></div><p id="gagnant"></p><button id="rejouer" class="principal">Rejouer</button><button id="retour" class="secondaire">Retour</button></div></div>
+
+<script>
+const CATS=["1","2","3","4","5","6","Brelan","Carré","Full","Petite suite","Grande suite","Yams","Chance"];
+const faces=["⚀","⚁","⚂","⚃","⚄","⚅"];
+let joueurs=[],indexJoueur=0,manche=1,lancer=0,des=[1,1,1,1,1],gardes=new Set(),tourFini=false;
+
+const $=id=>document.getElementById(id);
+function feuilleVide(){return Object.fromEntries(CATS.map(c=>[c,null]));}
+function champsNoms(){ $("noms").innerHTML=""; for(let i=0;i<Number($("nbJoueurs").value);i++){let d=document.createElement("div");d.className="ligne";d.innerHTML=`<label>Nom du joueur ${i+1}</label><input id="nom${i}" placeholder="Joueur ${i+1}">`;$("noms").appendChild(d);}}
+function compte(ds){let c={1:0,2:0,3:0,4:0,5:0,6:0};ds.forEach(n=>c[n]++);return c;}
+function score(ds,cat){let c=compte(ds),u=new Set(ds),s=ds.reduce((a,b)=>a+b,0);
+ if(["1","2","3","4","5","6"].includes(cat)){let n=Number(cat);return c[n]*n;}
+ if(cat==="Brelan")return Object.values(c).some(x=>x>=3)?s:0;
+ if(cat==="Carré")return Object.values(c).some(x=>x>=4)?s:0;
+ if(cat==="Full"){let v=Object.values(c).filter(x=>x>0).sort((a,b)=>a-b);return JSON.stringify(v)==="[2,3]"?25:0;}
+ if(cat==="Petite suite")return [[1,2,3,4],[2,3,4,5],[3,4,5,6]].some(q=>q.every(n=>u.has(n)))?30:0;
+ if(cat==="Grande suite")return (u.size===5&&([1,2,3,4,5].every(n=>u.has(n))||[2,3,4,5,6].every(n=>u.has(n))))?40:0;
+ if(cat==="Yams")return Object.values(c).some(x=>x===5)?50:0;
+ return cat==="Chance"?s:0;}
+function sup(f){return ["1","2","3","4","5","6"].reduce((t,c)=>t+(f[c]||0),0)}
+function bonus(f){return sup(f)>=63?35:0}
+function inf(f){return ["Brelan","Carré","Full","Petite suite","Grande suite","Yams","Chance"].reduce((t,c)=>t+(f[c]||0),0)}
+function total(f){return sup(f)+bonus(f)+inf(f)}
+function ech(t){return String(t).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+
+function demarrer(){joueurs=[];for(let i=0;i<Number($("nbJoueurs").value);i++){joueurs.push({nom:$("nom"+i).value.trim()||`Joueur ${i+1}`,scores:feuilleVide()});}
+ indexJoueur=0;manche=1;$("demarrage").classList.add("cache");$("jeu").classList.remove("cache");preparerTour();}
+function preparerTour(){lancer=0;des=[1,1,1,1,1];gardes=new Set();tourFini=false;$("lancer").classList.remove("cache");$("lancer").textContent="🎲 Lancer";$("toutGarder").classList.add("cache");$("toutRelancer").classList.add("cache");$("stop").classList.add("cache");$("info").textContent="Clique sur « Lancer ».";$("message").textContent="🎮 Tour de "+joueurs[indexJoueur].nom;afficher();}
+function afficher(){ $("manche").textContent=manche;$("joueurNom").textContent=joueurs[indexJoueur]?.nom||"";$("lancerNum").textContent=lancer;afficherDes();afficherCategories();afficherFeuilles();}
+function afficherDes(){ $("des").innerHTML="";des.forEach((v,i)=>{let b=document.createElement("button");b.className="de"+(gardes.has(i)?" garde":"");b.textContent=faces[v-1];b.onclick=()=>{if(lancer===0||tourFini)return;gardes.has(i)?gardes.delete(i):gardes.add(i);afficherDes();};$("des").appendChild(b);});}
+function lancerDes(){if(lancer>=3||tourFini)return;lancer++;des=des.map((v,i)=>gardes.has(i)?v:Math.floor(Math.random()*6)+1);afficher();[...$("des").children].forEach((e,i)=>{if(!gardes.has(i))e.classList.add("roule")});
+ $("info").textContent=lancer<3?"Clique sur les dés à garder puis relance.":"Choisis une catégorie.";
+ if(lancer<3){$("lancer").textContent="🎲 Relancer";$("toutGarder").classList.remove("cache");$("toutRelancer").classList.remove("cache");$("stop").classList.remove("cache");}else cacherActions();}
+function cacherActions(){$("lancer").classList.add("cache");$("toutGarder").classList.add("cache");$("toutRelancer").classList.add("cache");$("stop").classList.add("cache");}
+function afficherCategories(){ $("categories").innerHTML="";if(!joueurs[indexJoueur])return;let f=joueurs[indexJoueur].scores;CATS.forEach(cat=>{let b=document.createElement("button"),util=f[cat]!==null;b.className="categorie"+(util?" utilisee":"");b.innerHTML=`<span>${cat}</span><strong>${util?f[cat]+" pts":"→ "+(lancer?score(des,cat):"-")}</strong>`;b.disabled=util||lancer===0;b.onclick=()=>inscrire(cat);$("categories").appendChild(b);});}
+function inscrire(cat){
+  if (tourFini || lancer === 0) return;
+
+  const joueur = joueurs[indexJoueur];
+
+  if (joueur.scores[cat] !== null) return;
+
+  const points = score(des, cat);
+
+  joueur.scores[cat] = points;
+  tourFini = true;
+
+  $("message").textContent =
+    "✅ " + points + " point(s) inscrit(s) dans « " + cat + " ».";
+
+  cacherActions();
+  afficher();
+
+  setTimeout(suivant, 700);
+}
+function suivant(){indexJoueur++;if(indexJoueur>=joueurs.length){indexJoueur=0;afficherFinManche();return;}$("textePassage").textContent="Passe l'appareil à "+joueurs[indexJoueur].nom;$("passage").classList.remove("cache");}
+function afficherFinManche(){$("titreFinManche").textContent=`Fin de la manche ${manche}/13`;classement($("classementManche"));$("suite").textContent=manche>=13?"Voir les résultats":"Manche suivante";$("finManche").classList.remove("cache");}
+function classement(zone){zone.innerHTML="";[...joueurs].sort((a,b)=>total(b.scores)-total(a.scores)).forEach((j,i)=>{let d=document.createElement("div");d.className="ligne-classement";d.innerHTML=`<span>${i+1}. ${ech(j.nom)}</span><strong>${total(j.scores)} pts</strong>`;zone.appendChild(d);});}
+function afficherFeuilles(){$("feuilles").innerHTML="";joueurs.forEach((j,i)=>{let a=document.createElement("article");a.className="feuille"+(i===indexJoueur?" actif":"");a.innerHTML=`<h3>📋 ${ech(j.nom)}</h3><table>${CATS.map(c=>`<tr><td>${c}</td><td>${j.scores[c]===null?"—":j.scores[c]}</td></tr>`).join("")}</table><p>Supérieur : ${sup(j.scores)} | Bonus : ${bonus(j.scores)}</p><p>Inférieur : ${inf(j.scores)}</p><p class="total">Total : ${total(j.scores)}</p>`;$("feuilles").appendChild(a);});}
+function resultats(){classement($("classementFinal"));let m=Math.max(...joueurs.map(j=>total(j.scores))),g=joueurs.filter(j=>total(j.scores)===m).map(j=>j.nom);$("gagnant").textContent=g.length===1?`🎉 ${g[0]} gagne avec ${m} points !`:`🤝 Égalité entre ${g.join(", ")} avec ${m} points !`;$("resultats").classList.remove("cache");}
+function retour(){["passage","finManche","resultats"].forEach(id=>$(id).classList.add("cache"));$("jeu").classList.add("cache");$("demarrage").classList.remove("cache");champsNoms();}
+
+$("nbJoueurs").onchange=champsNoms;$("start").onclick=demarrer;$("lancer").onclick=lancerDes;
+$("toutGarder").onclick=()=>{gardes=new Set([0,1,2,3,4]);afficherDes()};$("toutRelancer").onclick=()=>{gardes.clear();afficherDes()};
+$("stop").onclick=()=>{cacherActions();$("info").textContent="Choisis une catégorie."};
+$("continuer").onclick=()=>{$("passage").classList.add("cache");preparerTour()};
+$("suite").onclick=()=>{$("finManche").classList.add("cache");if(manche>=13)resultats();else{manche++;preparerTour()}};
+$("nouvelle").onclick=()=>{if(confirm("Recommencer la partie ?"))retour()};$("rejouer").onclick=()=>{$("resultats").classList.add("cache");demarrer()};$("retour").onclick=retour;
+champsNoms();
+</script>
+</body>
+</html>
