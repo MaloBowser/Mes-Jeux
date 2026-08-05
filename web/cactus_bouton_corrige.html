@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cactus - Les jeux de Malo</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Arial;color:#fff;background:linear-gradient(145deg,#07150f,#1f4b34)}
+button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+header{text-align:center;padding:22px}h1{font-size:clamp(48px,8vw,88px);margin:0;text-shadow:0 0 12px #5cff91,0 0 28px #18a859}
+.panel{width:min(1150px,95%);margin:18px auto;padding:20px;border-radius:26px;background:#06110ddd;border:1px solid #ffffff22}
+.setup{width:min(650px,94%)}.row{display:grid;gap:8px;margin:14px 0}
+input,select{padding:12px;border-radius:12px;border:1px solid #ffffff35;background:#ffffff10;color:#fff}option{color:#000}
+.primary,.secondary,.danger{padding:12px 18px;border:0;border-radius:14px;color:#fff;font-weight:bold}
+.primary{background:#258c4c;box-shadow:0 0 14px #55ff8a88}.secondary{background:#ffffff16;border:1px solid #ffffff30}.danger{background:#b12f42}
+.top{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}.status{flex:1;padding:13px;border-radius:14px;background:#ffffff0d;font-weight:bold}
+.table{margin-top:16px;padding:18px;border-radius:22px;background:repeating-linear-gradient(90deg,#28583f 0 80px,#30694a 80px 160px);min-height:650px}
+.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.player{padding:12px;border-radius:16px;background:#0004;border:2px solid transparent}.player.active{border-color:#6eeeff;box-shadow:0 0 15px #6eeeff88}
+.center{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:520px;margin:24px auto;text-align:center}
+.cards{display:flex;flex-wrap:nowrap;justify-content:center;gap:12px;overflow-x:auto;padding:14px}
+.card{flex:0 0 auto;width:105px;height:150px;border-radius:16px;border:3px solid white;position:relative;box-shadow:0 10px 18px #0008}
+.back{background:repeating-linear-gradient(45deg,#133122 0 12px,#1d4a34 12px 24px)}.back:after{content:"🌵";position:absolute;inset:0;display:grid;place-items:center;font-size:46px}
+.face{background:#fff;color:#111}.face.red{color:#c51f2b}.value{display:block;font-size:36px;font-weight:bold;margin-top:17px}.suit{font-size:52px}
+.card:hover{transform:translateY(-7px)}.selected{outline:5px solid #ffd85a}
+.hand{padding:14px;border-radius:18px;background:#0004}.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px}
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:20px;background:#020a06ee}.modal{width:min(680px,96%);padding:26px;text-align:center;border-radius:24px;background:#123522;border:2px solid #5cff91}
+.big{font-size:84px;margin:0}.rank{display:grid;gap:8px}.rank div{display:flex;justify-content:space-between;padding:10px;border-radius:12px;background:#ffffff10}
+.notice{padding:10px;border-radius:12px;background:#ffffff10;margin:10px 0}
+@media(max-width:600px){.card{width:82px;height:120px}.value{font-size:29px}.suit{font-size:40px}}
+</style>
+</head>
+<body>
+<header><h1>🌵 CACTUS</h1><p>Le vrai jeu de mémoire : le moins de points possible.</p></header>
+
+<section id="setup" class="panel setup">
+<h2>Préparer la partie</h2>
+<div class="row"><label>Nombre de joueurs humains (2 à 6)</label>
+<select id="humanCount"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+<div id="names"></div><button id="start" class="primary">🎮 Commencer</button>
+</section>
+
+<main id="game" class="panel hidden">
+<div class="top"><div id="status" class="status"></div><div>🃏 Pioche : <span id="drawCount"></span> | ♻️ Défausse : <span id="discardName"></span></div></div>
+<section class="table">
+<div id="players" class="players"></div>
+<div class="center">
+<div><h2>🂠 Pioche</h2><button type="button" id="drawPile" class="card back"></button></div>
+<div><h2>♻️ Défausse</h2><button type="button" id="discardPile" class="card face"></button></div>
+</div>
+<section class="hand">
+<h2 id="handTitle">🧠 Tes 4 cartes cachées</h2>
+<div id="handCards" class="cards"></div>
+<div class="actions">
+<button type="button" id="cactus" class="danger">🌵 Dire CACTUS avant de jouer</button>
+<button id="quickThrow" class="secondary">🗑️ Jeter un double de la défausse</button>
+<button id="restart" class="secondary">🔄 Nouvelle partie</button>
+</div>
+</section>
+</section>
+</main>
+
+<div id="memory" class="overlay hidden"><div class="modal"><p class="big">🧠</p><h2 id="memoryTitle"></h2><p>Choisis exactement 2 cartes. Elles seront révélées une seule fois.</p><div id="memoryChoices" class="cards"></div><button id="showMemory" class="primary" disabled>Voir les 2 cartes</button></div></div>
+<div id="reveal" class="overlay hidden"><div class="modal"><p class="big">👀</p><h2>Mémorise bien</h2><div id="revealed" class="cards"></div><button id="hideMemory" class="primary">J'ai mémorisé</button></div></div>
+<div id="pass" class="overlay hidden"><div class="modal"><p class="big">🙈</p><h2 id="passText"></h2><button id="showTurn" class="primary">Afficher mon tour</button></div></div>
+<div id="drawn" class="overlay hidden"><div class="modal"><p class="big">🎴</p><h2>Carte piochée</h2><div id="drawnZone" class="cards"></div><button id="replace" class="primary">Échanger</button><button id="throwDrawn" class="secondary">🗑️ Rejeter directement</button></div></div>
+<div id="positions" class="overlay hidden"><div class="modal"><p class="big">🔢</p><h2 id="positionTitle"></h2><div id="positionChoices" class="cards"></div><button id="cancelPosition" class="secondary">Annuler</button></div></div>
+<div id="power" class="overlay hidden"><div class="modal"><p class="big">✨</p><h2 id="powerTitle"></h2><div id="powerContent"></div><button id="closePower" class="primary">Continuer</button></div></div>
+
+<div id="cactusConfirm" class="overlay hidden">
+  <div class="modal">
+    <p class="big">🌵</p>
+    <h2>Annoncer CACTUS ?</h2>
+    <p>
+      Tu vas jouer ton tour maintenant, puis chaque autre joueur aura
+      encore un dernier tour. Quand le tour revient à toi, les cartes sont révélées.
+    </p>
+    <button type="button" id="confirmCactus" class="danger">Oui, j'annonce CACTUS</button>
+    <button type="button" id="cancelCactus" class="secondary">Annuler</button>
+  </div>
+</div>
+
+<div id="results" class="overlay hidden"><div class="modal"><p class="big">🏆</p><h2>Résultats</h2><div id="ranking" class="rank"></div><p id="winner"></p><button id="replay" class="primary">Rejouer</button><button id="back" class="secondary">Retour</button></div></div>
+
+<script>
+const SUITS={coeur:"♥",carreau:"♦",trefle:"♣",pique:"♠"},VALUES=["A","2","3","4","5","6","7","8","9","10","V","D","R"],REDS=new Set(["coeur","carreau"]);
+let players=[],drawPile=[],discard=[],current=0,visibleHuman=0,selected=[],drawnCard=null;
+let cactusPlayer=null,lastRoundStartIndex=null,lastRoundActive=false,gameOver=false,turnStarted=false;
+
+const $=id=>document.getElementById(id);
+function pts(c){if(c.valeur==="A")return 1;if(c.valeur==="V")return 11;if(c.valeur==="D")return 12;if(c.valeur==="R")return REDS.has(c.couleur)?0:13;return +c.valeur}
+function name(c){return `${c.valeur==="A"?"As":c.valeur==="V"?"Valet":c.valeur==="D"?"Dame":c.valeur==="R"?"Roi":c.valeur} ${SUITS[c.couleur]}`}
+function face(c){return `<div class="card face ${REDS.has(c.couleur)?"red":""}"><span class="value">${c.valeur}</span><span class="suit">${SUITS[c.couleur]}</span></div>`}
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function deck(){let d=[];Object.keys(SUITS).forEach(c=>VALUES.forEach(v=>d.push({valeur:v,couleur:c})));return shuffle(d)}
+function names(){ $("names").innerHTML="";for(let i=0;i<+$("humanCount").value;i++){let r=document.createElement("div");r.className="row";r.innerHTML=`<label>Nom du joueur ${i+1}</label><input id="name${i}" placeholder="Joueur ${i+1}">`;$("names").appendChild(r)}}
+
+function start(){
+  players=[];let h=+$("humanCount").value;
+  for(let i=0;i<h;i++)players.push({name:$("name"+i).value.trim()||`Joueur ${i+1}`,cards:[],memory:{}});
+  shuffle(players);drawPile=deck();players.forEach(p=>p.cards=[drawPile.pop(),drawPile.pop(),drawPile.pop(),drawPile.pop()]);
+  discard=[drawPile.pop()];current=0;visibleHuman=0;cactusPlayer=null;lastRoundStartIndex=null;lastRoundActive=false;gameOver=false;turnStarted=false;
+  $("cactus").disabled=false;
+  $("cactus").textContent="🌵 Dire CACTUS avant de jouer";
+  $("cactusConfirm").classList.add("hidden");
+  $("setup").classList.add("hidden");$("game").classList.remove("hidden");memoryStart()
+}
+
+function memoryStart(){
+  let q=players.map((_,i)=>i);
+  function next(){if(!q.length){update();prepareTurn();return}visibleHuman=q.shift();memoryPick(players[visibleHuman],next)}
+  next()
+}
+
+function memoryPick(p,done){
+  selected=[];$("memoryTitle").textContent=`${p.name}, choisis 2 cartes`;$("memoryChoices").innerHTML="";
+  p.cards.forEach((_,i)=>{let b=document.createElement("button");b.className="card back";b.onclick=()=>{selected.includes(i)?(selected=selected.filter(x=>x!==i),b.classList.remove("selected")):selected.length<2&&(selected.push(i),b.classList.add("selected"));$("showMemory").disabled=selected.length!==2};$("memoryChoices").appendChild(b)});
+  $("memory").classList.remove("hidden");
+  $("showMemory").onclick=()=>{$("memory").classList.add("hidden");$("revealed").innerHTML="";selected.sort().forEach(i=>{p.memory[i]={...p.cards[i]};let w=document.createElement("div");w.innerHTML=face(p.cards[i])+`<p>Position ${i+1}</p>`;$("revealed").appendChild(w)});$("reveal").classList.remove("hidden");$("hideMemory").onclick=()=>{$("reveal").classList.add("hidden");done()}}
+}
+
+function update(){renderPlayers();renderHand();renderDiscard()}
+function renderPlayers(){$("players").innerHTML="";players.forEach((p,i)=>{let d=document.createElement("div");d.className="player"+(i===current&&!gameOver?" active":"");d.innerHTML=`<h3>👤 ${p.name} — ${p.cards.length} carte(s)</h3><div class="cards">${p.cards.map(()=>'<div class="card back" style="width:40px;height:58px"></div>').join("")}</div>`;$("players").appendChild(d)})}
+function renderHand(){let p=players[visibleHuman];$("handTitle").textContent=`🧠 Cartes de ${p.name} — cachées`;$("handCards").innerHTML="";p.cards.forEach((_,i)=>{let b=document.createElement("button");b.className="card back";b.innerHTML=`<span style="position:absolute;bottom:6px;left:0;right:0;color:white;font-weight:bold">${i+1}</span>`;$("handCards").appendChild(b)})}
+function renderDiscard(){let c=discard.at(-1);$("discardPile").className=`card face ${REDS.has(c.couleur)?"red":""}`;$("discardPile").innerHTML=`<span class="value">${c.valeur}</span><span class="suit">${SUITS[c.couleur]}</span>`;$("drawCount").textContent=drawPile.length;$("discardName").textContent=name(c)}
+function refill(){if(!drawPile.length&&discard.length>1){let top=discard.pop();drawPile=shuffle(discard);discard=[top]}}
+function draw(){refill();return drawPile.pop()}
+
+function prepareTurn(){
+  if(gameOver)return;
+  visibleHuman=current;turnStarted=false;update();
+  $("status").textContent=`🌵 ${players[current].name}, tu peux annoncer CACTUS maintenant, avant de jouer.`;
+  $("cactus").disabled=!!cactusPlayer;
+}
+
+function beginActualTurn(){
+  if(turnStarted)return;
+  turnStarted=true;
+  $("status").textContent=`🎮 Tour de ${players[current].name} : prends la défausse ou pioche.`;
+}
+
+function choosePosition(title,cb){
+  let p=players[current];$("positionTitle").textContent=title;$("positionChoices").innerHTML="";
+  p.cards.forEach((_,i)=>{let b=document.createElement("button");b.className="card back";b.innerHTML=`<span style="position:absolute;bottom:6px;left:0;right:0;color:white;font-weight:bold">${i+1}</span>`;b.onclick=()=>{$("positions").classList.add("hidden");cb(i)};$("positionChoices").appendChild(b)});
+  $("positions").classList.remove("hidden")
+}
+
+function takeDiscard(){
+  beginActualTurn();
+  drawnCard=discard.pop();
+  choosePosition("Quelle position remplacer ?",i=>{
+    let old=players[current].cards[i];
+    players[current].cards[i]=drawnCard;
+    players[current].memory[i]={...drawnCard};
+    discard.push(old);
+    applySpecial(old,()=>finishTurn());
+  })
+}
+
+function takeDraw(){
+  beginActualTurn();
+  drawnCard=draw();$("drawnZone").innerHTML=face(drawnCard);$("drawn").classList.remove("hidden")
+}
+
+function replace(){
+  $("drawn").classList.add("hidden");
+  choosePosition("Quelle position remplacer ?",i=>{
+    let old=players[current].cards[i];
+    players[current].cards[i]=drawnCard;
+    players[current].memory[i]={...drawnCard};
+    discard.push(old);
+    applySpecial(old,()=>finishTurn());
+  })
+}
+
+function throwDrawn(){
+  $("drawn").classList.add("hidden");
+  discard.push(drawnCard);
+  applySpecial(drawnCard,()=>finishTurn())
+}
+
+function quickThrow(){
+  let target=discard.at(-1);
+  choosePosition(`Quelle carte penses-tu identique à ${name(target)} ?`,i=>{
+    let c=players[current].cards.splice(i,1)[0];adjustMemory(players[current],i);discard.push(c);
+    if(c.valeur!==target.valeur){
+      let penalty=draw();if(penalty)players[current].cards.push(penalty);
+      $("status").textContent=`❌ Mauvaise carte : ${name(c)}. Une pénalité est ajoutée.`;
+    }else{
+      $("status").textContent=`✅ Bonne mémoire ! ${name(c)} est jetée.`;
+      applySpecial(c,()=>{update()});
+    }
+    update()
+  })
+}
+
+function adjustMemory(p,pos){
+  let m={};Object.entries(p.memory).forEach(([k,c])=>{k=+k;if(k<pos)m[k]=c;else if(k>pos)m[k-1]=c});p.memory=m
+}
+
+function applySpecial(card,done){
+  if(card.valeur==="R"){
+    choosePosition("👑 Roi : regarde une carte",i=>{
+      let seen=players[current].cards[i];players[current].memory[i]={...seen};
+      $("powerTitle").textContent="👑 Pouvoir du Roi";
+      $("powerContent").innerHTML=face(seen)+`<p>Position ${i+1}</p>`;
+      $("power").classList.remove("hidden");
+      $("closePower").onclick=()=>{$("power").classList.add("hidden");done()}
+    });
+    return
+  }
+
+  if(card.valeur==="D"){
+    let opponents=players.map((p,i)=>i!==current?i:null).filter(i=>i!==null);
+    let advIndex=opponents[Math.floor(Math.random()*opponents.length)];
+    let myPos=Math.floor(Math.random()*players[current].cards.length);
+    let advPos=Math.floor(Math.random()*players[advIndex].cards.length);
+    [players[current].cards[myPos],players[advIndex].cards[advPos]]=[players[advIndex].cards[advPos],players[current].cards[myPos]];
+    delete players[current].memory[myPos];delete players[advIndex].memory[advPos];
+    $("powerTitle").textContent="👸 Pouvoir de la Dame";
+    $("powerContent").innerHTML=`<p>Une carte de ton paquet a été échangée à l'aveugle avec une carte de ${players[advIndex].name}.</p>`;
+    $("power").classList.remove("hidden");
+    $("closePower").onclick=()=>{$("power").classList.add("hidden");done()};
+    return
+  }
+
+  if(card.valeur==="V"){
+    let opponents=players.map((p,i)=>i!==current?i:null).filter(i=>i!==null);
+    let advIndex=opponents[Math.floor(Math.random()*opponents.length)];
+    shuffle(players[advIndex].cards);players[advIndex].memory={};
+    $("powerTitle").textContent="🤴 Pouvoir du Valet";
+    $("powerContent").innerHTML=`<p>Les cartes de ${players[advIndex].name} ont été mélangées.</p>`;
+    $("power").classList.remove("hidden");
+    $("closePower").onclick=()=>{$("power").classList.add("hidden");done()};
+    return
+  }
+
+  done()
+}
+
+function announceCactus(){
+  const player = players[current];
+
+  if (!player || gameOver) return;
+
+  if (turnStarted) {
+    $("status").textContent =
+      "⚠️ Trop tard : Cactus doit être annoncé avant de piocher ou de prendre la défausse.";
+    return;
+  }
+
+  if (cactusPlayer) {
+    $("status").textContent =
+      "⚠️ Cactus a déjà été annoncé par " + cactusPlayer.name + ".";
+    return;
+  }
+
+  $("cactusConfirm").classList.remove("hidden");
+}
+
+function confirmCactusAnnouncement(){
+  const player = players[current];
+
+  if (!player || cactusPlayer || gameOver || turnStarted) {
+    $("cactusConfirm").classList.add("hidden");
+    return;
+  }
+
+  cactusPlayer = player;
+  lastRoundStartIndex = current;
+  lastRoundActive = true;
+
+  $("cactusConfirm").classList.add("hidden");
+  $("cactus").disabled = true;
+  $("cactus").textContent = "🌵 CACTUS ANNONCÉ";
+
+  $("status").textContent =
+    "🌵 " + player.name +
+    " annonce CACTUS ! Joue maintenant ton tour. " +
+    "Ensuite, chaque autre joueur aura un dernier tour.";
+}
+
+function cancelCactusAnnouncement(){
+  $("cactusConfirm").classList.add("hidden");
+}
+
+function finishTurn(){
+  update();
+
+  current=(current+1)%players.length;
+
+  if(lastRoundActive && current===lastRoundStartIndex){
+    showResults();
+    return
+  }
+
+  $("passText").textContent=`Passe l'appareil à ${players[current].name}`;
+  $("pass").classList.remove("hidden")
+}
+
+function total(p){return p.cards.reduce((t,c)=>t+pts(c),0)}
+function showResults(){
+  gameOver=true;
+  let sorted=[...players].sort((a,b)=>total(a)-total(b));
+  let best=total(sorted[0]);
+  let ties=sorted.filter(p=>total(p)===best);
+  let winner=ties.includes(cactusPlayer)?cactusPlayer:ties[0];
+
+  $("ranking").innerHTML=sorted.map((p,i)=>`<div><span>${i+1}. ${p.name}${p===cactusPlayer?" 🌵":""}</span><strong>${total(p)} pts</strong></div>`).join("");
+  $("winner").textContent=`🏆 ${winner.name} gagne avec ${best} point(s) !`;
+  $("results").classList.remove("hidden")
+}
+
+function reset(){
+  ["game","memory","reveal","pass","drawn","positions","power","cactusConfirm","results"].forEach(id=>$(id).classList.add("hidden"));
+  $("setup").classList.remove("hidden");names()
+}
+
+$("humanCount").onchange=names;
+$("start").onclick=start;
+$("drawPile").onclick=takeDraw;
+$("discardPile").onclick=takeDiscard;
+$("replace").onclick=replace;
+$("throwDrawn").onclick=throwDrawn;
+$("quickThrow").onclick=quickThrow;
+$("cactus").addEventListener("click", announceCactus);
+$("confirmCactus").addEventListener("click", confirmCactusAnnouncement);
+$("cancelCactus").addEventListener("click", cancelCactusAnnouncement);
+$("showTurn").onclick=()=>{$("pass").classList.add("hidden");prepareTurn()};
+$("cancelPosition").onclick=()=>$("positions").classList.add("hidden");
+$("restart").onclick=()=>confirm("Nouvelle partie ?")&&reset();
+$("replay").onclick=()=>{$("results").classList.add("hidden");start()};
+$("back").onclick=reset;
+
+names();
+</script>
+</body>
+</html>
+
+
