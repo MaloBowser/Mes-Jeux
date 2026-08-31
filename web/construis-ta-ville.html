@@ -79,6 +79,8 @@
 <style>
 .resident-status{display:none;position:absolute;z-index:8;left:-10px;top:-19px;padding:2px 4px;border-radius:6px;background:#07131de8;font-style:normal;font-size:15px}.citizen.status-arriving,.citizen.status-leaving{opacity:1!important}.citizen.status-arriving .resident-status,.citizen.status-leaving .resident-status,.citizen.status-complaining .resident-status,.citizen.status-listing .resident-status{display:block}
 </style>
+<link rel="stylesheet" href="ui-commune.css">
+<script src="ui-commune.js"></script>
 </head>
 <body>
 <header class="top"><div class="identity"><h1 id="cityTitle">🏙️ Construis ta ville</h1><small id="playerName">👤 —</small></div><div class="stats" aria-label="Indicateurs municipaux"><div class="stat">🪙 Trésorerie<b id="coins">1 000</b></div><div class="stat">👥 Population<b id="population">0</b></div><div class="stat">🗣️ Climat social<b id="happiness">Serein</b></div><div class="stat">💼 Emplois occupés<b id="jobsStat">0</b></div><div class="stat">📅 Date<b id="dateStat">Jour 1</b></div><div class="stat">🌦 Météo<b id="weatherStat">Clair</b></div></div><div class="actions"><button id="menuBtn" aria-label="Ouvrir les constructions" aria-controls="catalogPanel" aria-expanded="false">🏗️ <span class="action-label">Construire</span></button><button id="journalBtn" aria-label="Ouvrir le journal municipal" aria-controls="journalPanel" aria-expanded="false">📒 <span class="action-label">Journal</span><span class="badge" id="journalBadge"></span></button><button id="statsBtn" aria-label="Ouvrir les statistiques" aria-controls="statsView" aria-expanded="false">📊 <span class="action-label">Bilan</span></button><button id="settingsBtn" aria-label="Ouvrir les paramètres">⚙️</button></div></header>

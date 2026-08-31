@@ -6,6 +6,7 @@
     <title>Les jeux de Malo</title>
 
     <link rel="icon" type="image/png" href="web/console-de-jeu.png">
+    <link rel="stylesheet" href="web/ui-commune.css">
 
     <style>
         body {
@@ -137,6 +138,7 @@
             }
         }
     </style>
+<script src="web/ui-commune.js"></script>
 </head>
 
 <body>
@@ -198,7 +200,7 @@
 <div class="jeu"  data-categories="solo reflexion hasard">
     <img src="web/mots.png">
     <br>
-    <a href="web/mastermind_20_essais_voix.html.html">
+    <a href="web/mastermind_20_essais_voix.html">
         <button>🧐 Mastermind </button>
     </a>
 </div>
@@ -609,7 +611,7 @@
 <div class="jeu" data-categories="solo reflexion culture">
     <img src="web/P.png">
     <br>
-    <a href="web/Pendu.html">
+    <a href="web/pendu.html">
         <button>🎮 Pendu</button>
     </a>
 </div>
@@ -626,7 +628,6 @@
 <p>
     <h5><a href="https://www.veryfrog.com/">Si vous avez besoin d'aide en informatique</a>  :)</br>
 c'est la personne qu'il vous faut  </p></h5>
-
 <script>
     const cartesJeux = Array.from(document.querySelectorAll('.jeu'));
     const boutonsCategories = document.querySelectorAll('.categorie');

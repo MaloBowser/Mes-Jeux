@@ -1,0 +1,323 @@
+(() => {
+  "use strict";
+
+  const PROFILES_KEY = "malo.profiles.v1";
+  const ACTIVE_KEY = "malo.activeProfile";
+  const LEGACY_KEY = "malo.legacyMigrated";
+  const SESSION_KEY = "malo.profileChosenSession";
+  const PROFILE_DATA_PREFIX = "malo.profileData.";
+  const LEGACY_CLAIM_KEY = "malo.legacySavesClaimed";
+  const HOME_URL = document.currentScript ? new URL("../index.html", document.currentScript.src).href : "../index.html";
+  const EMOJIS = ["😀", "😎", "🤩", "🥳", "🦊", "🐼", "🐸", "🦁", "🐯", "🐙", "🦄", "🐲", "👾", "🤖", "🧙", "🦸", "🥷", "👨‍🍳"];
+  const rawStorage = {
+    get: Storage.prototype.getItem,
+    set: Storage.prototype.setItem,
+    remove: Storage.prototype.removeItem,
+    clear: Storage.prototype.clear,
+    key: Storage.prototype.key
+  };
+  const rawGet = (key) => rawStorage.get.call(localStorage, key);
+  const rawSet = (key, value) => rawStorage.set.call(localStorage, key, value);
+  const rawRemove = (key) => rawStorage.remove.call(localStorage, key);
+  const getProfiles = () => {
+    try { return JSON.parse(rawGet(PROFILES_KEY) || "[]"); }
+    catch { return []; }
+  };
+  const saveProfiles = (profiles) => rawSet(PROFILES_KEY, JSON.stringify(profiles));
+  const activeId = () => rawGet(ACTIVE_KEY) || "";
+  const activeProfile = () => getProfiles().find((profile) => profile.id === activeId()) || null;
+  const PAGE_PROFILE_ID = activeId();
+  const profilePrefix = () => PAGE_PROFILE_ID ? `${PROFILE_DATA_PREFIX}${PAGE_PROFILE_ID}.` : "";
+  const isHomePage = () => /(?:^|\/)index\.html$/i.test(location.pathname) || location.pathname.endsWith("/");
+  const isSharedKey = (key) => {
+    const value = String(key);
+    return [PROFILES_KEY, ACTIVE_KEY, LEGACY_KEY, SESSION_KEY, LEGACY_CLAIM_KEY, "malo.nomUtilisateur"].includes(value)
+      || value.startsWith(PROFILE_DATA_PREFIX);
+  };
+
+  function installProfileStorage() {
+    Storage.prototype.getItem = function (key) {
+      if (this !== localStorage || isSharedKey(key) || !profilePrefix()) return rawStorage.get.call(this, key);
+      return rawStorage.get.call(this, profilePrefix() + key);
+    };
+    Storage.prototype.setItem = function (key, value) {
+      const target = this === localStorage && !isSharedKey(key) && profilePrefix() ? profilePrefix() + key : key;
+      return rawStorage.set.call(this, target, value);
+    };
+    Storage.prototype.removeItem = function (key) {
+      const target = this === localStorage && !isSharedKey(key) && profilePrefix() ? profilePrefix() + key : key;
+      return rawStorage.remove.call(this, target);
+    };
+    Storage.prototype.clear = function () {
+      if (this !== localStorage || !profilePrefix()) return rawStorage.clear.call(this);
+      const prefix = profilePrefix();
+      const keys = [];
+      for (let index = 0; index < this.length; index++) {
+        const key = rawStorage.key.call(this, index);
+        if (key?.startsWith(prefix)) keys.push(key);
+      }
+      keys.forEach((key) => rawStorage.remove.call(this, key));
+    };
+  }
+
+  function migrateLegacySaves(profileId) {
+    if (rawGet(LEGACY_KEY)) return;
+    const keys = [];
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = rawStorage.key.call(localStorage, index);
+      if (key && !isSharedKey(key)) keys.push(key);
+    }
+    keys.forEach((key) => rawSet(`${PROFILE_DATA_PREFIX}${profileId}.${key}`, rawGet(key)));
+    rawSet(LEGACY_KEY, profileId);
+  }
+
+  installProfileStorage();
+
+  function claimExistingUnscopedSaves() {
+    const profileId = activeId();
+    if (!profileId || rawGet(LEGACY_CLAIM_KEY)) return;
+    const keys = [];
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = rawStorage.key.call(localStorage, index);
+      if (key && !isSharedKey(key)) keys.push(key);
+    }
+    keys.forEach((key) => {
+      const target = `${PROFILE_DATA_PREFIX}${profileId}.${key}`;
+      if (rawGet(target) === null) rawSet(target, rawGet(key));
+    });
+    rawSet(LEGACY_CLAIM_KEY, profileId);
+  }
+
+  claimExistingUnscopedSaves();
+
+  const getName = () => activeProfile()?.name || "Joueur";
+  const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+  })[char]);
+  const avatarHtml = (profile) => profile?.image
+    ? `<img src="${escapeHtml(profile.image)}" alt="">`
+    : `<span class="malo-avatar-emoji">${escapeHtml(profile?.emoji || "👤")}</span>`;
+
+  function showToast(message) {
+    let toast = document.querySelector(".malo-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "malo-toast";
+      toast.setAttribute("role", "status");
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add("is-visible");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove("is-visible"), 2800);
+  }
+
+  function prefillPlayerName() {
+    document.querySelectorAll(".malo-profile-field").forEach((field) => field.classList.remove("malo-profile-field"));
+    document.querySelectorAll("input[id*='pseudo' i], input[name*='pseudo' i]").forEach((field) => {
+      if (!field.value.trim()) {
+        field.value = getName();
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+  }
+
+  function renderAccount() {
+    document.querySelector(".malo-account")?.remove();
+    const profile = activeProfile();
+    if (!profile) return;
+    const account = document.createElement("button");
+    account.type = "button";
+    account.className = "malo-account";
+    account.title = `Profil de ${profile.name}`;
+    account.setAttribute("aria-label", `Changer de profil. Profil actuel : ${profile.name}`);
+    account.innerHTML = avatarHtml(profile);
+    account.addEventListener("click", () => showProfileChooser(true));
+    document.body.appendChild(account);
+  }
+
+  function selectProfile(profileId) {
+    const changed = activeId() !== profileId;
+    rawSet(ACTIVE_KEY, profileId);
+    sessionStorage.setItem(SESSION_KEY, "1");
+    document.querySelector(".malo-overlay")?.remove();
+    if (changed) location.href = HOME_URL;
+    else {
+      renderAccount();
+      prefillPlayerName();
+      showToast(`Bonjour ${getName()} !`);
+    }
+  }
+
+  function showProfileChooser(canClose = false) {
+    document.querySelector(".malo-overlay")?.remove();
+    const profiles = getProfiles();
+    const overlay = document.createElement("div");
+    overlay.className = "malo-overlay malo-profile-selector";
+    overlay.innerHTML = `<section class="malo-dialog malo-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <div class="malo-profile-brand">🎮 LES JEUX DE MALO</div>
+      <div class="malo-dialog-head"><div><h2 id="profileTitle">Qui joue aujourd’hui ?</h2><p>Choisis ton profil pour retrouver ton nom et tes sauvegardes personnelles.</p></div>${canClose && activeProfile() ? '<button type="button" data-close aria-label="Fermer">✕</button>' : ''}</div>
+      <div class="malo-profile-grid"></div>
+      <div class="malo-actions"><button class="malo-primary" type="button" data-add>＋ Ajouter un profil</button></div>
+    </section>`;
+    const grid = overlay.querySelector(".malo-profile-grid");
+    profiles.forEach((profile) => {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = `malo-profile-card${profile.id === activeId() ? " is-active" : ""}`;
+      card.innerHTML = `<span class="malo-profile-avatar">${avatarHtml(profile)}</span><span class="malo-profile-name">${escapeHtml(profile.name)}</span>`;
+      card.addEventListener("click", () => selectProfile(profile.id));
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.className = "malo-profile-edit";
+      edit.setAttribute("aria-label", `Modifier ${profile.name}`);
+      edit.textContent = "✎";
+      edit.addEventListener("click", (event) => { event.stopPropagation(); showProfileEditor(profile); });
+      const wrap = document.createElement("div");
+      wrap.style.position = "relative";
+      wrap.append(card, edit);
+      grid.appendChild(wrap);
+    });
+    if (!profiles.length) grid.innerHTML = "<p>Aucun profil pour le moment. Crée le premier !</p>";
+    overlay.querySelector("[data-add]").addEventListener("click", () => showProfileEditor());
+    overlay.querySelector("[data-close]")?.addEventListener("click", () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+
+  function showProfileEditor(existing = null) {
+    document.querySelector(".malo-overlay")?.remove();
+    let chosenEmoji = existing?.emoji || EMOJIS[0];
+    let chosenImage = existing?.image || "";
+    const overlay = document.createElement("div");
+    overlay.className = "malo-overlay";
+    overlay.innerHTML = `<form class="malo-dialog" role="dialog" aria-modal="true">
+      <h2>${existing ? "Modifier le profil" : "Nouveau profil"}</h2>
+      <div class="malo-profile-avatar malo-avatar-preview"></div>
+      <label>Nom du profil<input name="username" maxlength="24" autocomplete="nickname" placeholder="Ton nom" required value="${escapeHtml(existing?.name || rawGet("malo.nomUtilisateur") || "")}"></label>
+      <label>Choisis un emoji</label><div class="malo-emoji-grid"></div>
+      <label class="malo-file-label">Ou choisis une image<input name="avatarFile" type="file" accept="image/png,image/jpeg,image/webp">📷 Choisir une image</label>
+      <div class="malo-actions">${existing ? '<button class="malo-danger" type="button" data-delete>Supprimer</button>' : ''}<button type="button" data-back>Retour</button><button class="malo-primary" type="submit">Enregistrer</button></div>
+    </form>`;
+    const preview = overlay.querySelector(".malo-avatar-preview");
+    const renderPreview = () => { preview.innerHTML = chosenImage ? `<img src="${escapeHtml(chosenImage)}" alt="Aperçu">` : `<span>${chosenEmoji}</span>`; };
+    const emojiGrid = overlay.querySelector(".malo-emoji-grid");
+    EMOJIS.forEach((emoji) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `malo-emoji-choice${!chosenImage && emoji === chosenEmoji ? " is-selected" : ""}`;
+      button.textContent = emoji;
+      button.addEventListener("click", () => {
+        chosenEmoji = emoji; chosenImage = "";
+        emojiGrid.querySelectorAll("button").forEach((item) => item.classList.toggle("is-selected", item === button));
+        renderPreview();
+      });
+      emojiGrid.appendChild(button);
+    });
+    overlay.querySelector("[name='avatarFile']").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 500000) { event.target.value = ""; return showToast("Choisis une image de moins de 500 Ko."); }
+      const reader = new FileReader();
+      reader.onload = () => { chosenImage = reader.result; emojiGrid.querySelectorAll("button").forEach((item) => item.classList.remove("is-selected")); renderPreview(); };
+      reader.readAsDataURL(file);
+    });
+    overlay.querySelector("[data-back]").addEventListener("click", () => showProfileChooser(Boolean(activeProfile())));
+    overlay.querySelector("[data-delete]")?.addEventListener("click", () => {
+      if (!confirm(`Supprimer le profil ${existing.name} et ses sauvegardes ?`)) return;
+      const profiles = getProfiles().filter((profile) => profile.id !== existing.id);
+      saveProfiles(profiles);
+      const prefix = `${PROFILE_DATA_PREFIX}${existing.id}.`;
+      const keys = [];
+      for (let index = 0; index < localStorage.length; index++) {
+        const key = rawStorage.key.call(localStorage, index);
+        if (key?.startsWith(prefix)) keys.push(key);
+      }
+      keys.forEach(rawRemove);
+      if (activeId() === existing.id) rawRemove(ACTIVE_KEY);
+      showProfileChooser(false);
+    });
+    overlay.querySelector("form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = new FormData(event.currentTarget).get("username").trim().replace(/\s+/g, " ");
+      if (!name) return;
+      const profiles = getProfiles();
+      const profile = { id: existing?.id || `${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`, name, emoji: chosenEmoji, image: chosenImage };
+      const index = profiles.findIndex((item) => item.id === profile.id);
+      if (index >= 0) profiles[index] = profile; else profiles.push(profile);
+      saveProfiles(profiles);
+      if (!existing) migrateLegacySaves(profile.id);
+      selectProfile(profile.id);
+    });
+    document.body.appendChild(overlay);
+    renderPreview();
+    overlay.querySelector("[name='username']").focus();
+  }
+
+  function showReportDialog() {
+    const overlay = document.createElement("div");
+    overlay.className = "malo-overlay";
+    overlay.innerHTML = `<section class="malo-dialog"><h2>Signaler un problème</h2><p>Le formulaire anonyme est prêt, mais il doit encore être relié à une destination privée pour que Malo reçoive les messages sans demander de compte aux visiteurs.</p><div class="malo-actions"><button class="malo-primary" type="button" data-close>Compris</button></div></section>`;
+    overlay.querySelector("[data-close]").addEventListener("click", () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+
+  function enableEnterValidation() {
+    document.addEventListener("keydown", (event) => {
+      const field = event.target;
+      if (event.key !== "Enter" || event.shiftKey || event.isComposing || !(field instanceof HTMLInputElement)) return;
+      if (["button", "submit", "reset", "checkbox", "radio", "file", "range", "color"].includes(field.type)) return;
+      const form = field.closest("form");
+      if (form) {
+        event.preventDefault();
+        form.requestSubmit();
+        return;
+      }
+      const scope = field.closest("section, main, .panel, .panneau, .conteneur, .container") || document;
+      const preferred = /valider|vérifier|verifier|répondre|repondre|proposer|confirmer|deviner|jouer|essayer|envoyer|suivant|ok/i;
+      const buttons = Array.from(scope.querySelectorAll("button")).filter((button) => !button.disabled && button.offsetParent !== null);
+      const button = buttons.find((candidate) => preferred.test(candidate.textContent)) || buttons[0];
+      if (button) {
+        event.preventDefault();
+        button.click();
+      }
+    });
+  }
+
+  function init() {
+    const isHome = isHomePage();
+    if (!isHome && (!activeProfile() || !sessionStorage.getItem(SESSION_KEY))) {
+      location.replace(HOME_URL);
+      return;
+    }
+    if (isHome) {
+      const report = document.createElement("button");
+      report.type = "button";
+      report.className = "malo-report-button";
+      report.setAttribute("aria-label", "Signaler un bug ou un problème");
+      report.textContent = "⚠️";
+      report.addEventListener("click", showReportDialog);
+      document.body.appendChild(report);
+      if (activeProfile()) renderAccount();
+    } else {
+      const home = document.createElement("a");
+      home.className = "malo-home-button";
+      home.href = HOME_URL;
+      home.setAttribute("aria-label", "Retourner à l’accueil");
+      home.title = "Accueil";
+      home.textContent = "🏠";
+      document.body.appendChild(home);
+    }
+
+    if (isHome) {
+      if (!getProfiles().length) showProfileEditor();
+      else if (!sessionStorage.getItem(SESSION_KEY)) showProfileChooser(false);
+      else if (!activeProfile()) showProfileChooser(false);
+    } else prefillPlayerName();
+
+    enableEnterValidation();
+    new MutationObserver(prefillPlayerName).observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
