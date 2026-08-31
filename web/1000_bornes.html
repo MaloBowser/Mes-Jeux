@@ -65,7 +65,7 @@ const BOOT_LIST=Object.keys(BOOTS), COLORS=["#ff5574","#42a5ff","#55e38b","#ffd4
 const ART={"25 km":"🛣️","50 km":"🏘️","75 km":"🌲","100 km":"🏔️","200 km":"🚀","Panne d'essence":"⛽","Crevaison":"💥","Accident":"🚧","Limite de vitesse":"🚫","Feu rouge":"🚦","Essence":"🛢️","Roue de secours":"🛞","Réparations":"🔧","Fin de limitation":"✅","Feu vert":"🟢","Citerne":"⛽","Increvable":"🛞","As du volant":"🏎️","Véhicule prioritaire":"🚑"};
 let players=[],deck=[],discard=[],current=0,round=1,selected=-1,gameOver=false,busy=false;
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-function makeDeck(){let a=[];const add=(n,c)=>{for(let i=0;i<c;i++)a.push(n)};add("25 km",6);add("50 km",6);add("75 km",4);add("100 km",4);add("200 km",2);ATTACKS.forEach(x=>add(x,3));add("Essence",3);add("Roue de secours",3);add("Réparations",3);add("Fin de limitation",3);add("Feu vert",5);a.push(...BOOT_LIST);return shuffle(a)}
+function makeDeck(){let a=[];const add=(n,c)=>{for(let i=0;i<c;i++)a.push(n)};add("25 km",6);add("50 km",6);add("75 km",4);add("100 km",4);add("200 km",2);ATTACKS.forEach(x=>add(x,2));Object.values(REMEDIES).forEach(x=>add(x,4));a.push(...BOOT_LIST);return shuffle(a)}
 function shuffle(a){for(let i=a.length-1;i;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function updateNames(){const n=+$('#humanCount').value,box=$('#names');box.innerHTML='';for(let i=0;i<n;i++)box.insertAdjacentHTML('beforeend',`<label class="name-field"><span class="name-number">${i+1}</span><input maxlength="16" value="" placeholder="Prénom du joueur ${i+1}" aria-label="Prénom du joueur ${i+1}"></label>`)}
 $('#humanCount').onchange=updateNames;updateNames();

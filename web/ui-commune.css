@@ -249,6 +249,84 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   transition: .2s;
 }
 .malo-toast.is-visible { transform: translate(-50%, 0); opacity: 1; }
+.malo-welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 21000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: #fff;
+  background: radial-gradient(circle at center, rgba(0,245,255,.18), transparent 38%), #020a11;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.malo-welcome.is-visible { opacity: 1; }
+.malo-welcome.is-leaving { opacity: 0; }
+.malo-welcome-content { text-align: center; animation: maloWelcomeIn .85s cubic-bezier(.2,.85,.25,1) both; }
+.malo-welcome-avatar {
+  display: grid;
+  place-items: center;
+  width: clamp(105px,20vw,160px);
+  height: clamp(105px,20vw,160px);
+  margin: 0 auto 24px;
+  overflow: hidden;
+  border: 4px solid #00f5ff;
+  border-radius: 50%;
+  background: linear-gradient(145deg,#12516c,#543077);
+  box-shadow: 0 0 25px rgba(0,245,255,.75), 0 0 70px rgba(0,245,255,.28);
+  font-size: clamp(56px,11vw,92px);
+}
+.malo-welcome-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.malo-welcome p { margin: 0 0 4px; color: #bffcff !important; font-size: clamp(22px,4vw,34px); font-weight: 700; text-transform: uppercase; letter-spacing: .16em; }
+.malo-welcome h2 { margin: 0; font-size: clamp(48px,10vw,96px); text-shadow: 0 0 15px #00f5ff, 0 0 45px rgba(0,245,255,.65); }
+@keyframes maloWelcomeIn {
+  0% { transform: scale(.68) translateY(24px); opacity: 0; filter: blur(10px); }
+  65% { transform: scale(1.06); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+.malo-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: hidden;
+  background: #02070c;
+}
+.malo-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(0,245,255,.2), transparent 42%);
+  opacity: 0;
+}
+.malo-intro-mark { position: relative; width: clamp(150px,28vw,280px); height: clamp(190px,36vw,350px); filter: drop-shadow(0 0 28px rgba(0,245,255,.72)); }
+.malo-intro-mark span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #00f5ff;
+  font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+  font-size: clamp(180px,34vw,340px);
+  font-weight: 950;
+  line-height: 1;
+  text-shadow: 0 0 12px #00f5ff, 0 0 45px rgba(0,245,255,.68);
+}
+.malo-m-left { clip-path: inset(0 50% 0 0); }
+.malo-m-right { clip-path: inset(0 0 0 50%); }
+.malo-intro.is-playing::before { animation: maloIntroFlash 1.5s ease-out; }
+.malo-intro.is-playing .malo-m-left { animation: maloSplitLeft 1.45s cubic-bezier(.2,.8,.2,1) forwards; }
+.malo-intro.is-playing .malo-m-right { animation: maloSplitRight 1.45s cubic-bezier(.2,.8,.2,1) forwards; }
+@keyframes maloSplitLeft { 0%{transform:none} 32%{transform:scale(1.08)} 100%{transform:translateX(-65vw) scale(1.45);opacity:0} }
+@keyframes maloSplitRight { 0%{transform:none} 32%{transform:scale(1.08)} 100%{transform:translateX(65vw) scale(1.45);opacity:0} }
+@keyframes maloIntroFlash { 0%{opacity:0} 25%{opacity:1} 100%{opacity:0} }
+@media (prefers-reduced-motion: reduce) {
+  .malo-intro.is-playing .malo-m-left,
+  .malo-intro.is-playing .malo-m-right { animation-duration: .25s; }
+}
 @media (max-width: 620px) {
   .malo-report-button, .malo-home-button, .malo-account { width: 44px; height: 44px; }
   body > header:first-of-type, body > h1:first-of-type { padding-top: 68px !important; }

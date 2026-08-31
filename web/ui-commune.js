@@ -5,6 +5,7 @@
   const ACTIVE_KEY = "malo.activeProfile";
   const LEGACY_KEY = "malo.legacyMigrated";
   const SESSION_KEY = "malo.profileChosenSession";
+  const INTRO_KEY = "malo.introSeen";
   const PROFILE_DATA_PREFIX = "malo.profileData.";
   const LEGACY_CLAIM_KEY = "malo.legacySavesClaimed";
   const HOME_URL = document.currentScript ? new URL("../index.html", document.currentScript.src).href : "../index.html";
@@ -114,6 +115,18 @@
 
   function prefillPlayerName() {
     document.querySelectorAll(".malo-profile-field").forEach((field) => field.classList.remove("malo-profile-field"));
+    const nameFields = Array.from(document.querySelectorAll("input[type='text'], input:not([type])")).filter((field) => {
+      const identifier = `${field.id} ${field.name}`.trim().toLowerCase();
+      const hint = `${field.placeholder} ${field.getAttribute("aria-label") || ""}`.trim().toLowerCase();
+      return /(?:^|\s)(?:name|nom|joueur|player)\d*(?:\s|$)/.test(identifier)
+        || /prénom du joueur\s+\d+/i.test(hint)
+        || /^(?:👤\s*)?(?:ton\s+)?(?:prénom|nom)(?:\s+\d+)?$/i.test(hint);
+    });
+    const firstPlayer = nameFields[0];
+    if (firstPlayer && !firstPlayer.value.trim()) {
+      firstPlayer.value = getName();
+      firstPlayer.dispatchEvent(new Event("input", { bubbles: true }));
+    }
     document.querySelectorAll("input[id*='pseudo' i], input[name*='pseudo' i]").forEach((field) => {
       if (!field.value.trim()) {
         field.value = getName();
@@ -136,17 +149,31 @@
     document.body.appendChild(account);
   }
 
+  function showWelcome(profile, done) {
+    document.querySelector(".malo-overlay")?.remove();
+    const welcome = document.createElement("div");
+    welcome.className = "malo-welcome";
+    welcome.innerHTML = `<div class="malo-welcome-content"><div class="malo-welcome-avatar">${avatarHtml(profile)}</div><p>Bienvenue</p><h2>${escapeHtml(profile.name)}</h2></div>`;
+    document.body.appendChild(welcome);
+    requestAnimationFrame(() => welcome.classList.add("is-visible"));
+    setTimeout(() => {
+      welcome.classList.add("is-leaving");
+      setTimeout(() => { welcome.remove(); done(); }, 420);
+    }, 1450);
+  }
+
   function selectProfile(profileId) {
     const changed = activeId() !== profileId;
     rawSet(ACTIVE_KEY, profileId);
     sessionStorage.setItem(SESSION_KEY, "1");
-    document.querySelector(".malo-overlay")?.remove();
-    if (changed) location.href = HOME_URL;
-    else {
-      renderAccount();
-      prefillPlayerName();
-      showToast(`Bonjour ${getName()} !`);
-    }
+    const profile = activeProfile();
+    showWelcome(profile, () => {
+      if (changed) location.href = HOME_URL;
+      else {
+        renderAccount();
+        prefillPlayerName();
+      }
+    });
   }
 
   function showProfileChooser(canClose = false) {
@@ -261,6 +288,43 @@
     document.body.appendChild(overlay);
   }
 
+  function playIntroSound() {
+    const Audio = window.AudioContext || window.webkitAudioContext;
+    if (!Audio) return;
+    const context = new Audio();
+    const hit = (time, startFrequency, endFrequency, volume) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(startFrequency, time);
+      oscillator.frequency.exponentialRampToValueAtTime(endFrequency, time + .42);
+      gain.gain.setValueAtTime(.001, time);
+      gain.gain.exponentialRampToValueAtTime(volume, time + .018);
+      gain.gain.exponentialRampToValueAtTime(.001, time + .5);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(time);
+      oscillator.stop(time + .52);
+    };
+    const now = context.currentTime;
+    hit(now, 118, 46, .34);
+    hit(now + .34, 210, 72, .25);
+    setTimeout(() => context.close(), 1200);
+  }
+
+  function showIntro(done) {
+    const intro = document.createElement("div");
+    intro.className = "malo-intro";
+    intro.innerHTML = `<div class="malo-intro-mark" aria-label="Malo"><span class="malo-m-left">M</span><span class="malo-m-right">M</span></div>`;
+    document.body.appendChild(intro);
+    setTimeout(() => {
+      playIntroSound();
+      sessionStorage.setItem(INTRO_KEY, "1");
+      intro.classList.add("is-playing");
+    }, 420);
+    setTimeout(() => { intro.remove(); done(); }, 1950);
+  }
+
   function enableEnterValidation() {
     document.addEventListener("keydown", (event) => {
       const field = event.target;
@@ -309,9 +373,13 @@
     }
 
     if (isHome) {
-      if (!getProfiles().length) showProfileEditor();
-      else if (!sessionStorage.getItem(SESSION_KEY)) showProfileChooser(false);
-      else if (!activeProfile()) showProfileChooser(false);
+      const showProfiles = () => {
+        if (!getProfiles().length) showProfileEditor();
+        else if (!sessionStorage.getItem(SESSION_KEY)) showProfileChooser(false);
+        else if (!activeProfile()) showProfileChooser(false);
+      };
+      if (sessionStorage.getItem(INTRO_KEY)) showProfiles();
+      else showIntro(showProfiles);
     } else prefillPlayerName();
 
     enableEnterValidation();
