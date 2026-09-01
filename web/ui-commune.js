@@ -5,7 +5,11 @@
   const ACTIVE_KEY = "malo.activeProfile";
   const LEGACY_KEY = "malo.legacyMigrated";
   const SESSION_KEY = "malo.profileChosenSession";
+<<<<<<< HEAD
   const INTRO_KEY = "malo.introSeen.v6";
+=======
+  const INTRO_KEY = "malo.introSeen.fast-lines";
+>>>>>>> modif-personalistation
   const PROFILE_DATA_PREFIX = "malo.profileData.";
   const LEGACY_CLAIM_KEY = "malo.legacySavesClaimed";
   const HOME_URL = document.currentScript ? new URL("../index.html", document.currentScript.src).href : "../index.html";
@@ -337,6 +341,7 @@
   function showIntro(done) {
     const intro = document.createElement("div");
     intro.className = "malo-intro";
+<<<<<<< HEAD
     const fibers = Array.from({ length: 48 }, (_, index) => {
       const hue = [188, 202, 226, 265, 320, 350, 12, 38][index % 8];
       const width = 1 + (index * 7) % 5;
@@ -355,13 +360,23 @@
           <path class="malo-ribbon-fibers" d="M38 326V34L160 250L282 34V326"/>
         </svg>
       </div>`;
+=======
+    const fibers = Array.from({ length: 36 }, (_, index) => `<i style="--x:${index};--h:${[188,215,265,325,355,24,48][index % 7]};--w:${1 + index % 4}px"></i>`).join("");
+    intro.innerHTML = `<div class="malo-intro-tunnel" aria-hidden="true">${fibers}</div>
+      <div class="malo-intro-mark" aria-label="M"><svg viewBox="0 0 320 360" aria-hidden="true"><defs><linearGradient id="maloRibbon" x1="0" x2="1"><stop stop-color="#075d91"/><stop offset=".3" stop-color="#00efff"/><stop offset=".55" stop-color="#e5ffff"/><stop offset=".78" stop-color="#157dcc"/><stop offset="1" stop-color="#7436d7"/></linearGradient></defs><path d="M38 326V34L160 250L282 34V326"/></svg></div>`;
+>>>>>>> modif-personalistation
     document.body.appendChild(intro);
     setTimeout(() => {
       playIntroSound();
       sessionStorage.setItem(INTRO_KEY, "1");
       intro.classList.add("is-playing");
+<<<<<<< HEAD
     }, 100);
     setTimeout(() => { intro.remove(); done(); }, 4900);
+=======
+    }, 80);
+    setTimeout(() => { intro.remove(); done(); }, 3500);
+>>>>>>> modif-personalistation
   }
 
   function enableEnterValidation() {
