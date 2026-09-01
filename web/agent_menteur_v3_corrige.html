@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Menteur </title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Arial,sans-serif;color:#f7fbff;background:radial-gradient(circle at 20% 0%,#17435a55,transparent 30%),linear-gradient(150deg,#050a0f,#0b1a24)}
+button,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+header{text-align:center;padding:22px 14px}
+h1{margin:0;font-size:clamp(42px,8vw,82px);text-shadow:0 0 14px cyan,0 0 30px #655cff}
+.panel{width:min(1160px,95%);margin:18px auto;padding:20px;border-radius:26px;background:#09141ddd;border:1px solid #ffffff1f}
+.menu{max-width:720px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.box{padding:16px;border-radius:17px;background:#ffffff0b}
+select{width:100%;padding:12px;border-radius:12px;background:#ffffff12;color:#fff;border:1px solid #ffffff33}option{color:#111}
+.btn{padding:12px 18px;border:0;border-radius:13px;color:#fff;font-weight:bold}.primary{background:#536cff}.danger{background:#b92d43}.secondary{background:#ffffff12;border:1px solid #ffffff2f}
+.top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}.status{flex:1;padding:13px;border-radius:14px;background:#ffffff0d;font-weight:bold}.badge{padding:9px 12px;border-radius:999px;background:#ffffff10}
+.progress{height:14px;border-radius:999px;background:#ffffff12;overflow:hidden;margin:14px 0}.fill{height:100%;width:0;background:linear-gradient(90deg,#5be8ff,#63e49b);transition:.35s}
+.board{display:grid;grid-template-columns:1.05fr .95fr;gap:17px}.card{padding:18px;border-radius:20px;background:#ffffff08;border:1px solid #ffffff18}
+.caseTitle{font-size:clamp(28px,4vw,40px);font-weight:900}.meta{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}.chip{padding:7px 10px;border-radius:999px;background:#0005}
+.fact{padding:11px 12px;margin:9px 0;border-radius:13px;background:#061119;border-left:4px solid #65ebff}
+.agents{display:grid;gap:11px}.agent{display:grid;grid-template-columns:58px 1fr;gap:12px;align-items:center;width:100%;text-align:left;padding:13px;border-radius:16px;border:2px solid transparent;color:white;background:#0e1e29}
+.agent:hover,.agent.sel{border-color:#ffd65c;box-shadow:0 0 15px #ffd65c55}.avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-size:30px;background:#233d4d}
+.feedback{margin-top:14px;padding:14px;border-radius:14px;background:#ffffff0b}.good{border:1px solid #5be599}.bad{border:1px solid #ff6577}.reason{margin-top:10px;padding:12px;border-radius:12px;background:#0004;line-height:1.5}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:15px}
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:#02070fed;z-index:30}.modal{width:min(620px,95%);padding:26px;text-align:center;border-radius:24px;background:#10202d;border:2px solid #65ebff}.big{font-size:86px;margin:0}
+@media(max-width:800px){.board,.grid{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="ui-commune.css">
+</head>
+<body>
+<a class="malo-home-button" href="../index.html" aria-label="Retourner à l’accueil" title="Accueil">🏠</a>
+<header><h1>🕵️ AGENT MENTEUR </h1><p>Analyse les preuves et démasque l'agent qui ment.</p></header>
+
+<section id="menu" class="panel menu">
+<div class="grid">
+<div class="box"><h2>🎚️ Difficulté</h2><select id="difficulty"><option value="facile">🟢 Facile</option><option value="moyen">🟠 Moyen</option><option value="difficile">🔴 Difficile</option><option value="melange">🎲 Mélange</option></select></div>
+<div class="box"><h2>📁 Nombre d'enquêtes</h2><select id="count"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option></select></div>
+</div>
+<div class="actions"><button id="start" type="button" class="btn primary">🚨 Commencer la mission</button></div>
+</section>
+
+<main id="game" class="panel hidden">
+<div class="top"><div id="status" class="status"></div><div class="badge">❤️ <span id="lives">3</span></div><div class="badge">⭐ <span id="score">0</span></div><div class="badge">📁 <span id="num"></span>/<span id="total"></span></div></div>
+<div class="progress"><div id="fill" class="fill"></div></div>
+<div class="board">
+<section class="card">
+<div id="title" class="caseTitle"></div>
+<div class="meta"><span id="level" class="chip"></span><span id="type" class="chip"></span></div>
+<h2>📁 Dossier</h2>
+<div id="facts"></div>
+<div id="feedback" class="feedback hidden"></div>
+</section>
+<section class="card">
+<h2>🕵️ Interrogatoire</h2>
+<div id="agents" class="agents"></div>
+<div class="actions"><button id="accuse" type="button" class="btn danger" disabled>🚨 Accuser cet agent</button><button id="next" type="button" class="btn primary hidden">Enquête suivante ➜</button></div>
+</section>
+</div>
+</main>
+
+<div id="final" class="overlay hidden">
+<div class="modal">
+<p id="emoji" class="big">🏆</p>
+<h2 id="finalTitle"></h2>
+<p>✅ Résolues : <b id="solved"></b></p>
+<p>⭐ Score : <b id="finalScore"></b></p>
+<p>❤️ Vies : <b id="finalLives"></b></p>
+<p id="finalMsg"></p>
+<div class="actions"><button id="replay" type="button" class="btn primary">🔄 Rejouer</button><button id="back" type="button" class="btn secondary">Menu</button></div>
+</div>
+</div>
+
+<script>
+const ENQUETES = [{"titre": "🐶 Le vol de croquettes", "niveau": "facile", "type": "Information secrète", "faits": ["Un paquet de croquettes pour chien a été volé à 13 h.", "La police n'a pas indiqué dans quel type de commerce le vol a eu lieu."], "declarations": [{"texte": "Je n'ai pas de chien : je suis allergique aux poils.", "suspect": false}, {"texte": "À 13 h, j'étais chez moi.", "suspect": false}, {"texte": "Je ne connais même pas ce magasin pour animaux.", "suspect": true}], "explication": "Le dossier ne dit jamais que le vol a eu lieu dans un magasin pour animaux. Le suspect révèle donc une information qu'il n'était pas censé connaître."}, {"titre": "🏆 Le trophée du gymnase", "niveau": "facile", "type": "Alibi impossible", "faits": ["Le trophée était encore dans le gymnase à 12 h 14.", "Une caméra montre que la porte du gymnase est restée fermée de 12 h 15 à 12 h 30.", "Personne n'est entré par une autre porte."], "declarations": [{"texte": "Je suis entré dans le gymnase à 12 h 20 et le trophée avait déjà disparu.", "suspect": true}, {"texte": "À 12 h 20, j'étais à la cantine.", "suspect": false}, {"texte": "J'avais quitté le gymnase avant midi.", "suspect": false}], "explication": "Le suspect affirme être entré à 12 h 20, mais la caméra prouve que la porte est restée fermée entre 12 h 15 et 12 h 30."}, {"titre": "🍰 Le gâteau disparu", "niveau": "facile", "type": "Information secrète", "faits": ["Un gâteau a disparu de la cuisine entre 16 h et 17 h.", "Il devait être servi après le dîner.", "La police n'a donné aucune information sur son emballage."], "declarations": [{"texte": "À 16 h 30, je jouais dehors.", "suspect": false}, {"texte": "Je n'aime pas beaucoup les desserts.", "suspect": false}, {"texte": "Quand je suis passé, la boîte du gâteau était encore fermée.", "suspect": true}], "explication": "Aucune boîte n'est mentionnée dans le dossier. Le suspect sait donc comment le gâteau était emballé alors que cette information n'a pas été révélée."}, {"titre": "🎒 Le sac de la salle 12", "niveau": "facile", "type": "Contradiction", "faits": ["Un sac a disparu de la salle 12 à 10 h 30.", "La caméra du couloir montre que personne n'est sorti de la salle entre 10 h 20 et 10 h 40."], "declarations": [{"texte": "Je suis resté dans la cour toute la matinée.", "suspect": false}, {"texte": "Je suis sorti de la salle 12 avec mes affaires à 10 h 30.", "suspect": true}, {"texte": "Je n'étais pas dans le bâtiment à cette heure-là.", "suspect": false}], "explication": "La caméra prouve que personne n'est sorti de la salle entre 10 h 20 et 10 h 40. La déclaration disant être sorti à 10 h 30 est impossible."}, {"titre": "📱 Le téléphone du vestiaire", "niveau": "facile", "type": "Témoin impossible", "faits": ["Un téléphone a disparu dans un vestiaire.", "Entre 15 h et 15 h 10, la porte du vestiaire était fermée et ses fenêtres avaient les stores baissés."], "declarations": [{"texte": "J'étais sur le terrain à ce moment-là.", "suspect": false}, {"texte": "Depuis le couloir, j'ai vu quelqu'un prendre le téléphone à 15 h 05.", "suspect": true}, {"texte": "Je suis arrivé au vestiaire après 15 h 15.", "suspect": false}], "explication": "Avec la porte fermée et les stores baissés, il était impossible de voir l'intérieur du vestiaire depuis le couloir à 15 h 05."}, {"titre": "⚽ Le ballon rouge", "niveau": "facile", "type": "Information piège", "faits": ["Un ballon a disparu après l'entraînement.", "Pour tester les suspects, l'enquêteur annonce volontairement : « Le ballon volé était rouge. »", "En réalité, sa vraie couleur n'a été révélée à aucun suspect."], "declarations": [{"texte": "Je n'ai vu aucun ballon après l'entraînement.", "suspect": false}, {"texte": "Je suis parti avant la fin.", "suspect": false}, {"texte": "Mais non, le ballon volé était bleu, pas rouge !", "suspect": true}], "explication": "Le rouge était une fausse information donnée comme piège. Le suspect la corrige en disant que le ballon était bleu : il connaît donc la vraie couleur sans qu'on la lui ait révélée."}, {"titre": "🚲 Le vélo du collège", "niveau": "moyen", "type": "Chronologie", "faits": ["Le vélo était encore attaché à 16 h 55.", "Une caméra montre le suspect quittant définitivement le collège à 16 h 50.", "Le vélo a disparu avant 17 h 05."], "declarations": [{"texte": "J'ai détaché mon propre vélo à 16 h 45 puis je suis parti.", "suspect": false}, {"texte": "J'ai vu le vélo volé disparaître juste avant mon départ à 16 h 50.", "suspect": true}, {"texte": "À 17 h, j'attendais encore mon bus devant le collège.", "suspect": false}], "explication": "Le vélo était encore présent à 16 h 55. Il est donc impossible d'avoir vu sa disparition avant 16 h 50."}, {"titre": "🧪 Le flacon bleu", "niveau": "moyen", "type": "Information secrète", "faits": ["Un flacon a disparu d'une armoire verrouillée.", "Le contenu et la couleur du liquide n'ont pas été communiqués.", "Seule la personne ayant ouvert l'armoire pouvait voir le flacon."], "declarations": [{"texte": "Je n'ai pas la clé de cette armoire.", "suspect": false}, {"texte": "Je ne toucherais jamais à ce liquide bleu.", "suspect": true}, {"texte": "Pendant la pause, j'étais à la cantine.", "suspect": false}, {"texte": "Je ne savais même pas ce qui était rangé dans l'armoire.", "suspect": false}], "explication": "La couleur du liquide est secrète. En parlant du liquide bleu, le suspect montre qu'il a vu le flacon."}, {"titre": "🚂 Le sac du train", "niveau": "moyen", "type": "Objet impossible", "faits": ["Un sac a disparu entre 14 h 10 et 14 h 20.", "À 14 h 15, le propriétaire avait encore son billet de concert dans sa poche.", "Le sac ne contenait donc pas ce billet à ce moment-là."], "declarations": [{"texte": "Je suis descendu du train à 14 h.", "suspect": false}, {"texte": "Je n'ai jamais ouvert ce sac.", "suspect": false}, {"texte": "À 14 h 15, j'ai aperçu le billet de concert à l'intérieur du sac.", "suspect": true}, {"texte": "Je dormais pendant une partie du trajet.", "suspect": false}], "explication": "À 14 h 15, le billet était encore dans la poche de son propriétaire. Il ne pouvait donc pas être visible à l'intérieur du sac."}, {"titre": "🏨 La chambre 314", "niveau": "moyen", "type": "Accès impossible", "faits": ["Une clé a disparu de la réception à 22 h.", "L'ascenseur était en panne de 21 h 50 à 22 h 20.", "L'escalier menant au troisième étage était fermé pour travaux pendant la même période."], "declarations": [{"texte": "À 22 h, je travaillais au restaurant du rez-de-chaussée.", "suspect": false}, {"texte": "À 22 h 05, je suis monté au troisième étage pour chercher quelque chose.", "suspect": true}, {"texte": "Je suis resté dans le hall jusqu'à 22 h 15.", "suspect": false}, {"texte": "Je suis sorti de l'hôtel avant 21 h 45.", "suspect": false}], "explication": "À 22 h 05, ni l'ascenseur ni l'escalier ne permettaient d'atteindre le troisième étage. Cette déclaration est donc impossible."}, {"titre": "🖼️ Le tableau du musée", "niveau": "moyen", "type": "Témoin impossible", "faits": ["Le tableau a disparu pendant une panne totale d'électricité.", "La salle ne possède aucune fenêtre.", "Les lumières de secours de cette salle étaient également hors service."], "declarations": [{"texte": "J'étais près de la sortie pendant la panne.", "suspect": false}, {"texte": "Je n'ai pas quitté le hall.", "suspect": false}, {"texte": "Pendant la panne, j'ai clairement vu une personne décrocher le tableau.", "suspect": true}, {"texte": "J'ai attendu que les lumières reviennent avant de bouger.", "suspect": false}], "explication": "La salle était entièrement plongée dans le noir et n'avait aucune fenêtre. Il était impossible de voir clairement quelqu'un décrocher le tableau."}, {"titre": "📚 Le livre rare", "niveau": "moyen", "type": "Déduction en deux indices", "faits": ["Le livre a disparu entre 17 h et 17 h 10.", "Pour accéder à la réserve, il faut utiliser un badge.", "Le registre indique qu'un seul badge a ouvert la réserve à 17 h 06 : celui portant le numéro 42.", "L'agent chargé du badge 42 affirme ne l'avoir prêté à personne."], "declarations": [{"texte": "Mon badge porte le numéro 18.", "suspect": false}, {"texte": "Mon badge porte le numéro 42 et je l'avais avec moi tout le temps.", "suspect": true}, {"texte": "Je n'ai pas de badge pour la réserve.", "suspect": false}, {"texte": "J'ai quitté la bibliothèque à 16 h 50.", "suspect": false}], "explication": "Il faut combiner deux informations : seul le badge 42 a ouvert la réserve à 17 h 06, et son propriétaire affirme l'avoir gardé sur lui. Sa déclaration le place donc directement avec le badge qui a servi à entrer."}, {"titre": "🗝️ La clé du bureau", "niveau": "difficile", "type": "Chronologie", "faits": ["La clé était encore dans son coffre à 12 h 05.", "Le coffre n'a été ouvert qu'une fois, à 12 h 17.", "La clé a été retrouvée dans un autre bureau à 12 h 30."], "declarations": [{"texte": "J'ai vu la clé sur une table à 12 h 10.", "suspect": true}, {"texte": "À 12 h 20, j'étais au réfectoire.", "suspect": false}, {"texte": "Je suis passé dans le couloir vers 12 h 25.", "suspect": false}, {"texte": "Je n'ai appris la disparition qu'à 12 h 35.", "suspect": false}, {"texte": "À midi, je travaillais dans une autre pièce.", "suspect": false}], "explication": "À 12 h 10, la clé était encore enfermée dans le coffre, qui n'a été ouvert qu'à 12 h 17. Personne ne pouvait donc l'avoir vue sur une table à 12 h 10."}, {"titre": "📡 Le message intercepté", "niveau": "difficile", "type": "Information piège", "faits": ["Un message secret a été intercepté à 21 h.", "Son contenu est resté secret.", "L'enquêteur dit volontairement aux suspects que le message contenait le mot « gare ».", "Cette information est fausse."], "declarations": [{"texte": "Je n'ai envoyé aucun message à 21 h.", "suspect": false}, {"texte": "Mon téléphone était éteint.", "suspect": false}, {"texte": "Je ne travaille pas avec cette équipe.", "suspect": false}, {"texte": "Vous vous trompez : le message parlait du pont, pas de la gare.", "suspect": true}, {"texte": "Je ne sais rien de son contenu.", "suspect": false}], "explication": "Le mot « gare » était un piège. Le suspect corrige l'enquêteur et révèle que le vrai message parlait du pont, information que seuls les impliqués pouvaient connaître."}, {"titre": "💻 L'ordinateur déplacé", "niveau": "difficile", "type": "Déduction en plusieurs étapes", "faits": ["L'ordinateur était dans le bureau A à 19 h.", "À 19 h 10, le bureau A a été verrouillé.", "Le registre montre qu'une carte d'accès a ouvert le bureau A à 19 h 25.", "Cette carte appartient à une seule personne et n'a pas été signalée perdue.", "L'ordinateur a été retrouvé dans la réserve."], "declarations": [{"texte": "Ma carte n'ouvre que le bureau B.", "suspect": false}, {"texte": "Je n'ai aucune carte d'accès.", "suspect": false}, {"texte": "Ma carte a ouvert le bureau A à 19 h 25, mais je n'étais pas dans le bâtiment.", "suspect": true}, {"texte": "Je suis parti à 18 h 45.", "suspect": false}, {"texte": "Je travaillais dans le bureau C.", "suspect": false}], "explication": "Le bureau était verrouillé, puis la carte personnelle du suspect l'a ouvert à 19 h 25. Comme cette carte n'était ni perdue ni prêtée, affirmer ne pas être dans le bâtiment est incompatible avec les traces d'accès."}, {"titre": "🎧 Le casque audio", "niveau": "difficile", "type": "Lieu impossible", "faits": ["Le casque a disparu de la salle de musique à 14 h 30.", "Une caméra montre qu'entre 14 h 20 et 14 h 40 personne n'a traversé le couloir principal.", "La salle de musique n'est accessible que par ce couloir."], "declarations": [{"texte": "J'étais déjà dans la salle de musique depuis 14 h 10 et j'en suis sorti à 14 h 35.", "suspect": true}, {"texte": "Je suis resté dans la cour de 14 h à 15 h.", "suspect": false}, {"texte": "À 14 h 30, j'étais en cours.", "suspect": false}, {"texte": "Je n'ai pas utilisé le couloir principal cet après-midi.", "suspect": false}, {"texte": "J'ai quitté l'établissement à 14 h.", "suspect": false}], "explication": "Pour sortir de la salle de musique à 14 h 35, il fallait traverser le couloir principal. Or la caméra prouve que personne ne l'a traversé entre 14 h 20 et 14 h 40."}, {"titre": "🏛️ La statuette antique", "niveau": "difficile", "type": "Objet impossible", "faits": ["Une statuette a disparu à 11 h.", "Elle mesure 45 cm de haut.", "Le casier numéro 7 mesure seulement 30 cm de haut et ne peut pas être agrandi."], "declarations": [{"texte": "Je n'ai jamais touché à la statuette.", "suspect": false}, {"texte": "À 11 h, je visitais une autre salle.", "suspect": false}, {"texte": "J'ai vu quelqu'un cacher la statuette entière dans le casier numéro 7.", "suspect": true}, {"texte": "Je n'ai pas utilisé de casier.", "suspect": false}, {"texte": "Je suis arrivé après 11 h 20.", "suspect": false}], "explication": "La statuette mesure 45 cm alors que le casier ne fait que 30 cm de haut. Il est impossible d'y cacher la statuette entière."}, {"titre": "💎 Le diamant et les gants", "niveau": "difficile", "type": "Déduction en plusieurs étapes", "faits": ["Le diamant a disparu entre 18 h et 18 h 10.", "La vitrine ne peut être ouverte qu'avec une clé.", "La clé était dans une enveloppe scellée jusqu'à 18 h 04.", "À 18 h 05, l'enveloppe a été retrouvée ouverte.", "Une caméra montre qu'à 18 h 03 personne n'avait encore touché à la vitrine."], "declarations": [{"texte": "À 18 h 02, j'ai vu la vitrine déjà ouverte.", "suspect": true}, {"texte": "Je suis arrivé dans la salle à 18 h 06.", "suspect": false}, {"texte": "Je n'ai jamais eu la clé.", "suspect": false}, {"texte": "À 18 h, j'étais encore dans le hall.", "suspect": false}, {"texte": "J'ai entendu l'alarme après 18 h 05.", "suspect": false}], "explication": "À 18 h 02, la clé était encore dans l'enveloppe scellée et la caméra confirme qu'à 18 h 03 personne n'avait touché à la vitrine. Elle ne pouvait donc pas être déjà ouverte."}];
+let selection = [];
+let idx = 0;
+let lives = 3;
+let score = 0;
+let solved = 0;
+let selected = null;
+let decs = [];
+let culprit = -1;
+let current = null;
+
+function byId(id){ return document.getElementById(id); }
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a;
+}
+
+function esc(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+function startGame(){
+  const difficulty = byId("difficulty").value;
+  const requested = Number(byId("count").value);
+  let available;
+
+  if(difficulty === "melange"){
+    available = ENQUETES.slice();
+  }else{
+    available = ENQUETES.filter(function(e){ return e.niveau === difficulty; });
+  }
+
+  selection = shuffle(available).slice(0, Math.min(requested, available.length));
+  idx = 0;
+  lives = 3;
+  score = 0;
+  solved = 0;
+
+  byId("menu").classList.add("hidden");
+  byId("game").classList.remove("hidden");
+  byId("total").textContent = selection.length;
+
+  loadCase();
+}
+
+function loadCase(){
+  if(idx >= selection.length || lives <= 0){
+    finishGame();
+    return;
+  }
+
+  current = selection[idx];
+  decs = shuffle(current.declarations.map(function(x){
+    return { texte:x.texte, suspect:x.suspect };
+  }));
+  culprit = decs.findIndex(function(x){ return x.suspect; });
+  selected = null;
+
+  byId("lives").textContent = lives;
+  byId("score").textContent = score;
+  byId("num").textContent = idx + 1;
+  byId("fill").style.width = ((idx / selection.length) * 100) + "%";
+  byId("title").textContent = current.titre;
+  byId("level").textContent = current.niveau === "facile" ? "🟢 Facile" : current.niveau === "moyen" ? "🟠 Moyen" : "🔴 Difficile";
+  byId("type").textContent = "🧩 " + current.type;
+
+  byId("facts").innerHTML = "";
+  current.faits.forEach(function(fact, i){
+    const div = document.createElement("div");
+    div.className = "fact";
+    div.textContent = ["📄 ","📹 ","🔎 "][i % 3] + fact;
+    byId("facts").appendChild(div);
+  });
+
+  byId("agents").innerHTML = "";
+  decs.forEach(function(d, i){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "agent";
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = ["🕵️","🧑‍💼","👨‍🔬","👩‍💼","🧑‍🏫"][i % 5];
+
+    const textWrap = document.createElement("div");
+    const name = document.createElement("b");
+    name.textContent = "Agent " + (i + 1);
+
+    const quote = document.createElement("div");
+    quote.textContent = "« " + d.texte + " »";
+
+    textWrap.appendChild(name);
+    textWrap.appendChild(document.createElement("br"));
+    textWrap.appendChild(quote);
+
+    b.appendChild(avatar);
+    b.appendChild(textWrap);
+
+    b.addEventListener("click", function(){
+      if(!byId("next").classList.contains("hidden")) return;
+      selected = i;
+      document.querySelectorAll(".agent").forEach(function(x){
+        x.classList.remove("sel");
+      });
+      b.classList.add("sel");
+      byId("accuse").disabled = false;
+      byId("status").textContent = "Agent " + (i + 1) + " sélectionné.";
+    });
+
+    byId("agents").appendChild(b);
+  });
+
+  byId("feedback").className = "feedback hidden";
+  byId("feedback").innerHTML = "";
+  byId("accuse").classList.remove("hidden");
+  byId("accuse").disabled = true;
+  byId("next").classList.add("hidden");
+  byId("status").textContent = "🔎 Analyse les preuves puis choisis le suspect.";
+}
+
+function accuseAgent(){
+  if(selected === null) return;
+
+  const correct = selected === culprit;
+  const gain = current.niveau === "facile" ? 100 : current.niveau === "moyen" ? 175 : 300;
+
+  if(correct){
+    score += gain;
+    solved += 1;
+    byId("status").textContent = "✅ Enquête résolue ! +" + gain + " points";
+    byId("feedback").className = "feedback good";
+  }else{
+    lives -= 1;
+    byId("status").textContent = "❌ Mauvais suspect. -1 vie";
+    byId("feedback").className = "feedback bad";
+  }
+
+  const title = document.createElement("b");
+  if(correct){
+    title.textContent = "✅ Bien joué !";
+  }else{
+    title.textContent = "❌ Le bon suspect était l'Agent " + (culprit + 1) + ".";
+  }
+
+  const reason = document.createElement("div");
+  reason.className = "reason";
+  reason.innerHTML =
+    "<b>🧠 Raisonnement :</b><br>" + esc(current.explication) +
+    "<br><br><b>🚨 Déclaration révélatrice :</b><br>« " + esc(decs[culprit].texte) + " »";
+
+  byId("feedback").innerHTML = "";
+  byId("feedback").appendChild(title);
+  byId("feedback").appendChild(reason);
+
+  byId("lives").textContent = lives;
+  byId("score").textContent = score;
+  byId("fill").style.width = (((idx + 1) / selection.length) * 100) + "%";
+  byId("accuse").classList.add("hidden");
+  byId("next").classList.remove("hidden");
+}
+
+function nextCase(){
+  idx += 1;
+  loadCase();
+}
+
+function finishGame(){
+  byId("game").classList.add("hidden");
+  byId("solved").textContent = solved + "/" + selection.length;
+  byId("finalScore").textContent = score;
+  byId("finalLives").textContent = Math.max(0, lives);
+
+  if(lives <= 0){
+    byId("emoji").textContent = "💥";
+    byId("finalTitle").textContent = "Mission interrompue";
+    byId("finalMsg").textContent = "Tu n'as plus de vies.";
+  }else if(solved === selection.length){
+    byId("emoji").textContent = "🏆";
+    byId("finalTitle").textContent = "Agent d'élite !";
+    byId("finalMsg").textContent = "Aucun suspect ne t'a échappé.";
+  }else{
+    byId("emoji").textContent = "🕵️";
+    byId("finalTitle").textContent = "Mission terminée";
+    byId("finalMsg").textContent = "Certains suspects étaient bien cachés...";
+  }
+
+  byId("final").classList.remove("hidden");
+}
+
+byId("start").addEventListener("click", startGame);
+byId("accuse").addEventListener("click", accuseAgent);
+byId("next").addEventListener("click", nextCase);
+byId("replay").addEventListener("click", function(){
+  byId("final").classList.add("hidden");
+  startGame();
+});
+byId("back").addEventListener("click", function(){
+  byId("final").classList.add("hidden");
+  byId("menu").classList.remove("hidden");
+});
+</script>
+</body>
+</html>
