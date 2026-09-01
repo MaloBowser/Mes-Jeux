@@ -293,7 +293,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   place-content: center;
   justify-items: center;
   overflow: hidden;
-  background: #02070c;
+  background: transparent;
+}
+.malo-intro::after {
+  content:"";position:absolute;inset:0;z-index:0;background:#02070c;
+  -webkit-mask-image:linear-gradient(#000 0 0),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 360'%3E%3Cpath d='M38 326V34L160 250L282 34V326' fill='none' stroke='black' stroke-width='42'/%3E%3C/svg%3E");
+  -webkit-mask-position:center;-webkit-mask-repeat:no-repeat;-webkit-mask-size:100% 100%,0 0;-webkit-mask-composite:xor;
+  mask-image:linear-gradient(#000 0 0),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 360'%3E%3Cpath d='M38 326V34L160 250L282 34V326' fill='none' stroke='black' stroke-width='42'/%3E%3C/svg%3E");
+  mask-position:center;mask-repeat:no-repeat;mask-size:100% 100%,0 0;mask-composite:exclude;
 }
 .malo-intro::before {
   content: "";
@@ -302,30 +309,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   background: radial-gradient(circle, rgba(0,245,255,.2), transparent 42%);
   opacity: 0;
 }
-.malo-intro-mark { position: relative; width: clamp(150px,28vw,280px); height: clamp(190px,36vw,350px); filter: drop-shadow(0 0 28px rgba(0,245,255,.72)); }
-.malo-intro-mark span {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: #00f5ff;
-  font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
-  font-size: clamp(180px,34vw,340px);
-  font-weight: 950;
-  line-height: 1;
-  text-shadow: 0 0 12px #00f5ff, 0 0 45px rgba(0,245,255,.68);
-}
-.malo-m-left { clip-path: inset(0 50% 0 0); }
-.malo-m-right { clip-path: inset(0 0 0 50%); }
-.malo-intro.is-playing::before { animation: maloIntroFlash 1.5s ease-out; }
-.malo-intro.is-playing .malo-m-left { animation: maloSplitLeft 1.45s cubic-bezier(.2,.8,.2,1) forwards; }
-.malo-intro.is-playing .malo-m-right { animation: maloSplitRight 1.45s cubic-bezier(.2,.8,.2,1) forwards; }
-@keyframes maloSplitLeft { 0%{transform:none} 32%{transform:scale(1.08)} 100%{transform:translateX(-65vw) scale(1.45);opacity:0} }
-@keyframes maloSplitRight { 0%{transform:none} 32%{transform:scale(1.08)} 100%{transform:translateX(65vw) scale(1.45);opacity:0} }
-@keyframes maloIntroFlash { 0%{opacity:0} 25%{opacity:1} 100%{opacity:0} }
+.malo-intro-mark{position:absolute;z-index:3;left:50%;top:50%;width:clamp(230px,35vw,400px);aspect-ratio:8/9;opacity:0;transform:translate(-50%,-50%) scale(.86);filter:drop-shadow(0 0 14px #00efff) drop-shadow(0 0 36px #164dca)}
+.malo-intro-mark svg{width:100%;height:100%;overflow:visible}.malo-intro-mark path{fill:none;stroke:url(#maloRibbon);stroke-width:42;stroke-linejoin:miter;stroke-linecap:square;stroke-dasharray:1180;stroke-dashoffset:1180}
+.malo-intro-tunnel{position:absolute;inset:-4% 0;z-index:4;overflow:hidden;opacity:0;transform:scaleX(.018)}
+.malo-intro-tunnel i{position:absolute;top:-5%;bottom:-5%;left:calc(var(--x) * 2.85%);width:var(--w);background:hsl(var(--h) 100% 60%);box-shadow:0 0 9px hsl(var(--h) 100% 55%),0 0 20px hsl(var(--h) 100% 50%)}
+.malo-intro.is-playing .malo-intro-mark{animation:maloMarkZoom 2.55s ease-in-out both}.malo-intro.is-playing .malo-intro-mark path{animation:maloDrawRibbon .48s ease-out forwards}.malo-intro.is-playing .malo-intro-tunnel{animation:maloFastTunnel .78s 1.92s cubic-bezier(.2,.75,.2,1) both}.malo-intro.is-playing::after{animation:maloRevealPage .72s 2.72s ease-in both}.malo-intro.is-playing::before{animation:maloIntroFlash 2.7s ease-out}
+@keyframes maloDrawRibbon{to{stroke-dashoffset:0}}
+@keyframes maloMarkZoom{0%{opacity:0;transform:translate(-50%,-50%) scale(.86)}12%,61%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-46%) scale(26);filter:blur(5px)}}
+@keyframes maloFastTunnel{0%{opacity:0;transform:scaleX(.018)}15%{opacity:1;transform:scaleX(.07)}64%{opacity:1;transform:scaleX(1.18)}88%{opacity:1;transform:scaleX(.035)}100%{opacity:0;transform:scaleX(.012);filter:blur(5px)}}
+@keyframes maloRevealPage{0%{-webkit-mask-size:100% 100%,0 0;mask-size:100% 100%,0 0}28%{-webkit-mask-size:100% 100%,clamp(230px,35vw,400px) auto;mask-size:100% 100%,clamp(230px,35vw,400px) auto}52%{-webkit-mask-size:100% 100%,clamp(230px,35vw,400px) auto;mask-size:100% 100%,clamp(230px,35vw,400px) auto}100%{-webkit-mask-size:100% 100%,240vmax 270vmax;mask-size:100% 100%,240vmax 270vmax;opacity:0}}
+@keyframes maloIntroFlash{0%{opacity:0}30%{opacity:.8}100%{opacity:0}}
 @media (prefers-reduced-motion: reduce) {
-  .malo-intro.is-playing .malo-m-left,
-  .malo-intro.is-playing .malo-m-right { animation-duration: .25s; }
+  .malo-intro.is-playing .malo-intro-mark,
+  .malo-intro.is-playing .malo-intro-tunnel,
+  .malo-intro.is-playing::after { animation-duration:.2s;animation-delay:0s; }
 }
 @media (max-width: 620px) {
   .malo-report-button, .malo-home-button, .malo-account { width: 44px; height: 44px; }
