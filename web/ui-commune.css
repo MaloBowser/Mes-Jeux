@@ -293,39 +293,118 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   place-content: center;
   justify-items: center;
   overflow: hidden;
-  background: #02070c;
+  background: transparent;
+  perspective: 800px;
+}
+.malo-intro::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background:#02070c;
+  -webkit-mask-image:linear-gradient(#000 0 0),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 360'%3E%3Cpath d='M38 326V34L160 250L282 34V326' fill='none' stroke='black' stroke-width='42' stroke-linejoin='miter'/%3E%3C/svg%3E");
+  -webkit-mask-position:center,center;
+  -webkit-mask-repeat:no-repeat,no-repeat;
+  -webkit-mask-size:100% 100%,0 0;
+  -webkit-mask-composite:xor;
+  mask-image:linear-gradient(#000 0 0),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 360'%3E%3Cpath d='M38 326V34L160 250L282 34V326' fill='none' stroke='black' stroke-width='42' stroke-linejoin='miter'/%3E%3C/svg%3E");
+  mask-position:center,center;
+  mask-repeat:no-repeat,no-repeat;
+  mask-size:100% 100%,0 0;
+  mask-composite:exclude;
 }
 .malo-intro::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle, rgba(0,245,255,.2), transparent 42%);
+  background: radial-gradient(circle, rgba(0,245,255,.24), transparent 45%);
   opacity: 0;
 }
-.malo-intro-mark { position: relative; width: clamp(150px,28vw,280px); height: clamp(190px,36vw,350px); filter: drop-shadow(0 0 28px rgba(0,245,255,.72)); }
-.malo-intro-mark span {
+.malo-intro-mark {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: #00f5ff;
-  font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
-  font-size: clamp(180px,34vw,340px);
-  font-weight: 950;
-  line-height: 1;
-  text-shadow: 0 0 12px #00f5ff, 0 0 45px rgba(0,245,255,.68);
+  z-index: 4;
+  left: 50%;
+  top: 50%;
+  width: clamp(220px,34vw,390px);
+  aspect-ratio: 8 / 9;
+  opacity: 0;
+  transform: translate(-50%,-50%) scale(.45);
+  filter: drop-shadow(0 0 11px #00efff) drop-shadow(0 0 34px #087fbb);
 }
-.malo-m-left { clip-path: inset(0 50% 0 0); }
-.malo-m-right { clip-path: inset(0 0 0 50%); }
-.malo-intro.is-playing::before { animation: maloIntroFlash 1.5s ease-out; }
-.malo-intro.is-playing .malo-m-left { animation: maloSplitLeft 1.45s cubic-bezier(.2,.8,.2,1) forwards; }
-.malo-intro.is-playing .malo-m-right { animation: maloSplitRight 1.45s cubic-bezier(.2,.8,.2,1) forwards; }
-@keyframes maloSplitLeft { 0%{transform:none} 32%{transform:scale(1.08)} 100%{transform:translateX(-65vw) scale(1.45);opacity:0} }
-@keyframes maloSplitRight { 0%{transform:none} 32%{transform:scale(1.08)} 100%{transform:translateX(65vw) scale(1.45);opacity:0} }
-@keyframes maloIntroFlash { 0%{opacity:0} 25%{opacity:1} 100%{opacity:0} }
+.malo-intro-mark svg { width:100%; height:100%; overflow:visible; }
+.malo-intro-mark path {
+  fill:none;
+  stroke-width:38;
+  stroke-linecap:square;
+  stroke-linejoin:miter;
+  stroke-dasharray:1180;
+  stroke-dashoffset:1180;
+}
+.malo-ribbon-solid { stroke:url(#maloRibbon); }
+.malo-ribbon-fibers {
+  stroke:url(#maloFiberRibbon);
+  stroke-width:34 !important;
+  stroke-dasharray:2 3 !important;
+  opacity:0;
+  filter:drop-shadow(0 0 5px #00efff);
+}
+.malo-intro-tunnel {
+  position:absolute;
+  inset:-4% 0;
+  z-index:5;
+  opacity:0;
+  overflow:hidden;
+  transform:scaleX(.015);
+}
+.malo-intro-tunnel i {
+  position:absolute;
+  top:-8%;
+  bottom:-8%;
+  left:calc(var(--i) * 2.13%);
+  width:var(--w);
+  background:hsl(var(--h) 100% 60%);
+  box-shadow:0 0 7px hsl(var(--h) 100% 55%),0 0 20px hsl(var(--h) 100% 50%);
+  opacity:var(--o);
+  transform:scaleY(1.1);
+  animation:maloFiberPulse .34s var(--d) ease-in-out infinite alternate;
+}
+.malo-intro.is-playing .malo-intro-mark { animation:maloEnterMark 3.55s cubic-bezier(.2,.72,.18,1) both; }
+.malo-intro.is-playing .malo-ribbon-solid { animation:maloDrawRibbon .72s .16s ease-out forwards,maloSolidToFibers .48s 1.72s ease-in forwards; }
+.malo-intro.is-playing .malo-ribbon-fibers { animation:maloShowFibers .48s 1.66s ease-out forwards; }
+.malo-intro.is-playing .malo-intro-tunnel { animation:maloTunnel 1.8s 2.02s cubic-bezier(.18,.7,.15,1) both; }
+.malo-intro.is-playing::after { animation:maloRevealPage 1.22s 3.62s cubic-bezier(.5,0,.15,1) both; }
+.malo-intro.is-playing::before { animation:maloIntroFlash 3.45s ease-out; }
+@keyframes maloDrawRibbon { to{stroke-dashoffset:0} }
+@keyframes maloSolidToFibers { to{opacity:.16;filter:blur(2px)} }
+@keyframes maloShowFibers { from{opacity:0;stroke-dashoffset:80} to{opacity:1;stroke-dashoffset:0} }
+@keyframes maloFiberPulse { to{opacity:.95;filter:brightness(1.6)} }
+@keyframes maloEnterMark {
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.78);filter:blur(8px)}
+  12%,51%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:blur(0)}
+  61%{opacity:1;transform:translate(-50%,-50%) scale(1.08);filter:blur(0)}
+  92%{opacity:1;transform:translate(-50%,-44%) scale(25);filter:blur(3px)}
+  100%{opacity:0;transform:translate(-50%,-44%) scale(28);filter:blur(7px)}
+}
+@keyframes maloTunnel {
+  0%{opacity:0;transform:scaleX(.015)}
+  12%{opacity:1;transform:scaleX(.045)}
+  62%{opacity:1;transform:scaleX(1.12)}
+  78%{opacity:1;transform:scaleX(1.28)}
+  92%{opacity:1;transform:scaleX(.028);filter:saturate(2.2) blur(1px)}
+  100%{opacity:0;transform:scaleX(.012);filter:saturate(2.5) blur(5px)}
+}
+@keyframes maloRevealPage {
+  0%{-webkit-mask-size:100% 100%,0 0;mask-size:100% 100%,0 0}
+  16%{-webkit-mask-size:100% 100%,clamp(220px,34vw,390px) auto;mask-size:100% 100%,clamp(220px,34vw,390px) auto}
+  48%{-webkit-mask-size:100% 100%,clamp(220px,34vw,390px) auto;mask-size:100% 100%,clamp(220px,34vw,390px) auto}
+  82%{-webkit-mask-size:100% 100%,165vmax 185vmax;mask-size:100% 100%,165vmax 185vmax;opacity:1}
+  100%{-webkit-mask-size:100% 100%,240vmax 270vmax;mask-size:100% 100%,240vmax 270vmax;opacity:0}
+}
+@keyframes maloIntroFlash { 0%{opacity:0} 32%{opacity:.8} 82%{opacity:1} 100%{opacity:0} }
 @media (prefers-reduced-motion: reduce) {
-  .malo-intro.is-playing .malo-m-left,
-  .malo-intro.is-playing .malo-m-right { animation-duration: .25s; }
+  .malo-intro.is-playing .malo-intro-mark,
+  .malo-intro.is-playing .malo-intro-tunnel,
+  .malo-intro.is-playing::after { animation-duration: .25s; animation-delay:0s; }
 }
 @media (max-width: 620px) {
   .malo-report-button, .malo-home-button, .malo-account { width: 44px; height: 44px; }

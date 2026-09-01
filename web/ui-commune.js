@@ -5,7 +5,7 @@
   const ACTIVE_KEY = "malo.activeProfile";
   const LEGACY_KEY = "malo.legacyMigrated";
   const SESSION_KEY = "malo.profileChosenSession";
-  const INTRO_KEY = "malo.introSeen";
+  const INTRO_KEY = "malo.introSeen.v6";
   const PROFILE_DATA_PREFIX = "malo.profileData.";
   const LEGACY_CLAIM_KEY = "malo.legacySavesClaimed";
   const HOME_URL = document.currentScript ? new URL("../index.html", document.currentScript.src).href : "../index.html";
@@ -313,17 +313,55 @@
     setTimeout(() => context.close(), 1200);
   }
 
+  function setGameFavicon() {
+    if (isHomePage()) return;
+    const label = `${document.querySelector("h1")?.textContent || ""} ${document.title}`;
+    const visibleEmoji = label.match(/\p{Extended_Pictographic}/u)?.[0];
+    const choices = [
+      [/menteur|bluff|agent/i, "🕵️"], [/mémoire|memoire/i, "🧠"], [/code secret|mastermind/i, "🔐"],
+      [/pendu/i, "🎮"], [/taboo|tabou/i, "🚫"], [/cuisine|cuisto|muffin/i, "👨‍🍳"],
+      [/ville/i, "🏙️"], [/détective|detective|cluedo/i, "🔎"], [/temps|chrono/i, "⏱️"],
+      [/histoire/i, "📖"], [/cactus/i, "🌵"], [/laboratoire|potion/i, "🧪"]
+    ];
+    const emoji = visibleEmoji || choices.find(([pattern]) => pattern.test(label))?.[1] || "🎮";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".88em" font-size="86">${emoji}</text></svg>`;
+    let icon = document.querySelector("link[rel~='icon']");
+    if (!icon) {
+      icon = document.createElement("link");
+      icon.rel = "icon";
+      document.head.appendChild(icon);
+    }
+    icon.href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  }
+
   function showIntro(done) {
     const intro = document.createElement("div");
     intro.className = "malo-intro";
-    intro.innerHTML = `<div class="malo-intro-mark" aria-label="Malo"><span class="malo-m-left">M</span><span class="malo-m-right">M</span></div>`;
+    const fibers = Array.from({ length: 48 }, (_, index) => {
+      const hue = [188, 202, 226, 265, 320, 350, 12, 38][index % 8];
+      const width = 1 + (index * 7) % 5;
+      const delay = (index % 6) * -0.035;
+      const opacity = .48 + (index % 5) * .1;
+      return `<i style="--i:${index};--h:${hue};--w:${width}px;--d:${delay}s;--o:${opacity}"></i>`;
+    }).join("");
+    intro.innerHTML = `<div class="malo-intro-tunnel" aria-hidden="true">${fibers}</div>
+      <div class="malo-intro-mark" aria-label="M">
+        <svg viewBox="0 0 320 360" role="img" aria-hidden="true">
+          <defs>
+            <linearGradient id="maloRibbon" x1="0" x2="1"><stop stop-color="#075d91"/><stop offset=".28" stop-color="#00dff5"/><stop offset=".52" stop-color="#e4ffff"/><stop offset=".72" stop-color="#1684d7"/><stop offset="1" stop-color="#6734c7"/></linearGradient>
+            <linearGradient id="maloFiberRibbon" x1="0" x2="1"><stop stop-color="#00efff"/><stop offset=".2" stop-color="#224eff"/><stop offset=".43" stop-color="#a52cff"/><stop offset=".66" stop-color="#ff286f"/><stop offset=".84" stop-color="#ffc247"/><stop offset="1" stop-color="#00efff"/></linearGradient>
+          </defs>
+          <path class="malo-ribbon-solid" d="M38 326V34L160 250L282 34V326"/>
+          <path class="malo-ribbon-fibers" d="M38 326V34L160 250L282 34V326"/>
+        </svg>
+      </div>`;
     document.body.appendChild(intro);
     setTimeout(() => {
       playIntroSound();
       sessionStorage.setItem(INTRO_KEY, "1");
       intro.classList.add("is-playing");
-    }, 420);
-    setTimeout(() => { intro.remove(); done(); }, 1950);
+    }, 100);
+    setTimeout(() => { intro.remove(); done(); }, 4900);
   }
 
   function enableEnterValidation() {
@@ -350,6 +388,7 @@
 
   function init() {
     const isHome = isHomePage();
+    setGameFavicon();
     if (!isHome && (!activeProfile() || !sessionStorage.getItem(SESSION_KEY))) {
       location.replace(HOME_URL);
       return;
