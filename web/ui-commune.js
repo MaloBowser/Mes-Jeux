@@ -116,10 +116,11 @@
   function prefillPlayerName() {
     document.querySelectorAll(".malo-profile-field").forEach((field) => field.classList.remove("malo-profile-field"));
     const nameFields = Array.from(document.querySelectorAll("input[type='text'], input:not([type])")).filter((field) => {
+      if (/\/histoire_folle\.html$/i.test(location.pathname) && field.id === "prenom") return false;
       const identifier = `${field.id} ${field.name}`.trim().toLowerCase();
       const hint = `${field.placeholder} ${field.getAttribute("aria-label") || ""}`.trim().toLowerCase();
       return /(?:^|\s)(?:name|nom|joueur|player)\d*(?:\s|$)/.test(identifier)
-        || /prénom du joueur\s+\d+/i.test(hint)
+        || /(?:prénom|nom) du joueur\s+\d+/i.test(hint)
         || /^(?:👤\s*)?(?:ton\s+)?(?:prénom|nom)(?:\s+\d+)?$/i.test(hint);
     });
     const firstPlayer = nameFields[0];

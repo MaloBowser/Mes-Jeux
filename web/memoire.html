@@ -73,7 +73,7 @@ button:hover{
 
 <div id="code"></div>
 
-<input id="reponse" placeholder="Le code">
+<input id="reponse" maxlength="4" inputmode="numeric" autocomplete="off" placeholder="Le code" disabled>
 
 <br><br>
 
@@ -93,23 +93,29 @@ function nouvellePartie(){
 
     code="";
 
-    for(let i=0;i<5;i++){
+    for(let i=0;i<4;i++){
         code += Math.floor(Math.random()*10);
     }
 
     document.getElementById("code").textContent=code;
-    document.getElementById("reponse").value="";
+    const reponse = document.getElementById("reponse");
+    reponse.value="";
+    reponse.disabled=true;
     document.getElementById("message").textContent="";
 
     setTimeout(function(){
-        document.getElementById("code").textContent="?????";
+        document.getElementById("code").textContent="????";
+        reponse.disabled=false;
+        reponse.focus();
     },5000);
 
 }
 
 function verifier(){
 
-    let reponse=document.getElementById("reponse").value;
+    const champReponse=document.getElementById("reponse");
+    if(champReponse.disabled) return;
+    let reponse=champReponse.value;
 
     if(reponse===code){
 
