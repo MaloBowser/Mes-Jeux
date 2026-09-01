@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Memory - Les jeux de Malo</title>
+
+<link rel="stylesheet" href="ui-commune.css">
+<script src="ui-commune.js"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg1:#08121c; --bg2:#102d44; --cyan:#65ebff; --violet:#8467ff;
+  --green:#5ade8f; --gold:#ffd55f; --red:#ff6678; --white:#f7fbff;
+}
+body{
+  margin:0; min-height:100vh; font-family:Arial,Helvetica,sans-serif; color:var(--white);
+  background:
+    radial-gradient(circle at 18% 0%,rgba(101,235,255,.16),transparent 30%),
+    radial-gradient(circle at 82% 0%,rgba(132,103,255,.15),transparent 30%),
+    linear-gradient(155deg,var(--bg1),var(--bg2));
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+header{text-align:center;padding:22px 16px 8px}
+h1{
+  margin:0;
+  font-size:clamp(46px,8vw,86px);
+  text-shadow:0 0 12px var(--cyan),0 0 30px var(--violet);
+}
+.subtitle{opacity:.88;margin-top:8px}
+
+.panel{
+  width:min(1150px,95%);
+  margin:18px auto 30px;
+  padding:20px;
+  border-radius:28px;
+  border:1px solid #ffffff20;
+  background:#07111bdd;
+  box-shadow:0 0 34px #00ffff1f;
+  backdrop-filter:blur(10px);
+}
+.menu{width:min(760px,95%)}
+
+.mode-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+.mode-card{
+  padding:18px;
+  border-radius:18px;
+  background:#ffffff0b;
+  border:1px solid #ffffff1b;
+}
+.row{display:grid;gap:8px;margin:14px 0}
+input,select{
+  width:100%;
+  padding:12px 14px;
+  border-radius:13px;
+  border:1px solid #ffffff35;
+  background:#ffffff10;
+  color:#fff;
+}
+input[readonly]{opacity:.85}
+option{color:#111}
+
+.primary,.secondary,.danger{
+  padding:12px 18px;
+  border:none;
+  border-radius:14px;
+  color:white;
+  font-weight:bold;
+  transition:.18s;
+}
+.primary{background:linear-gradient(135deg,#4f7cff,#875cff);box-shadow:0 0 16px #6b6cff88}
+.secondary{background:#ffffff12;border:1px solid #ffffff30}
+.danger{background:linear-gradient(135deg,#c5384e,#7b1b2c)}
+.primary:hover,.secondary:hover,.danger:hover{transform:translateY(-2px) scale(1.02)}
+
+.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:16px}
+
+.topbar{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:15px;
+}
+.status{
+  flex:1;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  padding:13px 16px;
+  border-radius:15px;
+  background:#ffffff0d;
+  font-weight:bold;
+}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{padding:9px 12px;border-radius:999px;background:#ffffff10}
+
+.players{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+  margin-bottom:15px;
+}
+.player{
+  padding:12px;
+  border-radius:15px;
+  background:#ffffff0a;
+  border:2px solid transparent;
+}
+.player.active{
+  border-color:var(--cyan);
+  box-shadow:0 0 16px #65ebff66;
+}
+.player .score{font-size:22px;font-weight:bold;color:var(--gold)}
+
+.board{
+  display:grid;
+  gap:10px;
+  justify-content:center;
+  align-content:center;
+  margin:0 auto;
+  max-width:1000px;
+}
+.memory-card{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  min-width:68px;
+  min-height:68px;
+  perspective:900px;
+  border:none;
+  padding:0;
+  background:transparent;
+}
+.memory-card .inner{
+  position:absolute;
+  inset:0;
+  transition:transform .42s;
+  transform-style:preserve-3d;
+}
+.memory-card.flipped .inner,
+.memory-card.matched .inner{transform:rotateY(180deg)}
+.face{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  backface-visibility:hidden;
+  border:2px solid #ffffff20;
+  box-shadow:0 8px 18px #0008;
+}
+.back{
+  background:
+    radial-gradient(circle at 35% 30%,#2f80aa,#173a53 60%,#0b2131);
+  color:white;
+  font-size:clamp(28px,4vw,46px);
+}
+.front{
+  transform:rotateY(180deg);
+  background:linear-gradient(145deg,#ffffff,#dfeaf3);
+  color:#111;
+  font-size:clamp(32px,5vw,58px);
+}
+.memory-card.matched .front{
+  background:linear-gradient(145deg,#c4ffd7,#7fe9a1);
+  box-shadow:0 0 22px #5ade8f88;
+}
+
+.ai-thinking{
+  text-align:center;
+  margin:10px 0;
+  font-weight:bold;
+  color:#bdefff;
+}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  z-index:30;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:#02070fee;
+  backdrop-filter:blur(8px);
+}
+.modal{
+  width:min(650px,96%);
+  padding:28px;
+  text-align:center;
+  border-radius:26px;
+  border:2px solid var(--cyan);
+  background:linear-gradient(145deg,#101f34,#17142f);
+  box-shadow:0 0 36px #00ffff77;
+}
+.big{font-size:90px;margin:0}
+.rank{display:grid;gap:9px;margin:18px 0}
+.rank-line{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 13px;
+  border-radius:12px;
+  background:#ffffff10;
+}
+
+@media(max-width:680px){
+  .mode-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>🧠 MEMORY</h1>
+  <div class="subtitle">Retrouve les paires avant tes adversaires.</div>
+</header>
+
+<section id="menu" class="panel menu">
+  <div class="mode-grid">
+    <div class="mode-card">
+      <h2>🎮 Mode</h2>
+      <div class="row">
+        <select id="mode">
+          <option value="solo">🤖 Solo contre l'ordinateur</option>
+          <option value="multi">👥 Multijoueur local</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mode-card">
+      <h2>🧩 Grille</h2>
+      <div class="row">
+        <select id="difficulty">
+          <option value="easy">Facile — 4 × 4</option>
+          <option value="medium">Moyen — 4 × 5</option>
+          <option value="hard">Difficile — 6 × 6</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="soloOptions">
+    <div class="row">
+      <label>Niveau de l'ordinateur</label>
+      <select id="aiLevel">
+        <option value="easy">Facile</option>
+        <option value="normal" selected>Normal</option>
+        <option value="expert">Expert</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <label>Ton nom</label>
+      <input id="mainPlayerSolo" type="text" placeholder="Nom du joueur" readonly>
+    </div>
+  </div>
+
+  <div id="multiOptions" class="hidden">
+    <div class="row">
+      <label>Nombre de joueurs</label>
+      <select id="playerCount">
+        <option value="2">2 joueurs</option>
+        <option value="3">3 joueurs</option>
+        <option value="4">4 joueurs</option>
+      </select>
+    </div>
+    <div id="nameFields"></div>
+  </div>
+
+  <div class="actions">
+    <button id="startBtn" type="button" class="primary">▶️ Jouer</button>
+  </div>
+</section>
+
+<main id="game" class="panel hidden">
+  <div class="topbar">
+    <div id="status" class="status"></div>
+    <div class="badges">
+      <div class="badge">🧩 Paires : <span id="pairsDone">0</span>/<span id="pairsTotal">0</span></div>
+    </div>
+  </div>
+
+  <div id="players" class="players"></div>
+  <div id="aiThinking" class="ai-thinking hidden">🤖 L'ordinateur réfléchit...</div>
+  <div id="board" class="board"></div>
+
+  <div class="actions">
+    <button id="menuBtn" type="button" class="secondary">🏠 Menu</button>
+  </div>
+</main>
+
+<div id="resultOverlay" class="overlay hidden">
+  <div class="modal">
+    <p class="big">🏆</p>
+    <h2>Résultats</h2>
+    <div id="ranking" class="rank"></div>
+    <p id="winnerText"></p>
+    <button id="replayBtn" type="button" class="primary">🔁 Rejouer</button>
+    <button id="backBtn" type="button" class="secondary">🏠 Menu principal</button>
+  </div>
+</div>
+
+<script>
+const SYMBOLS=[
+"🍎","🍌","🍇","🍒","🍉","🍋","🥝","🍓",
+"🐶","🐱","🦊","🐼","🐸","🦁","🐵","🐧",
+"⚽","🏀","🎾","🎲","🎮","🚗","🚀","⭐",
+"🌈","🔥","💎","🎁","🍕","🍔","🍩","🧁",
+"🎸","🎧","📱","💻","🚲","✈️","🌍","🌙"
+];
+
+const DIFFICULTY={
+  easy:{rows:4,cols:4},
+  medium:{rows:4,cols:5},
+  hard:{rows:6,cols:6}
+};
+
+let mode="solo";
+let rows=4,cols=4;
+let players=[];
+let scores=[];
+let currentPlayer=0;
+let cards=[];
+let matched=new Set();
+let first=null,second=null,locked=false;
+let aiMemory={};
+let aiLevel="normal";
+
+const $=id=>document.getElementById(id);
+
+function getActiveProfileName(){
+  try{
+    const profiles=JSON.parse(localStorage.getItem("malo.profiles.v1")||"[]");
+    const activeId=localStorage.getItem("malo.activeProfile")||"";
+    const p=profiles.find(x=>x.id===activeId);
+    if(p && p.name) return p.name;
+  }catch(e){}
+  try{
+    return localStorage.getItem("malo.nomUtilisateur")||"";
+  }catch(e){}
+  return "";
+}
+
+function fillMainName(){
+  const name=getActiveProfileName()||"Joueur";
+  $("mainPlayerSolo").value=name;
+  const firstMulti=$("player0");
+  if(firstMulti) firstMulti.value=name;
+}
+
+function buildNameFields(){
+  const count=Number($("playerCount").value);
+  $("nameFields").innerHTML="";
+
+  for(let i=0;i<count;i++){
+    const row=document.createElement("div");
+    row.className="row";
+
+    if(i===0){
+      row.innerHTML=`<label>Joueur principal</label>
+      <input id="player0" type="text" placeholder="Joueur 1" readonly>`;
+    }else{
+      row.innerHTML=`<label>Joueur ${i+1}</label>
+      <input id="player${i}" type="text" placeholder="Joueur ${i+1}">`;
+    }
+
+    $("nameFields").appendChild(row);
+  }
+
+  fillMainName();
+  setTimeout(fillMainName,100);
+}
+
+function updateModeUI(){
+  mode=$("mode").value;
+  $("soloOptions").classList.toggle("hidden",mode!=="solo");
+  $("multiOptions").classList.toggle("hidden",mode!=="multi");
+  if(mode==="multi") buildNameFields();
+}
+
+function shuffle(a){
+  const arr=[...a];
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function startGame(){
+  const d=DIFFICULTY[$("difficulty").value];
+  rows=d.rows;cols=d.cols;
+  mode=$("mode").value;
+  aiLevel=$("aiLevel").value;
+
+  players=[];
+
+  if(mode==="solo"){
+    const main=getActiveProfileName()||$("mainPlayerSolo").value.trim()||"Joueur";
+    players=[main,"Ordinateur"];
+  }else{
+    const count=Number($("playerCount").value);
+
+    for(let i=0;i<count;i++){
+      let name="";
+      if(i===0){
+        name=getActiveProfileName()||($("player0")?.value||"").trim()||"Joueur";
+      }else{
+        name=($("player"+i)?.value||"").trim();
+        if(!name){
+          alert("Entre le nom du joueur "+(i+1)+".");
+          return;
+        }
+      }
+      players.push(name);
+    }
+  }
+
+  scores=new Array(players.length).fill(0);
+  currentPlayer=0;
+  matched=new Set();
+  first=null;second=null;locked=false;
+  aiMemory={};
+
+  const total=rows*cols;
+  const pairs=total/2;
+  const chosen=shuffle(SYMBOLS).slice(0,pairs);
+  cards=shuffle([...chosen,...chosen]);
+
+  $("pairsTotal").textContent=pairs;
+  $("pairsDone").textContent=0;
+  $("menu").classList.add("hidden");
+  $("resultOverlay").classList.add("hidden");
+  $("game").classList.remove("hidden");
+
+  renderBoard();
+  updateUI();
+
+  if(mode==="solo" && currentPlayer===1){
+    setTimeout(aiTurn,700);
+  }
+}
+
+function renderBoard(){
+  const board=$("board");
+  board.innerHTML="";
+  board.style.gridTemplateColumns=`repeat(${cols}, minmax(62px, 1fr))`;
+
+  cards.forEach((symbol,index)=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="memory-card";
+    btn.dataset.index=index;
+    btn.innerHTML=`
+      <div class="inner">
+        <div class="face back">❓</div>
+        <div class="face front">${symbol}</div>
+      </div>`;
+    btn.addEventListener("click",()=>clickCard(index));
+    board.appendChild(btn);
+  });
+}
+
+function cardButton(index){
+  return document.querySelector(`.memory-card[data-index="${index}"]`);
+}
+
+function reveal(index){
+  const b=cardButton(index);
+  if(b) b.classList.add("flipped");
+  aiMemory[index]=cards[index];
+}
+
+function hide(index){
+  if(matched.has(index)) return;
+  const b=cardButton(index);
+  if(b) b.classList.remove("flipped");
+}
+
+function markMatched(index){
+  const b=cardButton(index);
+  if(b){
+    b.classList.add("matched");
+    b.disabled=true;
+  }
+}
+
+function clickCard(index){
+  if(locked) return;
+  if(mode==="solo" && currentPlayer===1) return;
+  if(matched.has(index) || index===first) return;
+
+  reveal(index);
+
+  if(first===null){
+    first=index;
+    return;
+  }
+
+  second=index;
+  locked=true;
+  setTimeout(checkPair,700);
+}
+
+function checkPair(){
+  if(first===null || second===null){
+    locked=false;
+    return;
+  }
+
+  const a=first,b=second;
+
+  if(cards[a]===cards[b]){
+    matched.add(a);matched.add(b);
+    scores[currentPlayer]+=1;
+    markMatched(a);markMatched(b);
+    delete aiMemory[a];delete aiMemory[b];
+
+    first=null;second=null;locked=false;
+    $("pairsDone").textContent=matched.size/2;
+    updateUI();
+
+    if(matched.size===cards.length){
+      setTimeout(endGame,500);
+      return;
+    }
+
+    // Bonne paire = le même joueur rejoue
+    if(mode==="solo" && currentPlayer===1){
+      setTimeout(aiTurn,700);
+    }
+  }else{
+    hide(a);hide(b);
+    first=null;second=null;
+    currentPlayer=(currentPlayer+1)%players.length;
+    locked=false;
+    updateUI();
+
+    if(mode==="solo" && currentPlayer===1){
+      setTimeout(aiTurn,700);
+    }
+  }
+}
+
+function aiKnownPair(){
+  const bySymbol={};
+
+  Object.entries(aiMemory).forEach(([k,symbol])=>{
+    const index=Number(k);
+    if(matched.has(index)) return;
+    (bySymbol[symbol] ||= []).push(index);
+  });
+
+  const pairs=[];
+  Object.values(bySymbol).forEach(pos=>{
+    if(pos.length>=2) pairs.push([pos[0],pos[1]]);
+  });
+
+  return pairs.length ? pairs[Math.floor(Math.random()*pairs.length)] : null;
+}
+
+function aiRandomHidden(exclude=null){
+  const possible=[];
+  for(let i=0;i<cards.length;i++){
+    if(!matched.has(i) && i!==exclude) possible.push(i);
+  }
+  return possible.length ? possible[Math.floor(Math.random()*possible.length)] : null;
+}
+
+function aiMemoryProbability(){
+  if(aiLevel==="easy") return .35;
+  if(aiLevel==="normal") return .72;
+  return 1;
+}
+
+function aiForgetSome(){
+  if(aiLevel==="expert") return;
+  const chance=aiLevel==="easy" ? .38 : .13;
+
+  Object.keys(aiMemory).forEach(k=>{
+    if(Math.random()<chance) delete aiMemory[k];
+  });
+}
+
+function aiTurn(){
+  if(mode!=="solo" || currentPlayer!==1 || locked || matched.size===cards.length) return;
+
+  locked=true;
+  $("aiThinking").classList.remove("hidden");
+  $("status").textContent="🤖 L'ordinateur réfléchit...";
+  aiForgetSome();
+
+  const known=aiKnownPair();
+  let firstChoice,secondChoice=null;
+
+  if(known && Math.random()<=aiMemoryProbability()){
+    [firstChoice,secondChoice]=known;
+  }else{
+    firstChoice=aiRandomHidden();
+  }
+
+  if(firstChoice===null){
+    locked=false;
+    $("aiThinking").classList.add("hidden");
+    return;
+  }
+
+  first=firstChoice;
+  reveal(firstChoice);
+
+  setTimeout(()=>{
+    if(secondChoice===null){
+      const symbol=cards[firstChoice];
+      const matches=Object.entries(aiMemory)
+        .filter(([k,s])=>s===symbol && Number(k)!==firstChoice && !matched.has(Number(k)))
+        .map(([k])=>Number(k));
+
+      if(matches.length && Math.random()<=aiMemoryProbability()){
+        secondChoice=matches[Math.floor(Math.random()*matches.length)];
+      }else{
+        secondChoice=aiRandomHidden(firstChoice);
+      }
+    }
+
+    if(secondChoice===null){
+      first=null;
+      locked=false;
+      $("aiThinking").classList.add("hidden");
+      return;
+    }
+
+    second=secondChoice;
+    reveal(secondChoice);
+
+    setTimeout(()=>{
+      $("aiThinking").classList.add("hidden");
+      checkPair();
+    },750);
+  },700);
+}
+
+function updateUI(){
+  $("players").innerHTML="";
+
+  players.forEach((name,i)=>{
+    const card=document.createElement("div");
+    card.className="player"+(i===currentPlayer?" active":"");
+    card.innerHTML=`<div>${mode==="solo"&&i===1?"🤖":"👤"} <b>${escapeHtml(name)}</b></div>
+    <div class="score">${scores[i]} paire(s)</div>`;
+    $("players").appendChild(card);
+  });
+
+  $("status").textContent=
+    mode==="solo" && currentPlayer===1
+      ? "🤖 Tour de l'ordinateur"
+      : `🎯 Tour de ${players[currentPlayer]}`;
+}
+
+function endGame(){
+  const ranking=players
+    .map((name,i)=>({name,score:scores[i]}))
+    .sort((a,b)=>b.score-a.score);
+
+  $("ranking").innerHTML=ranking.map((p,i)=>`
+    <div class="rank-line">
+      <span>${i===0?"🥇":i===1?"🥈":i===2?"🥉":"🎮"} ${escapeHtml(p.name)}</span>
+      <strong>${p.score} paire(s)</strong>
+    </div>`).join("");
+
+  const best=ranking[0].score;
+  const winners=ranking.filter(p=>p.score===best).map(p=>p.name);
+
+  $("winnerText").textContent=
+    winners.length===1
+      ? `🏆 ${winners[0]} gagne avec ${best} paire(s) !`
+      : `🤝 Égalité entre ${winners.join(", ")} avec ${best} paire(s) !`;
+
+  $("resultOverlay").classList.remove("hidden");
+}
+
+function backToMenu(){
+  $("game").classList.add("hidden");
+  $("resultOverlay").classList.add("hidden");
+  $("menu").classList.remove("hidden");
+  fillMainName();
+}
+
+function escapeHtml(text){
+  return String(text)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+$("mode").addEventListener("change",updateModeUI);
+$("playerCount").addEventListener("change",buildNameFields);
+$("startBtn").addEventListener("click",startGame);
+$("menuBtn").addEventListener("click",backToMenu);
+$("replayBtn").addEventListener("click",startGame);
+$("backBtn").addEventListener("click",backToMenu);
+
+updateModeUI();
+fillMainName();
+setTimeout(fillMainName,150);
+</script>
+</body>
+</html>
