@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07131d">
+  <title>Cookie Cosmos — Les jeux de Malo</title>
+  <link rel="stylesheet" href="ui-commune.css">
+  <link rel="stylesheet" href="cookie-clicker.css">
+  <script defer src="cookie-clicker.js"></script>
+</head>
+<body>
+  <main class="game-shell">
+    <a class="cookie-home" href="../index.html" aria-label="Retour à l'accueil">🏠</a>
+    <header class="game-header">
+      <div><p class="eyebrow">LES JEUX DE MALO</p><h1>Cookie Cosmos</h1></div>
+      <div class="stats" aria-live="polite">
+        <div><span>Cookies</span><strong id="cookies">0</strong></div><div><span>Par seconde</span><strong id="cps">0</strong></div>
+        <div><span>Clics</span><strong id="clicks">0</strong></div><div><span>Record</span><strong id="record">0</strong></div>
+      </div>
+    </header>
+    <section class="game-layout">
+      <section class="cookie-zone" aria-label="Zone de jeu">
+        <div id="effects" class="effects" aria-hidden="true"></div><p id="bonus-status" class="bonus-status">Clique sur le cookie pour lancer ta fabrique !</p>
+        <button id="main-cookie" class="main-cookie" type="button" aria-label="Gagner des cookies"><span class="chip chip-a"></span><span class="chip chip-b"></span><span class="chip chip-c"></span><span class="chip chip-d"></span><span class="chip chip-e"></span><span class="chip chip-f"></span><span class="cookie-shine"></span></button>
+        <p class="click-help">Chaque clic rapporte <strong id="click-power">1</strong> cookie.</p><button id="golden-cookie" class="golden-cookie" type="button" hidden aria-label="Cookie doré : clique vite !">★</button>
+      </section>
+      <aside class="side-panel">
+        <div class="tabs" role="tablist" aria-label="Panneaux du jeu"><button class="tab is-active" data-tab="shop" role="tab">Magasin</button><button class="tab" data-tab="upgrades" role="tab">Améliorations</button><button class="tab" data-tab="achievements" role="tab">Trophées</button></div>
+        <section id="shop" class="tab-panel is-active" role="tabpanel"><h2>Fabrique</h2><div id="buildings" class="card-list"></div></section>
+        <section id="upgrades" class="tab-panel" role="tabpanel"><h2>Améliorations</h2><div id="upgrades-list" class="card-list"></div></section>
+        <section id="achievements" class="tab-panel" role="tabpanel"><h2>Trophées</h2><div id="achievements-list" class="achievement-list"></div></section>
+      </aside>
+    </section>
+    <footer class="game-footer"><div class="prestige"><span>✦ Prestige : <strong id="prestige-points">0</strong> points (+<span id="prestige-bonus">0</span>% production)</span><button id="prestige-button" type="button">Recommencer avec prestige</button></div><button id="reset-button" class="reset-button" type="button">Réinitialiser la partie</button></footer>
+  </main>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <dialog id="offline-dialog"><div><h2>Bienvenue de retour !</h2><p id="offline-message"></p><button type="button" data-close-dialog>Super !</button></div></dialog>
+  <dialog id="confirm-dialog"><div><h2 id="confirm-title">Confirmer</h2><p id="confirm-message"></p><div class="dialog-actions"><button type="button" data-cancel>Annuler</button><button type="button" class="danger" data-confirm>Confirmer</button></div></div></dialog>
+</body>
+</html>
