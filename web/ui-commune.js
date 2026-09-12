@@ -5,7 +5,7 @@
   const ACTIVE_KEY = "malo.activeProfile";
   const LEGACY_KEY = "malo.legacyMigrated";
   const SESSION_KEY = "malo.profileChosenSession";
-  const INTRO_KEY = "malo.introSeen.fast-lines";
+  const INTRO_KEY = "malo.introSeen.ribbon-2026-09";
   const PROFILE_DATA_PREFIX = "malo.profileData.";
   const LEGACY_CLAIM_KEY = "malo.legacySavesClaimed";
   const HOME_URL = document.currentScript ? new URL("../index.html", document.currentScript.src).href : "../index.html";
@@ -335,18 +335,141 @@
   }
 
   function showIntro(done) {
-    const intro = document.createElement("div");
+    const intro = document.createElement("canvas");
     intro.className = "malo-intro";
-    const fibers = Array.from({ length: 36 }, (_, index) => `<i style="--x:${index};--h:${[188,215,265,325,355,24,48][index % 7]};--w:${1 + index % 4}px"></i>`).join("");
-    intro.innerHTML = `<div class="malo-intro-tunnel" aria-hidden="true">${fibers}</div>
-      <div class="malo-intro-mark" aria-label="M"><svg viewBox="0 0 320 360" aria-hidden="true"><defs><linearGradient id="maloRibbon" x1="0" x2="1"><stop stop-color="#075d91"/><stop offset=".3" stop-color="#00efff"/><stop offset=".55" stop-color="#e5ffff"/><stop offset=".78" stop-color="#157dcc"/><stop offset="1" stop-color="#7436d7"/></linearGradient></defs><path d="M38 326V34L160 250L282 34V326"/></svg></div>`;
+    intro.setAttribute("role", "img");
+    intro.setAttribute("aria-label", "Animation d’entrée : M");
     document.body.appendChild(intro);
-    setTimeout(() => {
-      playIntroSound();
-      sessionStorage.setItem(INTRO_KEY, "1");
-      intro.classList.add("is-playing");
-    }, 80);
-    setTimeout(() => { intro.remove(); done(); }, 3500);
+    const context = intro.getContext("2d");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = 3400;
+    const start = performance.now();
+    let width, height, pixelRatio, frame, watchdog, finished = false;
+    const letter = new Path2D("M0 360V0H70L160 190L250 0H320V360H250V137L160 303L70 137V360Z");
+    const ribbons = [
+      ["M0 360V0H70V360Z", "#006b91", "#00cddd"],
+      ["M250 360V0H320V360Z", "#005477", "#00aabe"],
+      ["M0 0H70L195 264L160 303Z", "#00dbea", "#008cae"],
+      ["M250 0H320L160 303L125 264Z", "#55f7ff", "#00a0cc"]
+    ];
+    const colors = ["#00eaff", "#35b8ff", "#5264ff", "#9947ea", "#ef4b99", "#ff354f", "#ff962e", "#ffdf99"];
+    const fibers = Array.from({ length: 100 }, (_, index) => ({
+      position: (index + .18 + ((index * 37) % 17) / 25) / 100 - .5,
+      width: .5 + ((index * 13) % 9) / 5,
+      opacity: .35 + ((index * 7) % 11) / 17,
+      color: colors[Math.min(7, Math.floor(index / 12.5))]
+    }));
+    const progress = (time, from, to) => Math.max(0, Math.min(1, (time - from) / (to - from)));
+    const smooth = value => value * value * (3 - 2 * value);
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      intro.width = Math.round(width * pixelRatio);
+      intro.height = Math.round(height * pixelRatio);
+    }
+
+    function finish() {
+      if (finished) return;
+      finished = true;
+      cancelAnimationFrame(frame);
+      clearTimeout(watchdog);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("keydown", skip);
+      intro.remove();
+      done();
+    }
+
+    function skip(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        finish();
+      }
+    }
+
+    function placeLetter(size, zoom, aim) {
+      context.translate(width / 2, height / 2);
+      context.scale(size * zoom, size * zoom);
+      context.translate(-160 + 125 * aim, -180);
+    }
+
+    function draw(time) {
+      const base = Math.min(390, width * .62, height * .58) / 360;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = "#000";
+      context.fillRect(0, 0, width, height);
+
+      if (time < 2230) {
+        const zoom = progress(time, 1300, 2180);
+        context.save();
+        placeLetter(base, 1 + 8 * zoom ** 3, smooth(zoom));
+        context.clip(letter);
+        context.globalAlpha = smooth(progress(time, 0, 260)) * (1 - progress(time, 1940, 2230));
+        for (const [path, dark, light] of ribbons) {
+          const gradient = context.createLinearGradient(0, 0, 320, 320);
+          gradient.addColorStop(0, light);
+          gradient.addColorStop(1, dark);
+          context.fillStyle = gradient;
+          context.fill(new Path2D(path));
+        }
+        const texture = smooth(progress(time, 1100, 1750));
+        for (const fiber of fibers) {
+          context.fillStyle = fiber.color;
+          context.globalAlpha = texture * fiber.opacity * (1 - progress(time, 1940, 2230));
+          context.fillRect((fiber.position + .5) * 320, 0, fiber.width * .55, 360);
+        }
+        context.restore();
+      }
+
+      if (time > 1770 && time < 2700) {
+        const expansion = progress(time, 1770, 2530);
+        const spread = 38 * base + width * 1.7 * expansion ** 2;
+        const fade = smooth(progress(time, 1770, 1940)) * (1 - smooth(progress(time, 2420, 2700)));
+        context.save();
+        context.globalCompositeOperation = "screen";
+        for (const fiber of fibers) {
+          const x = width / 2 + fiber.position * spread;
+          const thickness = fiber.width * (1 + 5 * expansion);
+          context.fillStyle = fiber.color;
+          context.globalAlpha = fade * fiber.opacity * .12;
+          context.fillRect(x - thickness * 3, 0, thickness * 7, height);
+          context.globalAlpha = fade * fiber.opacity;
+          context.fillRect(x, 0, thickness, height);
+          context.fillStyle = "#e9ffff";
+          context.globalAlpha *= .4;
+          context.fillRect(x, 0, Math.max(.6, thickness * .15), height);
+        }
+        context.restore();
+      }
+
+      if (time > 2560) {
+        const opening = smooth(progress(time, 2560, 2810));
+        const zoom = progress(time, 2870, duration);
+        const maxZoom = Math.max(width / (base * 70), height / (base * 360)) * 1.8;
+        context.save();
+        context.globalCompositeOperation = "destination-out";
+        placeLetter(base, opening * (1 + maxZoom * zoom ** 3), smooth(zoom));
+        context.fill(letter);
+        context.restore();
+      }
+
+      if (time >= duration) finish();
+      else frame = requestAnimationFrame(now => draw(now - start));
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+    document.addEventListener("keydown", skip);
+    try { sessionStorage.setItem(INTRO_KEY, "1"); } catch {}
+    if (!context || reducedMotion) {
+      finish();
+      return;
+    }
+    try { playIntroSound(); } catch {}
+    watchdog = setTimeout(finish, duration + 700);
+    draw(0);
   }
 
   function enableEnterValidation() {
