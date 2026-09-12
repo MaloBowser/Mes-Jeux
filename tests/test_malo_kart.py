@@ -14,7 +14,7 @@ with sync_playwright() as p:
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
     source = (ROOT / 'web' / 'malo-kart.js').read_text(encoding='utf-8')
-    hook = '''window.kartTest = { player, racers, keys, pickups, pads, hazards, projectiles, LENGTH, step, resetRace, startRace, updateHUD, updateKart, updateCamera, useItem, sample, hit, renderer,
+    hook = '''window.kartTest = { player, racers, keys, pickups, pads, hazards, projectiles, LENGTH, step, resetRace, startRace, updateHUD, updateKart, updateCamera, updateInteractions, useItem, sample, hit, renderer,
       get state(){return {mode, elapsed, driftCharge, bestLap, lastLap, countdown}},
       render(){ racers.forEach(r => updateKart(r, .016)); updateCamera(1, true); updateHUD(); renderer.render(scene, camera); }
     };'''
@@ -79,6 +79,28 @@ with sync_playwright() as p:
     print('MECHANICS', json.dumps(mechanics), flush=True)
     assert mechanics['driftCharge'] >= .75 and mechanics['driftBoost'] > 1
     assert all(mechanics[k] for k in ['pickup','shieldAbsorbed','turbo','mine','missile','missileHit','pad','barrier'])
+    missile_collisions = page.evaluate('''() => {
+      const t=kartTest;
+      function fire(lane, progress=100) {
+        t.startRace(); for(let i=0;i<425;i++)t.step(1/120);
+        t.racers.slice(1).forEach((r,i)=>{r.progress=progress-200-i*10;});
+        Object.assign(t.player,{progress,lane:-6,speed:0,item:'missile'});
+        Object.assign(t.racers[1],{progress:progress+4,lane,speed:0,stun:0,shield:0});
+        t.useItem(t.player);
+        t.updateInteractions(1/60);
+      }
+      fire(6);
+      const oppositeLaneMiss=t.racers[1].stun===0 && t.projectiles.length===1;
+      for(let i=0;i<60;i++)t.updateInteractions(1/60);
+      const noHitAfterPassing=t.racers[1].stun===0;
+      fire(-6);
+      const sameLaneHit=t.racers[1].stun>0 && t.projectiles.length===0;
+      fire(-6,t.LENGTH-3);
+      const finishLineHit=t.racers[1].stun>0 && t.projectiles.length===0;
+      return {oppositeLaneMiss,noHitAfterPassing,sameLaneHit,finishLineHit};
+    }''')
+    print('MISSILE_COLLISIONS', json.dumps(missile_collisions), flush=True)
+    assert all(missile_collisions.values()), missile_collisions
     page.evaluate('''() => {const t=kartTest; t.startRace(); for(let i=0;i<425;i++)t.step(1/120); t.player.progress=100; t.player.lane=1; t.player.speed=33; t.racers.slice(1).forEach((r,i)=>{r.progress=110+i*10;r.lane=i%2?3:-3;});t.render();}''')
     page.screenshot(path=str(OUT / 'race.png'))
     full_race = page.evaluate('''() => {
@@ -106,6 +128,39 @@ with sync_playwright() as p:
     page.locator('#quit').click()
     assert page.locator('#menu').is_visible()
     print('DRAW_CALLS', page.evaluate('kartTest.renderer.info.render.calls'), flush=True)
+
+    def finish_profile_race():
+        return page.evaluate('''() => {
+          const t=kartTest; t.startRace(); for(let i=0;i<425;i++)t.step(1/120);
+          for(let lap=1;lap<=3;lap++){
+            t.player.progress=t.LENGTH*lap-.1; t.player.speed=30; t.step(.02);
+          }
+          return t.state.mode;
+        }''')
+
+    guest_record = page.evaluate("localStorage.getItem('malo-kart-record-v1')")
+    page.evaluate("localStorage.setItem('malo.activeProfile','kart-test-a')")
+    page.reload(wait_until='load')
+    page.wait_for_function('window.kartTest')
+    assert 'PREMIER DÉPART' in page.locator('#record').inner_text(), 'A profile must not inherit the shared record'
+    # An already-open race must keep its owner if another tab selects a profile.
+    page.evaluate("localStorage.setItem('malo.activeProfile','kart-test-b')")
+    assert finish_profile_race() == 'finished'
+    profile_a_record = page.evaluate("localStorage.getItem('malo.profileData.kart-test-a.malo-kart-record-v1')")
+    assert profile_a_record, 'The race must save to the profile that opened the page'
+    assert page.evaluate("localStorage.getItem('malo.profileData.kart-test-b.malo-kart-record-v1')") is None
+    page.reload(wait_until='load')
+    page.wait_for_function('window.kartTest')
+    assert 'PREMIER DÉPART' in page.locator('#record').inner_text(), 'A new profile must have its own record'
+    assert finish_profile_race() == 'finished'
+    assert page.evaluate("localStorage.getItem('malo.profileData.kart-test-b.malo-kart-record-v1')")
+    assert page.evaluate("localStorage.getItem('malo.profileData.kart-test-a.malo-kart-record-v1')") == profile_a_record
+    assert page.evaluate("localStorage.getItem('malo-kart-record-v1')") == guest_record
+    page.evaluate("localStorage.setItem('malo.activeProfile','kart-test-a')")
+    page.reload(wait_until='load')
+    page.wait_for_function('window.kartTest')
+    assert 'TON RECORD' in page.locator('#record').inner_text(), 'The saved profile record must load again'
+    print('PROFILE_RECORDS_OK', flush=True)
     assert not errors, errors
     print('ERRORS', errors, flush=True)
     mobile = browser.new_context(viewport={'width':390,'height':844}, device_scale_factor=1, is_mobile=True, has_touch=True)

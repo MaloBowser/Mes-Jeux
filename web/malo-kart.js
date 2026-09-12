@@ -367,6 +367,11 @@
   let mode = 'menu', pausedMode = 'race', countdown = 3.5, elapsed = 0, lapStart = 0, lastLap = 0, bestLap = Infinity;
   let driftCharge = 0, drifting = false, cameraMode = 0, toastTimer = 0, uiTimer = 0, animTime = 0, lastFrame = 0;
   let record = null, soundOn = false, audio = null, engine = null, engineGain = null;
+  let recordKey = 'malo-kart-record-v1';
+  try {
+    const profileId = localStorage.getItem('malo.activeProfile');
+    if (profileId) recordKey = `malo.profileData.${profileId}.${recordKey}`;
+  } catch (_) { /* Le jeu reste jouable sans stockage. */ }
   const keys = { gas: false, brake: false, left: false, right: false, drift: false };
   const heldKeys = new Set(), touchKeys = new Map();
   const keyMap = { ArrowUp: 'gas', KeyW: 'gas', KeyZ: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right', ShiftLeft: 'drift', ShiftRight: 'drift', Space: 'drift' };
@@ -378,7 +383,7 @@
     return `${String(Math.floor(ms / 60000)).padStart(2, '0')}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}.${String(ms % 1000).padStart(3, '0')}`;
   }
   function readRecord() {
-    try { const saved = JSON.parse(localStorage.getItem('malo-kart-record-v1')); if (saved && Number.isFinite(saved.race) && saved.race > 0 && Number.isFinite(saved.lap) && saved.lap > 0) record = saved; } catch (_) { /* Le jeu reste jouable sans stockage. */ }
+    try { const saved = JSON.parse(localStorage.getItem(recordKey)); if (saved && Number.isFinite(saved.race) && saved.race > 0 && Number.isFinite(saved.lap) && saved.lap > 0) record = saved; } catch (_) { /* Le jeu reste jouable sans stockage. */ }
     $('record').textContent = record ? `TON RECORD · ${formatTime(record.race)}  /  TOUR · ${formatTime(record.lap)}` : 'RIVIERA GP · TON PREMIER DÉPART T’ATTEND';
   }
   readRecord();
@@ -460,7 +465,7 @@
     const isRecord = !record || elapsed < record.race;
     record = { race: Math.min(record?.race ?? Infinity, elapsed), lap: Math.min(record?.lap ?? Infinity, bestLap) };
     let saved = true;
-    try { localStorage.setItem('malo-kart-record-v1', JSON.stringify(record)); } catch (_) { saved = false; }
+    try { localStorage.setItem(recordKey, JSON.stringify(record)); } catch (_) { saved = false; }
     $('result-record').textContent = (isRecord ? 'Nouveau record personnel ! ' : 'Encore un départ pour battre ton record ? ') + (saved ? 'Ton record est sauvegardé sur cet appareil.' : 'Le stockage est indisponible : le record reste valable pour cette session.');
     $('results-dialog').showModal(); beep(rank === 1 ? 1000 : 650, .5);
   }
@@ -590,7 +595,7 @@
       const p = projectiles[i]; p.life -= dt; p.progress += 70 * dt; p.lane = lerp(p.lane, p.target.lane, 1 - Math.exp(-dt * 5));
       p.object.position.copy(trackPosition(p.progress, p.lane, .8));
       emitSparks(p.object.position, '#ffa443', 1);
-      if (p.progress >= p.target.progress - 1.2) { if (p.target.finish === null) hit(p.target, 'IMPACT · Un missile t’a touché !'); p.life = 0; }
+      if (Math.hypot(p.progress - p.target.progress, p.lane - p.target.lane) < 1.5) { if (p.target.finish === null) hit(p.target, 'IMPACT · Un missile t’a touché !'); p.life = 0; }
       if (p.life <= 0) { scene.remove(p.object); projectiles.splice(i, 1); }
     }
   }

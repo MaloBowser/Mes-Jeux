@@ -12,7 +12,7 @@ Ouvrir `malo-kart.html` dans un navigateur récent avec WebGL, ou cliquer sur **
 - **Échap ou P** : pause. La course se met aussi en pause quand la fenêtre perd le focus.
 - Écran tactile : commandes affichées automatiquement ; toucher l’objet pour l’utiliser.
 
-Les niveaux modifient la vitesse des adversaires. Les records personnels, tous niveaux confondus, sont enregistrés dans le stockage local du navigateur quand il est disponible. Le classement final fige les positions à l’arrivée du joueur ; les concurrents encore en piste affichent leur retard en mètres.
+Les niveaux modifient la vitesse des adversaires. Les records personnels, tous niveaux confondus, sont enregistrés dans le stockage local du navigateur quand il est disponible, sous le profil actif à l’ouverture du jeu. Sans profil, les records restent séparés dans la sauvegarde locale historique ; ils ne sont pas automatiquement attribués aux profils par le jeu. Le classement final fige les positions à l’arrivée du joueur ; les concurrents encore en piste affichent leur retard en mètres.
 
 Le jeu utilise une conduite arcade avec inertie latérale et collisions avec les rails, sur un parcours fermé. Il ne s’agit pas d’une simulation automobile. Les décors, les karts, les textures et les sons sont générés par le jeu. Le mode son s’active avec le bouton en haut à droite.
 
@@ -24,4 +24,4 @@ Pour servir le site localement, depuis la racine : `python -m http.server 8000`,
 
 Les scripts `tests/test_malo_kart.py` et `tests/test_malo_kart_edges.py` utilisent Python, Playwright (`python -m pip install playwright`) et Microsoft Edge installé. Démarrer le serveur local sur le port 8000, puis exécuter les deux scripts depuis la racine du dépôt. Les captures sont écrites dans `.tmp/kart-checks`.
 
-Ils contrôlent une course complète, le classement, les records, la direction, les deux niveaux de turbo de dérapage, les quatre objets, les collisions, les pistes turbo, le freinage, les niveaux des adversaires, la pause, le redémarrage, le tactile, le mode fichier local et les erreurs de stockage ou de contexte graphique. L’accès à l’état de simulation est injecté uniquement dans la réponse JavaScript du navigateur de test.
+Ils contrôlent une course complète, le classement, les records et leur séparation par profil, la direction, les deux niveaux de turbo de dérapage, les quatre objets, les collisions (dont les missiles entre voies différentes et au passage de la ligne), les pistes turbo, le freinage, les niveaux des adversaires, la pause, le redémarrage, le tactile, le mode fichier local et les erreurs de stockage ou de contexte graphique. L’accès à l’état de simulation est injecté uniquement dans la réponse JavaScript du navigateur de test.
