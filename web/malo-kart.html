@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101b20">
+  <title>Malo Kart — Riviera GP</title>
+  <link rel="icon" href="console-de-jeu.png">
+  <link rel="stylesheet" href="malo-kart.css">
+  <script defer src="vendor/three.min.js"></script>
+  <script defer src="malo-kart.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Circuit de kart en trois dimensions"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="home" href="../index.html" aria-label="Retour aux jeux de Malo">↖ <span>LES JEUX DE MALO</span></a>
+    <div class="toolbar">
+      <button id="sound" aria-label="Activer le son" aria-pressed="false">SON <span>OFF</span></button>
+      <button id="fullscreen" aria-label="Plein écran">⛶</button>
+      <button id="pause" hidden aria-label="Mettre en pause">Ⅱ</button>
+    </div>
+  </header>
+
+  <main id="menu" class="menu">
+    <section class="menu-content">
+      <p class="eyebrow"><span class="live-dot"></span> LA GRILLE N’ATTEND QUE TOI</p>
+      <h1>MALO<br><span>KART</span><sup>GP</sup></h1>
+      <p class="intro">L’asphalte. Le soleil. La victoire.<br>Prends le volant et fais parler tes dérapages.</p>
+      <div class="race-specs"><span><b>8</b> PILOTES</span><span><b>3</b> TOURS</span><span><b>1</b> TROPHÉE</span></div>
+      <div class="setup">
+        <fieldset class="colors"><legend>TA LIVRÉE</legend>
+          <button class="swatch selected" style="--swatch:#ff5032" data-color="0xff5032" aria-label="Kart rouge" aria-pressed="true"></button>
+          <button class="swatch" style="--swatch:#2fb5ff" data-color="0x2fb5ff" aria-label="Kart bleu" aria-pressed="false"></button>
+          <button class="swatch" style="--swatch:#f9cf4c" data-color="0xf9cf4c" aria-label="Kart jaune" aria-pressed="false"></button>
+          <button class="swatch" style="--swatch:#ad83ff" data-color="0xad83ff" aria-label="Kart violet" aria-pressed="false"></button>
+        </fieldset>
+        <label class="difficulty">NIVEAU<select id="difficulty"><option value="easy">Détente</option><option value="normal" selected>Grand Prix</option><option value="hard">Expert</option></select></label>
+      </div>
+      <button id="start" class="primary" disabled><span>PRÉPARATION DU CIRCUIT…</span><b>↗</b></button>
+      <button id="help-button" class="text-button">LES COMMANDES <span>+</span></button>
+      <p id="record" class="record">RIVIERA GP · TON PREMIER DÉPART T’ATTEND</p>
+    </section>
+    <aside class="circuit-card">
+      <div class="circuit-number">01 <span>/ CIRCUIT</span></div>
+      <canvas id="preview-map" width="240" height="170" aria-label="Tracé du circuit Riviera"></canvas>
+      <h2>RIVIERA <em>GP</em></h2><p>CÔTE AZUR · FIN D’APRÈS-MIDI</p>
+      <div class="circuit-tags"><span>VIRAGES TECHNIQUES</span><span>BOOSTS & OBJETS</span></div>
+    </aside>
+    <div class="menu-footer"><span>UN JEU DE MALO</span><span>COURSE ARCADE · 3D</span></div>
+  </main>
+
+  <section id="hud" hidden aria-label="Tableau de bord de la course">
+    <div class="position"><strong id="position">8</strong><span>/ 8<small>POSITION</small></span></div>
+    <div class="timing"><div><small>TOUR</small><b id="lap">1 <span>/ 3</span></b></div><div><small>TEMPS</small><b id="time">00:00.000</b></div><div class="best-lap"><small>MEILLEUR TOUR</small><b id="best-lap">—</b></div></div>
+    <button id="item" class="item-slot" aria-label="Utiliser l’objet" disabled><span id="item-icon">?</span><div><b id="item-name">AUCUN OBJET</b><small id="item-hint">Attrape une caisse</small></div><kbd>E</kbd></button>
+    <div class="minimap"><canvas id="minimap" width="230" height="185" aria-label="Carte et positions des pilotes"></canvas><span>RIVIERA GP</span></div>
+    <div class="speedometer"><div><strong id="speed">0</strong><span>KM/H</span></div><div class="speed-track"><i id="speed-bar"></i></div><p id="drive-state">PRÊT À PARTIR</p><div class="drift-track"><i id="drift-bar"></i></div></div>
+    <p class="race-help">ZQSD / ↑←↓→ <span>CONDUIRE</span>　 MAJ <span>DÉRAPER</span>　 E <span>OBJET</span>　 ÉCHAP <span>PAUSE</span></p>
+  </section>
+  <div id="countdown" class="countdown" hidden aria-live="polite"></div>
+  <p id="toast" class="toast" hidden role="status"></p>
+  <div id="touch-controls" hidden aria-label="Commandes tactiles">
+    <div class="touch-steering"><button data-key="left" aria-label="Tourner à gauche">◀</button><button data-key="right" aria-label="Tourner à droite">▶</button></div>
+    <div class="touch-pedals"><button data-key="drift">DÉRAP.</button><button data-key="brake">FREIN</button><button data-key="gas" class="gas">GO</button></div>
+  </div>
+
+  <dialog id="help-dialog">
+    <p class="eyebrow">PRENDS UNE LONGUEUR D’AVANCE</p><h2>À TOI DE JOUER.</h2>
+    <div class="controls-list"><p><span>Accélérer / freiner</span><b>Z / S ou ↑ / ↓</b></p><p><span>Tourner</span><b>Q / D ou ← / →</b></p><p><span>Déraper dans un virage</span><b>Maj ou Espace</b></p><p><span>Utiliser ton objet</span><b>E ou Entrée</b></p><p><span>Pause / reprendre</span><b>Échap ou P</b></p><p><span>Replacer le kart sur la piste</span><b>R</b></p><p><span>Changer de caméra</span><b>C</b></p></div>
+    <p class="tip">Maintiens le dérapage en tournant, puis relâche : la jauge bleue te donne un mini-turbo, la jauge orange un super-turbo. Les caisses lumineuses contiennent un turbo, un bouclier, un missile ou une mine. Évite le gravier !</p>
+    <p class="tip">Sur écran tactile, utilise les boutons en bas de l’écran et touche ton objet pour l’activer. Le mode paysage est conseillé.</p>
+    <button id="help-close" class="primary">C’EST PARTI <b>↗</b></button>
+  </dialog>
+  <dialog id="pause-dialog"><p class="eyebrow">ON SOUFFLE UN INSTANT</p><h2>AU STAND.</h2><button id="resume" class="primary">REPRENDRE <b>↗</b></button><button id="restart" class="secondary">RECOMMENCER LA COURSE</button><button id="quit" class="text-button">RETOUR AU MENU</button></dialog>
+  <dialog id="results-dialog"><p class="eyebrow">RIVIERA GP · DRAPEAU À DAMIER</p><h2 id="result-title">BIEN JOUÉ !</h2><p id="result-time"></p><ol id="standings"></ol><p id="result-record" class="tip"></p><button id="replay" class="primary">ENCORE UNE COURSE <b>↗</b></button><button id="results-menu" class="text-button">RETOUR AU MENU</button></dialog>
+  <div id="error" class="error" hidden role="alert"><h2>Le moteur 3D n’a pas pu démarrer.</h2><p id="error-detail">Essaie avec un navigateur récent et l’accélération graphique activée.</p><a href="../index.html">Revenir aux jeux</a></div>
+  <noscript><div class="error">Active JavaScript dans ton navigateur pour jouer à Malo Kart.</div></noscript>
+</body>
+</html>
