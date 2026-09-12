@@ -510,7 +510,7 @@
       report.addEventListener("click", showReportDialog);
       document.body.appendChild(report);
       if (activeProfile()) renderAccount();
-    } else {
+    } else if (!document.querySelector(".malo-home-button, a[href='../index.html'], a[href='/index.html']")) {
       const home = document.createElement("a");
       home.className = "malo-home-button";
       home.href = HOME_URL;

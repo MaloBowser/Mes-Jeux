@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Le Juge - Les jeux de Malo</title>
+<link rel="stylesheet" href="ui-commune.css">
+<script src="ui-commune.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(#090d12,#10161d);color:#fff;font-family:Georgia,serif}
+button,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+header{text-align:center;padding:25px 15px}h1{margin:0;font-size:clamp(42px,8vw,78px);color:#f0d98b;text-shadow:0 0 14px #d7b45a55}
+.court{width:min(1150px,95%);margin:auto;padding:20px;border-radius:28px;background:#141b23;border:1px solid #ffffff18}
+.top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.pill{padding:10px 14px;border-radius:999px;background:#ffffff0c;border:1px solid #ffffff18;font-family:Arial}
+.board{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+.panel{padding:18px;border-radius:22px;background:#111820;border:1px solid #ffffff12}
+.folder{background:#f1e5cb;color:#2c251b;padding:24px;border-radius:12px;min-height:470px;box-shadow:0 14px 30px #0008}
+.folder.enter{animation:enter .45s ease}@keyframes enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.caseTitle{margin-top:0;border-bottom:2px solid #b99a55;padding-bottom:10px}.caseText{white-space:pre-line;line-height:1.7;font-size:18px}
+.gavel{text-align:center;font-size:58px}.gavel.hit{animation:gavel .4s}@keyframes gavel{0%{transform:rotate(-20deg)}50%{transform:rotate(25deg)}100%{transform:rotate(0)}}
+.verdict{min-height:80px;display:grid;place-items:center;background:#080d12;border-radius:16px;margin:12px 0;font-size:23px;font-weight:bold;border:1px solid #ffffff12}
+.verdict.guilty{color:#ff8d98;border-color:#b33a45}.verdict.innocent{color:#7be0a7;border-color:#3b9b67}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:none;border-radius:15px;padding:14px;color:white;font-weight:bold}
+.g{background:#8d2d39}.i{background:#2f7f55}.s{background:#ffffff10;border:1px solid #ffffff22}
+.sentence{margin-top:16px;padding:14px;border-radius:15px;background:#ffffff08}.sentence textarea{width:100%;min-height:110px;margin-top:10px;padding:12px;border-radius:12px;background:#080d12;color:white;border:1px solid #ffffff24}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+.overlay{position:fixed;inset:0;background:#020509ee;display:grid;place-items:center;z-index:30;padding:20px}.modal{width:min(760px,95%);max-height:88vh;overflow:auto;padding:24px;border-radius:22px;background:#141b23;border:1px solid #ffffff1c}
+.item{padding:12px;border-radius:12px;background:#ffffff09;margin:10px 0;font-family:Arial}.item strong{color:#f0d98b}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(25px);opacity:0;background:#101820e8;padding:11px 16px;border-radius:12px;transition:.2s}.toast.show{opacity:1;transform:translateX(-50%)}
+.advisors{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.advice{padding:13px;border-radius:14px;background:#ffffff08;border:1px solid #ffffff17;font-family:Arial,sans-serif;line-height:1.45}
+.advice h3{margin:0 0 7px;font-size:16px;color:#f0d98b}
+.advice.defense h3{color:#8cd9ff}
+.sent-guide{margin-top:11px;padding:11px;border-radius:12px;background:#d7b45a12;border:1px solid #d7b45a35;font-family:Arial,sans-serif;font-size:14px;line-height:1.45}
+.fadeOut{animation:fadeOut .45s forwards}@keyframes fadeOut{to{opacity:0;transform:translateY(-10px)}}
+.hearing-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.meta{padding:9px;border-radius:12px;background:#ffffff08;border:1px solid #ffffff12;font:13px Arial,sans-serif}
+.meta b{display:block;color:#f0d98b;margin-bottom:3px}
+.stage{margin:12px 0;padding:12px;border-radius:13px;background:#0c1218;border-left:4px solid #d7b45a;font-family:Arial,sans-serif;line-height:1.45}
+.stage strong{color:#f0d98b}
+.stage.def{border-left-color:#5fbce8}.stage.civil{border-left-color:#cc8b5c}.stage.last{border-left-color:#9a82d8}
+.sentence-options{display:grid;gap:8px;margin-top:12px}
+.choice{padding:10px;border-radius:12px;background:#ffffff08;border:1px solid #ffffff18;color:#fff;text-align:left}
+.choice:hover{background:#ffffff12}
+.deliberation{position:fixed;inset:0;z-index:55;display:grid;place-items:center;background:#05080dcc;backdrop-filter:blur(6px)}
+.deliberation-card{padding:28px 35px;border-radius:22px;background:#141b23;border:1px solid #ffffff1d;text-align:center;box-shadow:0 25px 80px #000}
+.deliberation-card .dots{font-size:32px;letter-spacing:8px;animation:dots 1s infinite alternate}
+@keyframes dots{from{opacity:.25}to{opacity:1}}
+@media(max-width:820px){.board{grid-template-columns:1fr}.advisors{grid-template-columns:1fr}.hearing-meta{grid-template-columns:1fr}}@media(max-width:560px){.buttons{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a class="malo-home-button" href="../index.html" aria-label="Retourner à l’accueil" title="Accueil">🏠</a>
+<header><h1>⚖️ LE JUGE</h1><p>Lis l'affaire, rends ton verdict et garde ton historique.</p></header>
+<main class="court">
+<div class="top"><div class="pill">👨‍⚖️ Juge : <b id="judgeName">Joueur</b></div><div class="pill">📜 Verdicts : <b id="count">0</b></div></div>
+<div class="board">
+<section class="panel"><div id="folder" class="folder"><h2 id="caseTitle" class="caseTitle"></h2><div id="caseText" class="caseText"></div></div></section>
+<section class="panel">
+<div id="gavel" class="gavel">🔨</div>
+<h2 style="text-align:center;color:#f0d98b">Votre décision</h2>
+<div class="hearing-meta">
+  <div class="meta"><b>Juridiction</b><span id="jurisdiction">Tribunal correctionnel</span></div>
+  <div class="meta"><b>Personne jugée</b><span id="personStatus">Prévenu</span></div>
+  <div class="meta"><b>Ministère public</b><span id="prosecutorRole">Procureur de la République</span></div>
+</div>
+
+<div class="stage civil">
+  <strong>👥 Partie civile / victime</strong>
+  <div id="civilClaim">Demande examinée...</div>
+</div>
+
+<div class="advisors">
+  <div class="advice">
+    <h3 id="prosecutorTitle">👔 Réquisitions du procureur</h3>
+    <div id="prosecutorAdvice">Analyse en cours...</div>
+  </div>
+  <div class="advice defense">
+    <h3>🛡️ Plaidoirie de la défense</h3>
+    <div id="defenseAdvice">Analyse en cours...</div>
+  </div>
+</div>
+
+<div class="stage last">
+  <strong>🗣️ Dernier mot de la personne jugée</strong>
+  <div id="lastWord">« Je maintiens ma version des faits. »</div>
+</div>
+
+<div class="sent-guide">
+  💡 <b>Aide à la peine :</b> après un verdict de culpabilité, tu verras les <b>réquisitions du ministère public</b> et la demande de la défense. Dans la vraie vie, le tribunal n'est pas obligé de suivre les réquisitions.
+  <div id="sentenceSuggestion" style="margin-top:7px"></div>
+</div>
+<div id="verdict" class="verdict">Verdict : aucun</div>
+<div class="buttons"><button id="guilty" class="btn g">🔴 COUPABLE</button><button id="innocent" class="btn i">🟢 INNOCENT</button></div>
+<div id="sentenceBox" class="sentence hidden"><b>⚖️ Prononcez votre sentence :</b><textarea id="sentence" placeholder="Écris la sentence..."></textarea><div class="actions"><button id="confirm" class="btn s">✅ Confirmer</button></div></div>
+<div class="actions"><button id="next" class="btn s">➡️ Affaire suivante</button><button id="history" class="btn s">📜 Historique</button></div>
+</section>
+</div>
+</main>
+
+<div id="historyOverlay" class="overlay hidden"><div class="modal"><h2 style="text-align:center;color:#f0d98b">📜 Historique</h2><div id="historyList"></div><div class="actions"><button id="closeHistory" class="btn s">Fermer</button><button id="clearHistory" class="btn s">🗑️ Effacer</button></div></div></div>
+<div id="deliberation" class="deliberation hidden">
+  <div class="deliberation-card">
+    <div style="font-size:54px">⚖️</div>
+    <h2>Le tribunal délibère</h2>
+    <p>Examen de la culpabilité et des éléments du dossier…</p>
+    <div class="dots">•••</div>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+const CASES = [
+{title:"Affaire Martin",text:`Monsieur Martin est accusé d'avoir tué Monsieur Robert.
+
+Les deux hommes s'étaient disputés quelques jours auparavant.
+
+Un voisin affirme avoir vu Monsieur Martin entrer dans l'immeuble de Monsieur Robert vers 21 h 10.
+
+Monsieur Martin affirme qu'il voulait simplement discuter avec lui et qu'il est reparti quelques minutes plus tard.
+
+Une caméra montre Monsieur Martin quittant l'immeuble à 21 h 24.
+
+Monsieur Robert a été retrouvé mort plus tard dans la soirée.
+
+Aucun témoin n'a assisté directement aux faits.
+
+Vous êtes le juge.
+À vous de décider si les éléments sont suffisants.`},
+{title:"Le coffre de l'entreprise",text:`Madame Leroy est accusée d'avoir volé 8 000 euros dans le coffre de son entreprise.
+
+Elle connaissait le code du coffre.
+
+Une caméra montre Madame Leroy entrer dans le bureau à 18 h 42.
+
+Elle ressort trois minutes plus tard.
+
+Elle affirme être entrée uniquement pour récupérer son téléphone.
+
+Le lendemain matin, l'argent avait disparu.
+
+Deux autres employés connaissaient également le code du coffre.
+
+La caméra ne montre pas ce qu'elle faisait dans le bureau.
+
+Vous êtes le juge.
+Coupable ou innocent ?`},
+{title:"L'incendie du magasin",text:`Monsieur Bernard est accusé d'avoir volontairement provoqué l'incendie de son magasin pour recevoir l'argent de l'assurance.
+
+Son commerce connaissait de grandes difficultés financières.
+
+Quelques semaines avant l'incendie, il avait augmenté le montant de son assurance.
+
+Monsieur Bernard affirme qu'il était chez lui au moment du départ du feu.
+
+Une caméra située dans sa rue semble confirmer qu'il était rentré chez lui auparavant.
+
+Les enquêteurs pensent cependant que l'incendie n'était probablement pas accidentel.
+
+Vous êtes le juge.
+À vous de décider.`},
+{title:"La voiture endommagée",text:`Madame Thomas accuse son voisin, Monsieur Dubois, d'avoir volontairement endommagé sa voiture.
+
+Les deux voisins se disputent régulièrement à propos du stationnement.
+
+Une caméra montre une personne passer près de la voiture pendant la nuit.
+
+La personne porte une veste ressemblant à celle de Monsieur Dubois.
+
+Son visage n'est cependant pas visible.
+
+Monsieur Dubois affirme qu'il dormait chez lui.
+
+Aucun témoin ne peut confirmer sa version.
+
+Vous êtes le juge.
+Coupable ou innocent ?`},
+{title:"Le cambriolage de la bijouterie",text:`Monsieur Petit est accusé d'avoir cambriolé une bijouterie.
+
+Une caméra montre une personne de sa taille entrer dans la boutique pendant la nuit.
+
+La personne porte une capuche et son visage n'est pas visible.
+
+Le lendemain, une montre provenant de la boutique est retrouvée chez Monsieur Petit.
+
+Monsieur Petit affirme avoir acheté cette montre à une personne inconnue le matin même.
+
+Il ne possède aucune preuve de cet achat.
+
+Vous êtes le juge.
+À vous de rendre votre verdict.`},
+{title:"L'argent de l'association",text:`Madame Moreau est accusée d'avoir détourné de l'argent d'une association.
+
+Plusieurs virements ont été effectués vers un compte bancaire lui appartenant.
+
+Madame Moreau affirme qu'il s'agissait de remboursements pour des dépenses qu'elle avait avancées.
+
+Certaines factures existent.
+
+D'autres sont introuvables.
+
+Le président de l'association affirme ne pas avoir autorisé plusieurs virements.
+
+Vous êtes le juge.
+À vous de décider.`},
+{title:"L'accident",text:`Monsieur Simon est accusé d'avoir volontairement provoqué un accident.
+
+Un témoin affirme l'avoir vu accélérer juste avant la collision.
+
+Monsieur Simon explique qu'il essayait au contraire d'éviter une autre voiture.
+
+Une caméra montre une partie de la scène.
+
+Mais un camion cache le moment exact de l'accident.
+
+Les conducteurs donnent des versions différentes.
+
+Vous êtes le juge.
+Coupable ou innocent ?`},
+{title:"L'ordinateur disparu",text:`Monsieur Garcia est accusé d'avoir volé un ordinateur dans son entreprise.
+
+Une caméra le montre quitter les bureaux avec un grand sac.
+
+Le lendemain, un ordinateur manque.
+
+Monsieur Garcia affirme que son sac contenait uniquement des affaires personnelles.
+
+Une semaine plus tard, l'ordinateur est retrouvé chez un autre employé.
+
+Cet employé affirme que Monsieur Garcia le lui avait donné.
+
+Monsieur Garcia nie totalement.
+
+Vous êtes le juge.
+À vous de trancher.`},
+{title:"Le faux document",text:`Madame Roux est accusée d'avoir falsifié un document pour obtenir 20 000 euros.
+
+Le document porte sa signature.
+
+Un expert affirme cependant que cette signature pourrait avoir été copiée.
+
+L'argent a été versé sur un compte auquel Madame Roux avait accès.
+
+Deux autres personnes pouvaient aussi utiliser ce compte.
+
+Madame Roux nie avoir créé le document.
+
+Vous êtes le juge.
+Les preuves sont-elles suffisantes ?`},
+{title:"L'affaire Vincent",text:`Monsieur André est accusé d'avoir tué Monsieur Vincent.
+
+Les deux hommes étaient présents à la même fête.
+
+Plusieurs personnes affirment les avoir vus se disputer.
+
+Monsieur André affirme être parti à 22 h.
+
+Une caméra d'une station-service située à plusieurs kilomètres le montre à 22 h 18.
+
+Monsieur Vincent a été retrouvé mort après la fête.
+
+L'heure exacte des faits n'est pas connue avec certitude.
+
+Personne n'a vu Monsieur André commettre les faits.
+
+Vous êtes le juge.
+À vous de décider.`}
+];
+
+
+const CASE_HELP = [
+{
+jurisdiction:"Cour d'assises (simulation)",status:"Accusé",prosecutorRole:"Avocat général",
+civil:"La partie civile demande que la responsabilité pénale soit reconnue et sollicite une indemnisation du préjudice subi.",
+prosecution:"Le ministère public insiste sur la dispute antérieure, la présence de Martin sur les lieux et la chronologie. Il estime que ces éléments forment un ensemble d'indices sérieux.",
+defense:"La défense rappelle qu'aucun témoin n'a vu Martin commettre les faits et que sa présence dans l'immeuble ne suffit pas à démontrer sa culpabilité.",
+last:"« Je suis allé lui parler, mais je ne lui ai rien fait. »",
+requisition:"Réquisitions fictives du jeu : une peine criminelle importante si la culpabilité est retenue.",
+defenseSentence:"La défense demande l'acquittement ; à défaut, la peine la plus modérée possible."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenue",prosecutorRole:"Procureur de la République",
+civil:"L'entreprise réclame la restitution des 8 000 € et l'indemnisation de son préjudice.",
+prosecution:"Le procureur relève que Leroy connaissait le code et qu'elle est entrée dans le bureau peu avant la découverte du vol.",
+defense:"Deux autres employés connaissaient le code et aucune image ne montre Leroy prendre l'argent.",
+last:"« Je suis seulement allée récupérer mon téléphone. »",
+requisition:"Réquisitions fictives : remboursement, amende et peine d'emprisonnement pouvant être assortie d'un sursis.",
+defenseSentence:"La défense demande la relaxe ; sinon une sanction sans emprisonnement ferme."
+},
+{
+jurisdiction:"Tribunal correctionnel (simulation simplifiée)",status:"Prévenu",prosecutorRole:"Procureur de la République",
+civil:"L'assureur et les propriétaires voisins peuvent demander réparation de leurs préjudices s'ils sont constitués parties civiles.",
+prosecution:"Le ministère public souligne les difficultés financières et l'augmentation récente de l'assurance.",
+defense:"La défense insiste sur l'alibi et sur l'absence de preuve directe reliant Bernard au départ du feu.",
+last:"« J'étais chez moi au moment de l'incendie. »",
+requisition:"Réquisitions fictives : indemnisation, amende et peine d'emprisonnement si l'intention est retenue.",
+defenseSentence:"La défense demande la relaxe ; subsidiairement une peine réduite."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenu",prosecutorRole:"Procureur de la République",
+civil:"La propriétaire du véhicule demande le remboursement des réparations et de son préjudice.",
+prosecution:"Le procureur retient les disputes répétées et la ressemblance de la veste comme indices.",
+defense:"Le visage n'est pas identifiable et aucun élément matériel certain ne relie Dubois aux dégradations.",
+last:"« Je dormais chez moi. »",
+requisition:"Réquisitions fictives : remboursement des dégâts et amende.",
+defenseSentence:"La défense demande la relaxe faute d'identification certaine."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenu",prosecutorRole:"Procureur de la République",
+civil:"La bijouterie demande restitution des biens et indemnisation du préjudice matériel.",
+prosecution:"Le ministère public met en avant la montre retrouvée chez Petit et l'absence de preuve de son achat.",
+defense:"La défense souligne que la vidéo ne permet pas d'identifier le cambrioleur et conteste le lien entre la possession de la montre et le cambriolage.",
+last:"« J'ai acheté cette montre à quelqu'un le matin même. »",
+requisition:"Réquisitions fictives : restitution, indemnisation et peine correctionnelle.",
+defenseSentence:"La défense demande la relaxe ; à défaut, une peine aménageable."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenue",prosecutorRole:"Procureur de la République",
+civil:"L'association demande le remboursement des sommes qu'elle estime injustifiées.",
+prosecution:"Le procureur relève les virements vers le compte personnel et l'absence de justificatifs pour certains d'entre eux.",
+defense:"La défense produit les factures existantes et soutient qu'il s'agit de remboursements de frais avancés.",
+last:"« Je n'ai détourné aucun argent, j'ai été remboursée de dépenses réelles. »",
+requisition:"Réquisitions fictives : remboursement des sommes injustifiées, amende et éventuelle peine avec sursis.",
+defenseSentence:"La défense demande la relaxe ou, à défaut, une peine financière limitée."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenu",prosecutorRole:"Procureur de la République",
+civil:"L'autre conducteur demande réparation des dommages liés à l'accident.",
+prosecution:"Le procureur s'appuie sur le témoin qui affirme avoir vu Simon accélérer avant la collision.",
+defense:"La défense fait valoir que la scène est partiellement masquée et que Simon dit avoir tenté d'éviter un autre véhicule.",
+last:"« J'ai accéléré pour éviter la voiture, pas pour provoquer l'accident. »",
+requisition:"Réquisitions fictives : amende, indemnisation et sanction liée au permis selon les faits retenus.",
+defenseSentence:"La défense demande la relaxe ou une sanction minimale."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenu",prosecutorRole:"Procureur de la République",
+civil:"L'entreprise demande la restitution de l'ordinateur et l'indemnisation de son préjudice.",
+prosecution:"Le ministère public invoque le sac volumineux et le témoignage de l'employé chez qui l'ordinateur a été retrouvé.",
+defense:"La défense relève que l'objet n'a pas été retrouvé chez Garcia et que le second employé peut avoir intérêt à l'accuser.",
+last:"« Je ne lui ai jamais donné cet ordinateur. »",
+requisition:"Réquisitions fictives : restitution, amende et peine correctionnelle avec ou sans sursis.",
+defenseSentence:"La défense demande la relaxe faute de preuve matérielle directe."
+},
+{
+jurisdiction:"Tribunal correctionnel",status:"Prévenue",prosecutorRole:"Procureur de la République",
+civil:"La personne ou l'organisme lésé demande le remboursement des 20 000 € et des dommages-intérêts.",
+prosecution:"Le procureur met en avant la signature et l'accès de Roux au compte bénéficiaire.",
+defense:"La défense souligne que la signature a pu être copiée et que plusieurs personnes pouvaient utiliser le compte.",
+last:"« Je n'ai jamais créé ce document. »",
+requisition:"Réquisitions fictives : remboursement, amende et peine correctionnelle.",
+defenseSentence:"La défense demande la relaxe ; subsidiairement une sanction non carcérale."
+},
+{
+jurisdiction:"Cour d'assises (simulation)",status:"Accusé",prosecutorRole:"Avocat général",
+civil:"La partie civile demande la reconnaissance de la responsabilité et l'indemnisation du préjudice.",
+prosecution:"Le ministère public insiste sur la dispute et la présence d'André à la fête avant les faits.",
+defense:"La défense met en avant la caméra qui situe André plusieurs kilomètres plus loin et l'incertitude sur l'heure exacte des faits.",
+last:"« Je suis parti de la fête et je n'ai rien fait à Vincent. »",
+requisition:"Réquisitions fictives : peine criminelle importante uniquement si la culpabilité est retenue.",
+defenseSentence:"La défense demande l'acquittement ; à défaut, une peine la plus basse possible."
+}
+];
+
+let audioCtx=null;
+function tone(freq=440,duration=.12,type="sine",volume=.05){
+  try{
+    audioCtx ||= new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type=type;o.frequency.value=freq;g.gain.value=volume;
+    o.connect(g);g.connect(audioCtx.destination);
+    o.start();g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);
+    o.stop(audioCtx.currentTime+duration);
+  }catch(e){}
+}
+function soundGavel(){
+  tone(115,.09,"square",.07);
+  setTimeout(()=>tone(78,.16,"triangle",.06),65);
+}
+function soundPaper(){
+  tone(720,.045,"triangle",.025);
+  setTimeout(()=>tone(510,.06,"triangle",.018),45);
+}
+function soundSuccess(){
+  tone(520,.08,"sine",.035);
+  setTimeout(()=>tone(660,.08,"sine",.035),90);
+}
+function goNextSoon(){
+  setTimeout(()=>{
+    const court=document.querySelector(".court");
+    court.classList.add("fadeOut");
+    setTimeout(()=>{
+      court.classList.remove("fadeOut");
+      newCase();
+      window.scrollTo({top:0,behavior:"smooth"});
+    },430);
+  },900);
+}
+
+const $=id=>document.getElementById(id);
+let currentIndex=-1,currentCase=null;
+
+function profileName(){
+  try{
+    const ps=JSON.parse(localStorage.getItem("malo.profiles.v1")||"[]");
+    const id=localStorage.getItem("malo.activeProfile")||"";
+    const p=ps.find(x=>x.id===id);
+    if(p&&p.name)return p.name;
+  }catch(e){}
+  return localStorage.getItem("malo.nomUtilisateur")||"Joueur";
+}
+function key(){return "malo.leJuge.history."+profileName().toLowerCase().replace(/[^a-z0-9_-]/gi,"_")}
+function loadHistory(){try{return JSON.parse(localStorage.getItem(key())||"[]")}catch(e){return []}}
+function saveHistory(h){localStorage.setItem(key(),JSON.stringify(h));$("count").textContent=h.length}
+function toast(t){$("toast").textContent=t;$("toast").classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>$("toast").classList.remove("show"),1500)}
+function hit(){$("gavel").classList.remove("hit");void $("gavel").offsetWidth;$("gavel").classList.add("hit");soundGavel()}
+function newCase(){
+  let i=Math.floor(Math.random()*CASES.length);
+  if(CASES.length>1)while(i===currentIndex)i=Math.floor(Math.random()*CASES.length);
+  currentIndex=i;currentCase=CASES[i];
+  const help=CASE_HELP[i]||{};
+  $("caseTitle").textContent=currentCase.title;$("caseText").textContent=currentCase.text;
+  $("jurisdiction").textContent=help.jurisdiction||"Tribunal correctionnel";
+  $("personStatus").textContent=help.status||"Prévenu";
+  $("prosecutorRole").textContent=help.prosecutorRole||"Procureur de la République";
+  $("prosecutorTitle").textContent=(help.prosecutorRole==="Avocat général"?"👔 Réquisitions de l'avocat général":"👔 Réquisitions du procureur");
+  $("civilClaim").textContent=help.civil||"La partie civile présente sa demande.";
+  $("prosecutorAdvice").textContent=help.prosecution||"Le ministère public expose ses réquisitions.";
+  $("defenseAdvice").textContent=help.defense||"La défense présente sa plaidoirie.";
+  $("lastWord").textContent=help.last||"« Je maintiens ma version des faits. »";
+  $("sentenceSuggestion").innerHTML="<b>Ministère public :</b> "+(help.requisition||"Une peine proportionnée aux faits.")+"<br><b>Défense :</b> "+(help.defenseSentence||"La peine la plus modérée possible.");
+  soundPaper();
+  $("verdict").textContent="Verdict : aucun";$("verdict").className="verdict";
+  $("sentenceBox").classList.add("hidden");$("sentence").value="";
+  $("folder").classList.remove("enter");void $("folder").offsetWidth;$("folder").classList.add("enter");
+}
+function deliberate(callback){
+  $("deliberation").classList.remove("hidden");
+  tone(190,.12,"triangle",.025);
+  setTimeout(()=>{
+    $("deliberation").classList.add("hidden");
+    callback();
+  },1100);
+}
+$("guilty").onclick=()=>deliberate(()=>{
+  $("verdict").textContent="Décision : CULPABILITÉ RETENUE ⚖️";
+  $("verdict").className="verdict guilty";
+  $("sentenceBox").classList.remove("hidden");
+  const help=CASE_HELP[currentIndex]||{};
+  $("sentence").placeholder="Exemple : amende, indemnisation, sursis, emprisonnement... selon ta décision dans le jeu.";
+  if(!$("sentenceOptions")){
+    const wrap=document.createElement("div");
+    wrap.id="sentenceOptions";wrap.className="sentence-options";
+    wrap.innerHTML=`
+      <button class="choice" id="useReq">👔 Reprendre les réquisitions du ministère public</button>
+      <button class="choice" id="useDef">🛡️ Suivre la proposition de la défense</button>`;
+    $("sentence").after(wrap);
+  }
+  $("useReq").onclick=()=>{$("sentence").value=help.requisition||""};
+  $("useDef").onclick=()=>{$("sentence").value=help.defenseSentence||""};
+  hit();
+});
+$("innocent").onclick=()=>deliberate(()=>{
+  let h=loadHistory();
+  h.push({affaire:currentCase.title,juridiction:(CASE_HELP[currentIndex]||{}).jurisdiction||"",verdict:"Relaxe / acquittement",sentence:"Aucune peine",date:new Date().toLocaleString("fr-FR")});
+  saveHistory(h);
+  $("verdict").textContent=((CASE_HELP[currentIndex]||{}).status==="Accusé"?"Décision : ACQUITTEMENT":"Décision : RELAXE");
+  $("verdict").className="verdict innocent";
+  $("sentenceBox").classList.add("hidden");
+  hit();toast("✅ Décision enregistrée");soundSuccess();goNextSoon();
+});
+$("confirm").onclick=()=>{
+  let sentence=$("sentence").value.trim();
+  if(!sentence){toast("⚠️ Choisis ou écris une peine");return}
+  let h=loadHistory();
+  h.push({affaire:currentCase.title,juridiction:(CASE_HELP[currentIndex]||{}).jurisdiction||"",verdict:"Culpabilité retenue",sentence,date:new Date().toLocaleString("fr-FR")});
+  saveHistory(h);hit();toast("⚖️ Jugement enregistré");soundSuccess();goNextSoon();
+};
+$("next").onclick=newCase;
+$("history").onclick=()=>{let h=loadHistory();$("historyList").innerHTML=h.length?[...h].reverse().map(v=>`<div class="item"><strong>${v.affaire}</strong><br>${v.juridiction?`<small>${v.juridiction}</small><br>`:""}Décision : ${v.verdict}<br>Peine : ${v.sentence}<br><small>${v.date||""}</small></div>`).join(""):`<p style="text-align:center;opacity:.7">Aucun verdict pour le moment.</p>`;$("historyOverlay").classList.remove("hidden")};
+$("closeHistory").onclick=()=>$("historyOverlay").classList.add("hidden");
+$("clearHistory").onclick=()=>{if(confirm("Effacer l'historique de ce profil ?")){localStorage.removeItem(key());$("count").textContent="0";$("historyList").innerHTML='<p style="text-align:center;opacity:.7">Aucun verdict pour le moment.</p>'}};
+$("judgeName").textContent=profileName();$("count").textContent=loadHistory().length;setTimeout(()=>{$("judgeName").textContent=profileName();$("count").textContent=loadHistory().length},150);newCase();
+</script>
+</body>
+</html>
