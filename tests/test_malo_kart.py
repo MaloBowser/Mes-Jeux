@@ -14,7 +14,7 @@ with sync_playwright() as p:
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.on('console', lambda msg: errors.append(msg.text) if msg.type == 'error' else None)
     source = (ROOT / 'web' / 'malo-kart.js').read_text(encoding='utf-8')
-    hook = '''window.kartTest = { player, racers, keys, pickups, pads, hazards, projectiles, LENGTH, step, resetRace, startRace, updateHUD, updateKart, updateCamera, updateInteractions, useItem, sample, hit, renderer,
+    hook = '''window.kartTest = { player, racers, keys, pickups, pads, hazards, projectiles, coins, ramps, LENGTH, step, resetRace, startRace, updateHUD, updateKart, updateCamera, updateInteractions, useItem, sample, hit, tryTrick, renderer, camera,
       get state(){return {mode, elapsed, driftCharge, bestLap, lastLap, countdown}},
       render(){ racers.forEach(r => updateKart(r, .016)); updateCamera(1, true); updateHUD(); renderer.render(scene, camera); }
     };'''
@@ -37,11 +37,22 @@ with sync_playwright() as p:
     page.keyboard.up('ArrowUp')
     print('KEYBOARD', page.evaluate('({keys:kartTest.keys,state:kartTest.state,speed:kartTest.player.speed,lane:kartTest.player.lane})'), flush=True)
     assert page.evaluate('kartTest.player.speed') > 20
-    old_lane = page.evaluate('kartTest.player.lane')
-    page.keyboard.down('ArrowLeft')
-    page.evaluate('for(let i=0;i<30;i++) kartTest.step(1/120)')
-    page.keyboard.up('ArrowLeft')
-    assert page.evaluate('kartTest.player.lane') < old_lane, 'Left key must steer left'
+    for code, direction in [('ArrowLeft', -1), ('ArrowRight', 1), ('KeyQ', -1), ('KeyD', 1)]:
+        before_x = page.evaluate('''() => {
+          const t=kartTest;
+          Object.assign(t.player,{progress:100,lane:0,heading:0,lateralSpeed:0,speed:25,collision:0});
+          t.racers.slice(1).forEach((r,i)=>{r.progress=500+i*20;});
+          t.render(); window.steeringCamera=t.camera.clone();
+          return t.player.model.root.position.clone().project(window.steeringCamera).x;
+        }''')
+        page.keyboard.down(code)
+        after_x = page.evaluate('''() => {
+          for(let i=0;i<30;i++)kartTest.step(1/120);
+          kartTest.updateKart(kartTest.player,0);
+          return kartTest.player.model.root.position.clone().project(window.steeringCamera).x;
+        }''')
+        page.keyboard.up(code)
+        assert (after_x - before_x) * direction > .005, f'{code} must move the kart in the matching SCREEN direction'
     page.keyboard.press('Escape')
     assert page.locator('#pause-dialog').is_visible()
     before = page.evaluate('kartTest.state.elapsed')
@@ -81,11 +92,11 @@ with sync_playwright() as p:
     assert all(mechanics[k] for k in ['pickup','shieldAbsorbed','turbo','mine','missile','missileHit','pad','barrier'])
     missile_collisions = page.evaluate('''() => {
       const t=kartTest;
-      function fire(lane, progress=100) {
+      function fire(lane, progress=100, height=0) {
         t.startRace(); for(let i=0;i<425;i++)t.step(1/120);
         t.racers.slice(1).forEach((r,i)=>{r.progress=progress-200-i*10;});
         Object.assign(t.player,{progress,lane:-6,speed:0,item:'missile'});
-        Object.assign(t.racers[1],{progress:progress+4,lane,speed:0,stun:0,shield:0});
+        Object.assign(t.racers[1],{progress:progress+4,lane,height,speed:0,stun:0,shield:0});
         t.useItem(t.player);
         t.updateInteractions(1/60);
       }
@@ -97,11 +108,39 @@ with sync_playwright() as p:
       const sameLaneHit=t.racers[1].stun>0 && t.projectiles.length===0;
       fire(-6,t.LENGTH-3);
       const finishLineHit=t.racers[1].stun>0 && t.projectiles.length===0;
-      return {oppositeLaneMiss,noHitAfterPassing,sameLaneHit,finishLineHit};
+      fire(-6,100,4);
+      const airborneMiss=t.racers[1].stun===0 && t.projectiles.length===1;
+      return {oppositeLaneMiss,noHitAfterPassing,sameLaneHit,finishLineHit,airborneMiss};
     }''')
     print('MISSILE_COLLISIONS', json.dumps(missile_collisions), flush=True)
     assert all(missile_collisions.values()), missile_collisions
-    page.evaluate('''() => {const t=kartTest; t.startRace(); for(let i=0;i<425;i++)t.step(1/120); t.player.progress=100; t.player.lane=1; t.player.speed=33; t.racers.slice(1).forEach((r,i)=>{r.progress=110+i*10;r.lane=i%2?3:-3;});t.render();}''')
+    deluxe_mechanics = page.evaluate('''() => {
+      const t=kartTest, r=t.player;
+      t.startRace(); for(let i=0;i<425;i++)t.step(1/120);
+      t.racers.slice(1).forEach((r,i)=>{r.progress=500+i*20;});
+      const coin=t.coins[0]; Object.assign(r,{progress:coin.progress,lane:coin.lane,speed:0,coins:9});
+      t.updateInteractions(1/120); const collected=r.coins===10 && coin.cooldown>0;
+      coin.cooldown=0; t.updateInteractions(1/120); const capped=r.coins===10;
+      t.hit(r,'test'); const lostCoins=r.coins===7;
+      Object.assign(r,{progress:t.ramps[0].progress+2,lane:t.ramps[0].lane,speed:30,stun:0,boost:0});
+      t.updateInteractions(1/120); const launched=r.height>0 && r.verticalSpeed>0;
+      t.tryTrick(); const trick=r.trick;
+      let frames=0;while(r.height>0 && frames++<300)t.step(1/120);
+      const landed=r.height===0 && r.verticalSpeed===0 && r.boost>0 && !r.trick;
+      t.startRace();const reset=r.coins===0 && r.height===0 && !r.trick && t.coins.every(c=>c.cooldown===0);
+      for(let i=0;i<425;i++)t.step(1/120);
+      t.racers.slice(1).forEach((a,i)=>{a.progress=600+i*20;});
+      Object.assign(r,{progress:20,lane:0,speed:30});
+      t.keys.gas=t.keys.left=t.keys.drift=true;
+      for(let i=0;i<375;i++){t.step(1/120);r.lane=0;}
+      const ultraCharged=t.state.driftCharge>=3;
+      t.keys.drift=t.keys.left=t.keys.gas=false;t.step(1/120);
+      const ultra=ultraCharged && r.boost>3;
+      return {collected,capped,lostCoins,launched,trick,landed,reset,ultra};
+    }''')
+    print('DELUXE_MECHANICS', json.dumps(deluxe_mechanics), flush=True)
+    assert all(deluxe_mechanics.values()), deluxe_mechanics
+    page.evaluate('''() => {const t=kartTest; t.startRace(); for(let i=0;i<600;i++)t.step(1/120); t.player.progress=100; t.player.lane=1; t.player.speed=33; t.racers.slice(1).forEach((r,i)=>{r.progress=110+i*10;r.lane=i%2?3:-3;});t.render();}''')
     page.screenshot(path=str(OUT / 'race.png'))
     full_race = page.evaluate('''() => {
       const t=kartTest;t.startRace(); for(let i=0;i<425;i++)t.step(1/120);
@@ -110,7 +149,7 @@ with sync_playwright() as p:
       while(t.state.mode==='race'&&frames<24000){
         const r=t.player;
         const error=r.heading + r.lane*.06;
-        t.keys.left=error>.015; t.keys.right=error<-.015;
+        t.keys.left=error<-.015; t.keys.right=error>.015;
         if(r.item)t.useItem(r);
         t.step(1/60);frames++;
       }

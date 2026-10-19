@@ -15,13 +15,13 @@
   renderer.shadowMap.type = T.PCFSoftShadowMap;
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
+  renderer.toneMappingExposure = .94;
 
   const scene = new T.Scene();
   scene.background = new T.Color('#a8d5df');
-  scene.fog = new T.FogExp2('#b9d3d6', .00165);
+  scene.fog = new T.FogExp2('#b9dfe8', .00105);
   const camera = new T.PerspectiveCamera(58, innerWidth / innerHeight, .15, 2300);
-  const sun = new T.DirectionalLight('#fff1cf', 3.4);
+  const sun = new T.DirectionalLight('#fff1d2', 3.1);
   sun.position.set(-170, 250, 120);
   sun.castShadow = true;
   const shadowResolution = pixelRatioLimit < 1.6 ? 1024 : 2048;
@@ -29,7 +29,7 @@
   Object.assign(sun.shadow.camera, { left: -65, right: 65, top: 65, bottom: -65, near: 1, far: 600 });
   sun.shadow.bias = -.0003;
   sun.shadow.normalBias = .035;
-  scene.add(sun, sun.target, new T.HemisphereLight('#c1e7ff', '#64714a', 2.0));
+  scene.add(sun, sun.target, new T.HemisphereLight('#c1e7ff', '#64714a', 1.3));
 
   const clamp = T.MathUtils.clamp;
   const lerp = T.MathUtils.lerp;
@@ -41,7 +41,7 @@
   const mat = (color, roughness = .8, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
   const materials = { black: mat('#141a1b'), rubber: mat('#141717', .98), metal: mat('#a9b7b9', .28, .8), white: mat('#f7f0db'), sand: mat('#c9b895'), trunk: mat('#7f7054'), leaves: mat('#667f42'), darkLeaves: mat('#3d694e') };
   const boxGeo = new T.BoxGeometry(1, 1, 1);
-  const sphereGeo = new T.SphereGeometry(1, 16, 12);
+  const sphereGeo = new T.SphereGeometry(1, 28, 20);
   const cylinderGeo = new T.CylinderGeometry(1, 1, 1, 12);
   function mesh(geometry, material, position, scale, parent = scene) {
     const object = new T.Mesh(geometry, material);
@@ -53,6 +53,16 @@
     return object;
   }
   const box = (material, position, scale, parent) => mesh(boxGeo, material, position, scale, parent);
+  const roundedGeo = new T.BoxGeometry(1, 1, 1, 6, 6, 6);
+  const roundedVertices = roundedGeo.attributes.position;
+  for (let i = 0; i < roundedVertices.count; i++) {
+    const p = v3().fromBufferAttribute(roundedVertices, i);
+    const core = p.clone().clampScalar(-.34, .34);
+    p.sub(core).normalize().multiplyScalar(.16).add(core);
+    roundedVertices.setXYZ(i, p.x, p.y, p.z);
+  }
+  roundedGeo.computeVertexNormals();
+  const roundedBox = (material, position, scale, parent) => mesh(roundedGeo, material, position, scale, parent);
   function canvasTexture(width, height, paint) {
     const canvas = document.createElement('canvas');
     canvas.width = width; canvas.height = height;
@@ -63,7 +73,7 @@
     return texture;
   }
   const asphalt = canvasTexture(256, 256, (ctx, w, h) => {
-    ctx.fillStyle = '#53585a'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#45494b'; ctx.fillRect(0, 0, w, h);
     for (let i = 0; i < 24000; i++) {
       const tone = 45 + random() * 75;
       ctx.fillStyle = `rgba(${tone},${tone},${tone},.24)`;
@@ -74,15 +84,22 @@
     ctx.fillStyle = '#171d2020'; ctx.fillRect(58, 0, 9, h); ctx.fillRect(182, 0, 9, h);
   });
   asphalt.wrapS = asphalt.wrapT = T.RepeatWrapping;
-  const groundTexture = canvasTexture(256, 256, (ctx, w, h) => {
-    ctx.fillStyle = '#89906a'; ctx.fillRect(0, 0, w, h);
-    for (let i = 0; i < 18000; i++) {
-      ctx.fillStyle = random() > .45 ? '#ccc78e28' : '#32492438';
-      ctx.fillRect(random() * w, random() * h, 1 + random() * 4, 1 + random() * 4);
+  const groundTexture = canvasTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#6b7e48'; ctx.fillRect(0, 0, w, h);
+    for (let i = 0; i < 65000; i++) {
+      ctx.fillStyle = random() > .45 ? '#b8bb6e60' : '#283c2360';
+      ctx.fillRect(random() * w, random() * h, .6 + random(), 1 + random() * 4);
     }
   });
   groundTexture.wrapS = groundTexture.wrapT = T.RepeatWrapping;
-  groundTexture.repeat.set(50, 50);
+  groundTexture.repeat.set(75, 75);
+  let pineTexture;
+  const pineReady = new Promise(resolve => {
+    if (!window.MALO_KART_PINE) { resolve(false); return; }
+    pineTexture = new T.TextureLoader().load(window.MALO_KART_PINE, () => resolve(true), undefined, () => resolve(false));
+    pineTexture.colorSpace = T.SRGBColorSpace;
+    pineTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  });
 
   const curve = new T.CatmullRomCurve3([
     [-90, 2, 170], [35, 2, 177], [142, 3, 140], [181, 7, 45], [112, 11, -27],
@@ -155,7 +172,7 @@
     islandGeo.computeVertexNormals();
     const ground = mesh(islandGeo, new T.MeshStandardMaterial({ map: groundTexture, roughness: 1 }), [0, 0, 0]);
     ground.castShadow = false;
-    const sea = mesh(new T.PlaneGeometry(6000, 6000), new T.MeshStandardMaterial({ color: '#319ba8', roughness: .25, metalness: .4 }), [0, -5, 0]);
+    const sea = mesh(new T.PlaneGeometry(6000, 6000), new T.MeshStandardMaterial({ color: '#078ca6', roughness: .2, metalness: .3 }), [0, -5, 0]);
     sea.rotation.x = -Math.PI / 2; sea.castShadow = false;
     const waterTexture = canvasTexture(256, 256, (ctx, w, h) => {
       ctx.fillStyle = '#7f7fff'; ctx.fillRect(0, 0, w, h);
@@ -163,11 +180,11 @@
     });
     waterTexture.colorSpace = T.NoColorSpace;
     waterTexture.wrapS = waterTexture.wrapT = T.RepeatWrapping;
-    waterTexture.repeat.set(150, 150);
-    sea.material.normalMap = waterTexture; sea.material.normalScale.set(.4, .4);
+    waterTexture.repeat.set(400, 400);
+    sea.material.normalMap = waterTexture; sea.material.normalScale.set(.65, .65);
 
     const skyGeo = new T.SphereGeometry(1800, 32, 20);
-    const skyMaterial = new T.ShaderMaterial({ side: T.BackSide, depthWrite: false, uniforms: { top: { value: new T.Color('#6dabc9') }, bottom: { value: new T.Color('#f6e2c0') } }, vertexShader: 'varying vec3 vPos; void main(){ vPos=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }', fragmentShader: 'varying vec3 vPos; uniform vec3 top; uniform vec3 bottom; void main(){float h=clamp(normalize(vPos).y*1.5,0.,1.); gl_FragColor=vec4(mix(bottom,top,pow(h,.6)),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' });
+    const skyMaterial = new T.ShaderMaterial({ side: T.BackSide, depthWrite: false, uniforms: { top: { value: new T.Color('#218dd3') }, bottom: { value: new T.Color('#e1f0ed') } }, vertexShader: 'varying vec3 vPos; void main(){ vPos=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }', fragmentShader: 'varying vec3 vPos; uniform vec3 top; uniform vec3 bottom; void main(){float h=clamp(normalize(vPos).y*2.4,0.,1.); gl_FragColor=vec4(mix(bottom,top,pow(h,.45)),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' });
     const sky = mesh(skyGeo, skyMaterial, [0, 0, 0]); sky.castShadow = false;
     const sunDisc = mesh(sphereGeo, new T.MeshBasicMaterial({ color: '#fff3c9', fog: false }), [-900, 460, 620], [35, 35, 35]); sunDisc.castShadow = false;
     const environment = new T.Scene(); environment.add(sky.clone(), sunDisc.clone());
@@ -179,7 +196,7 @@
     const mountainVertices = mountainGeo.attributes.position;
     for (let i = 0; i < mountainVertices.count; i++) {
       const x = mountainVertices.getX(i), y = mountainVertices.getY(i), z = mountainVertices.getZ(i);
-      mountainVertices.setY(i, y * (.78 + Math.sin(x * 13 + z * 6) * .12 + Math.cos(z * 15) * .1));
+      mountainVertices.setY(i, y * (.78 + Math.sin(x * 9 + z * 6) * .06 + Math.cos(z * 8) * .05));
     }
     mountainGeo.computeVertexNormals();
     for (let i = 0; i < 21; i++) {
@@ -200,7 +217,7 @@
     object.castShadow = castShadow; object.receiveShadow = true; scene.add(object); return object;
   }
   function buildDecor() {
-    const posts = [], rails = [], trunks = [], crowns = [], rocks = [];
+    const posts = [], rails = [], trunks = [], crowns = [], rocks = [], pines = [];
     for (let i = 0; i < SAMPLES; i += 5) {
       for (const side of [-1, 1]) {
         const s = track[i];
@@ -216,15 +233,22 @@
       let nearby = false;
       for (let j = 0; j < SAMPLES; j += 8) if (Math.hypot(track[j].p.x - p.x, track[j].p.z - p.z) < 16) nearby = true;
       if (nearby || (d < 90 && side === 1)) continue;
-      const height = 4 + random() * 5;
+      const height = 6 + random() * 5;
+      for (let face = 0; face < 2; face++) pines.push({ p: p.clone().add(v3(0, height / 2 - .15, 0)), yaw: s.yaw + face * Math.PI / 2, scale: [height * 1.02, height, 1] });
       trunks.push({ p: p.clone().add(v3(0, height * .35, 0)), scale: [.25, height * .7, .25] });
       for (let branch = 0; branch < 3; branch++) {
         const angle = branch / 3 * Math.PI * 2;
         crowns.push({ p: p.clone().add(v3(Math.cos(angle) * 1.25, height * .72 + random(), Math.sin(angle) * 1.25)), scale: [2 + random(), height * .2, 2 + random()], yaw: random() * 6 });
       }
     }
-    instances(cylinderGeo, materials.trunk, trunks);
-    instances(new T.IcosahedronGeometry(1, 2), materials.darkLeaves, crowns);
+    const trunksMesh = instances(cylinderGeo, materials.trunk, trunks);
+    const crownsMesh = instances(new T.IcosahedronGeometry(1, 2), materials.darkLeaves, crowns);
+    if (pineTexture) {
+      const pineMaterial = new T.MeshStandardMaterial({ map: pineTexture, alphaTest: .45, side: T.DoubleSide, roughness: 1, color: '#e4e9d6' });
+      const pineMesh = instances(new T.PlaneGeometry(1, 1), pineMaterial, pines);
+      pineMesh.visible = false;
+      pineReady.then(loaded => { pineMesh.visible = loaded; trunksMesh.visible = crownsMesh.visible = !loaded; });
+    }
     for (let i = 0; i < 110; i++) {
       const s = sample(random() * LENGTH), p = s.p.clone().addScaledVector(s.right, (random() > .5 ? 1 : -1) * (16 + random() * 7));
       rocks.push({ p: p.add(v3(0, -.3, 0)), yaw: random() * 6, scale: [1 + random() * 2, .6 + random(), 1 + random() * 2] });
@@ -275,38 +299,135 @@
   }
   buildDecor();
 
+  function buildRivieraDetails() {
+    const walls = [], roofs = [], windows = [], balconies = [], flags = [];
+    for (let i = 0; i < 18; i++) {
+      const s = sample(105 + i * 12), p = s.p.clone().addScaledVector(s.right, 29 + (i % 3) * 11);
+      const height = 5 + random() * 6, width = 7 + random() * 3;
+      walls.push({ p: p.clone().add(v3(0, height / 2 - 1, 0)), yaw: s.yaw, scale: [width, height, 9] });
+      roofs.push({ p: p.clone().add(v3(0, height + .15, 0)), yaw: s.yaw + Math.PI / 4, scale: [width * .8, 2.5, 7.2] });
+      for (let floor = 0; floor < 2; floor++) for (let side = -1; side <= 1; side++) {
+        const point = p.clone().addScaledVector(s.right, -width / 2 - .02).addScaledVector(s.tangent, side * 2.6).add(v3(0, 1.3 + floor * 3, 0));
+        windows.push({ p: point, yaw: s.yaw, scale: [.08, 1.6, 1.1] });
+        balconies.push({ p: point.clone().add(v3(0, -.9, 0)), yaw: s.yaw, scale: [.7, .15, 1.7] });
+      }
+    }
+    instances(boxGeo, mat('#e9d4ad'), walls);
+    instances(new T.ConeGeometry(1, 1, 4), mat('#b85f3f'), roofs);
+    instances(boxGeo, mat('#337380', .35, .1), windows);
+    instances(boxGeo, materials.white, balconies);
+    const flagTexture = canvasTexture(256, 128, (ctx, w, h) => {
+      ctx.fillStyle = '#ff643a'; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#fff3df'; ctx.font = 'italic bold 54px Arial'; ctx.textAlign = 'center'; ctx.fillText('MALO', w / 2, 79);
+      ctx.fillRect(0, h - 12, w, 4);
+    });
+    for (let i = 0; i < 20; i++) {
+      const distance = i * LENGTH / 20, s = sample(distance), p = trackPosition(distance, -14.7);
+      flags.push({ p: p.clone().add(v3(0, 3.4, 0)), scale: [.1, 6.8, .1] });
+      for (let face = 0; face < 2; face++) {
+        const flag = mesh(new T.PlaneGeometry(3, 1.7), new T.MeshStandardMaterial({ map: flagTexture }), [0, 0, 0]);
+        flag.position.copy(p).add(v3(0, 5.7, 0)).addScaledVector(s.right, 1.5); flag.rotation.y = s.yaw + face * Math.PI;
+      }
+    }
+    instances(cylinderGeo, materials.metal, flags);
+    const lighthouse = new T.Group(); lighthouse.position.set(255, -3, 160); scene.add(lighthouse);
+    mesh(new T.CylinderGeometry(3, 4.8, 25, 24), materials.white, [0, 12, 0], null, lighthouse);
+    mesh(new T.CylinderGeometry(3.5, 3.7, 3.8, 24), mat('#e96342'), [0, 19, 0], null, lighthouse);
+    mesh(new T.CylinderGeometry(4.4, 4.4, .5, 24), materials.black, [0, 25, 0], null, lighthouse);
+    mesh(new T.CylinderGeometry(2.6, 2.6, 4, 16), mat('#9fdef0', .15, .6), [0, 27.1, 0], null, lighthouse);
+    mesh(new T.ConeGeometry(4.3, 3, 24), mat('#e96342'), [0, 30.3, 0], null, lighthouse);
+    for (const [x, z, yaw] of [[360, 30, .7], [380, 180, -.8], [-380, 80, .3]]) {
+      const boat = new T.Group(); boat.position.set(x, -4.6, z); boat.rotation.y = yaw; scene.add(boat);
+      mesh(sphereGeo, materials.white, [0, 0, 0], [2.5, 1.2, 7], boat);
+      box(materials.metal, [0, 8, 0], [.12, 16, .12], boat);
+      const sail = new T.BufferGeometry();
+      sail.setAttribute('position', new T.Float32BufferAttribute([0, 2, .5, 0, 15, .5, 0, 2, 6], 3)); sail.computeVertexNormals();
+      mesh(sail, new T.MeshStandardMaterial({ color: '#fff5dc', side: T.DoubleSide }), [0, 0, 0], null, boat);
+    }
+    const cloudTexture = canvasTexture(256, 128, ctx => {
+      for (let i = 0; i < 16; i++) {
+        const x = 25 + random() * 200, y = 40 + random() * 50, radius = 20 + random() * 25;
+        const gradient = ctx.createRadialGradient(x, y, 2, x, y, radius);
+        gradient.addColorStop(0, '#ffffffb0'); gradient.addColorStop(1, '#ffffff00');
+        ctx.fillStyle = gradient; ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+      }
+    });
+    const clouds = [];
+    for (let i = 0; i < 22; i++) {
+      const a = i / 22 * Math.PI * 2;
+      clouds.push({ p: v3(Math.sin(a) * 720, 115 + random() * 85, Math.cos(a) * 720), yaw: a, scale: [150 + random() * 120, 65, 1] });
+    }
+    instances(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: cloudTexture, transparent: true, opacity: .75, depthWrite: false, side: T.DoubleSide }), clouds, false);
+  }
+  buildRivieraDetails();
+
+  const rimTexture = canvasTexture(128, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#182027'; ctx.fillRect(0, 0, w, h);
+    ctx.translate(w / 2, h / 2);
+    ctx.strokeStyle = '#9da7b1'; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.arc(0, 0, 52, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 5; i++) {
+      ctx.rotate(Math.PI * 2 / 5); ctx.fillStyle = '#d8dfe3'; ctx.fillRect(-6, -48, 12, 44);
+      ctx.fillStyle = '#687780'; ctx.fillRect(-3, -48, 3, 39);
+    }
+    ctx.fillStyle = '#f2be4f'; ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+  });
+  const rimMaterial = new T.MeshStandardMaterial({ map: rimTexture, metalness: .7, roughness: .25 });
+  const tireTexture = canvasTexture(128, 64, (ctx, w, h) => {
+    ctx.fillStyle = '#202429'; ctx.fillRect(0, 0, w, h); ctx.strokeStyle = '#080d12'; ctx.lineWidth = 2;
+    for (let x = 0; x < w; x += 12) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 12, h / 2); ctx.lineTo(x, h); ctx.stroke(); }
+  });
+  const tireMaterial = new T.MeshStandardMaterial({ map: tireTexture, roughness: .95 });
+
   function createKart(color, number) {
     const root = new T.Group(), body = new T.Group(); root.add(body);
-    const paint = mat(color, .28, .35);
-    box(materials.black, [0, .46, 0], [1.55, .23, 2.45], body);
-    box(paint, [0, .69, .77], [1.02, .38, 1.13], body);
-    const nose = mesh(sphereGeo, paint, [0, .71, 1.18], [.57, .23, .55], body);
-    box(paint, [-.86, .61, -.12], [.33, .4, 1.45], body);
-    box(paint, [.86, .61, -.12], [.33, .4, 1.45], body);
-    box(materials.black, [0, .41, 1.59], [1.8, .15, .15], body);
+    const paint = new T.MeshPhysicalMaterial({ color, roughness: .26, metalness: .25, clearcoat: 1, clearcoatRoughness: .16 });
+    roundedBox(materials.black, [0, .46, 0], [1.7, .23, 2.6], body);
+    roundedBox(paint, [0, .69, .77], [1.13, .43, 1.43], body);
+    const nose = mesh(sphereGeo, paint, [0, .69, 1.25], [.76, .24, .59], body);
+    for (const side of [-1, 1]) {
+      roundedBox(paint, [side * .86, .61, -.12], [.43, .42, 1.65], body);
+      roundedBox(materials.black, [side * .87, .66, .16], [.45, .15, .45], body);
+      roundedBox(materials.white, [side * .47, .82, 1.3], [.14, .035, .42], body);
+    }
+    roundedBox(materials.black, [0, .41, 1.72], [1.95, .17, .2], body);
     box(materials.metal, [0, .54, -.89], [1.95, .12, .16], body);
-    box(materials.black, [0, .92, -.48], [.73, .8, .22], body).rotation.x = -.13;
-    box(paint, [0, 1.09, -1.17], [1.8, .12, .45], body);
+    roundedBox(materials.black, [0, .92, -.48], [.79, .8, .24], body).rotation.x = -.13;
+    roundedBox(paint, [0, 1.09, -1.17], [1.9, .13, .48], body);
+    roundedBox(materials.white, [0, 1.16, -1.17], [.13, .015, .46], body);
+    for (const x of [-.84, .84]) roundedBox(paint, [x, 1.17, -1.17], [.09, .3, .5], body);
     for (const x of [-.56, .56]) box(materials.black, [x, .77, -1.17], [.09, .58, .1], body);
     box(materials.metal, [.54, .73, -.68], [.4, .36, .57], body);
+    for (let fin = 0; fin < 4; fin++) box(materials.black, [.54, .62 + fin * .08, -.68], [.47, .035, .61], body);
+    roundedBox(new T.MeshStandardMaterial({ color: '#ff3524', emissive: '#ff1800', emissiveIntensity: 2 }), [0, .58, -1.29], [.45, .1, .05], body);
     const exhaust = mesh(cylinderGeo, materials.metal, [.67, .54, -1.35], [.1, .56, .1], body); exhaust.rotation.x = Math.PI / 2;
     const wheels = [];
-    const tireGeo = new T.CylinderGeometry(.38, .38, .34, 20);
-    const hubGeo = new T.CylinderGeometry(.2, .2, .355, 12);
+    const tireGeo = new T.CylinderGeometry(.4, .4, .38, 32);
+    const hubGeo = new T.CylinderGeometry(.245, .245, .39, 24);
     for (const x of [-1, 1]) for (const z of [-.83, .93]) {
       const pivot = new T.Group(); pivot.position.set(x, .39, z); root.add(pivot);
-      const tire = mesh(tireGeo, materials.rubber, [0, 0, 0], null, pivot); tire.rotation.z = Math.PI / 2;
-      const hub = mesh(hubGeo, materials.metal, [0, 0, 0], null, pivot); hub.rotation.z = Math.PI / 2;
+      const tire = mesh(tireGeo, [tireMaterial, materials.rubber, materials.rubber], [0, 0, 0], null, pivot); tire.rotation.z = Math.PI / 2;
+      const hub = mesh(hubGeo, [materials.metal, rimMaterial, rimMaterial], [0, 0, 0], null, pivot); hub.rotation.z = Math.PI / 2;
       wheels.push({ pivot, tire, hub, front: z > 0 });
     }
     const suit = mat(color, .85);
-    mesh(sphereGeo, suit, [0, 1.12, -.18], [.37, .46, .3], body);
-    const helmet = mesh(sphereGeo, materials.white, [0, 1.76, -.12], [.39, .4, .39], body);
-    mesh(sphereGeo, mat('#142e3b', .13, .55), [0, 1.78, .135], [.34, .19, .19], body);
-    mesh(sphereGeo, paint, [0, 2.065, -.14], [.21, .095, .31], body);
+    mesh(sphereGeo, suit, [0, 1.1, -.18], [.36, .4, .28], body);
+    roundedBox(materials.white, [0, 1.17, .087], [.12, .44, .025], body);
+    const helmet = new T.Group(); helmet.position.set(0, 1.72, -.12); body.add(helmet);
+    mesh(sphereGeo, paint, [0, 0, 0], [.39, .42, .39], helmet);
+    const visor = new T.SphereGeometry(.405, 32, 12, Math.PI * .08, Math.PI * .84, Math.PI * .35, Math.PI * .28);
+    mesh(visor, new T.MeshPhysicalMaterial({ color: '#12394c', metalness: .65, roughness: .12, clearcoat: 1 }), [0, .015, 0], [1, .95, 1], helmet);
+    roundedBox(materials.white, [0, -.23, .26], [.53, .13, .23], helmet);
+    mesh(sphereGeo, materials.white, [0, .38, -.1], [.09, .05, .3], helmet);
+    for (const side of [-1, 1]) {
+      mesh(sphereGeo, materials.metal, [side * .373, 0, 0], [.025, .055, .055], helmet);
+      roundedBox(materials.black, [side * .13, -.24, .38], [.11, .035, .03], helmet);
+      const leg = mesh(cylinderGeo, suit, [side * .22, .75, .23], [.15, .58, .15], body); leg.rotation.x = Math.PI / 2;
+      roundedBox(materials.black, [side * .24, .59, .56], [.25, .2, .39], body);
+    }
     for (const x of [-1, 1]) {
       const arm = mesh(cylinderGeo, suit, [x * .34, 1.17, .2], [.13, .55, .13], body); arm.rotation.x = -.8; arm.rotation.z = x * .25;
-      mesh(sphereGeo, materials.black, [x * .32, 1.02, .44], [.13, .13, .13], body);
+      mesh(sphereGeo, materials.white, [x * .32, 1.02, .44], [.13, .13, .13], body);
     }
     const steering = mesh(new T.TorusGeometry(.27, .045, 6, 16), materials.black, [0, 1.02, .47], null, body); steering.rotation.x = -.6;
     const badge = canvasTexture(64, 64, (ctx, w, h) => { ctx.fillStyle = '#f4eedc'; ctx.fillRect(0, 0, w, h); ctx.fillStyle = '#182b33'; ctx.font = 'bold 46px Arial'; ctx.textAlign = 'center'; ctx.fillText(String(number), w / 2, 49); });
@@ -329,7 +450,7 @@
     missile: { name: 'MISSILE', icon: '➤', hint: 'Vise le kart devant toi' },
     mine: { name: 'MINE', icon: '✹', hint: 'Un piège derrière toi' }
   };
-  const pickups = [], pads = [], hazards = [], projectiles = [];
+  const pickups = [], pads = [], hazards = [], projectiles = [], coins = [], ramps = [];
   const pickupMaterial = new T.MeshStandardMaterial({ color: '#70deff', emissive: '#28a9d0', emissiveIntensity: .6, metalness: .5, roughness: .18, transparent: true, opacity: .8 });
   const pickupGeo = new T.BoxGeometry(1.5, 1.5, 1.5);
   const questionTexture = canvasTexture(64, 64, (ctx, w, h) => { ctx.fillStyle = '#ffffff'; ctx.font = 'bold 56px Arial'; ctx.textAlign = 'center'; ctx.fillText('?', w / 2, 53); });
@@ -341,12 +462,51 @@
   }
   const padTexture = canvasTexture(128, 128, (ctx, w, h) => {
     ctx.fillStyle = '#ef762e'; ctx.fillRect(0, 0, w, h); ctx.strokeStyle = '#fff0a5'; ctx.lineWidth = 9;
-    for (let y = -40; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(10, y + 35); ctx.lineTo(64, y); ctx.lineTo(118, y + 35); ctx.stroke(); }
+    for (let y = -40; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(64, y + 35); ctx.lineTo(118, y); ctx.stroke(); }
   });
   for (const [fraction, lane] of [[.24, -4.8], [.49, 4.8], [.76, 0]]) {
     const s = sample(fraction * LENGTH), object = mesh(new T.PlaneGeometry(4.1, 6.5), new T.MeshStandardMaterial({ map: padTexture, emissive: '#d97820', emissiveIntensity: .28 }), [0, 0, 0]);
     object.position.copy(trackPosition(fraction * LENGTH, lane, .09)); object.rotation.set(-Math.PI / 2, 0, -s.yaw); object.castShadow = false;
     pads.push({ progress: fraction * LENGTH, lane });
+  }
+  const coinMaterial = new T.MeshStandardMaterial({ color: '#ffcf39', metalness: .75, roughness: .24, emissive: '#d17b00', emissiveIntensity: .23 });
+  const coinGeo = new T.CylinderGeometry(.52, .52, .14, 24);
+  const coinRim = new T.TorusGeometry(.43, .035, 6, 24);
+  for (let cluster = 0; cluster < 8; cluster++) for (let i = 0; i < 3; i++) {
+    const progress = LENGTH * (.065 + cluster * .117) + i * 5, lane = Math.sin(cluster * 2.1) * 5;
+    const object = new T.Group(); object.position.copy(trackPosition(progress, lane, 1.05)); scene.add(object);
+    const disc = mesh(coinGeo, coinMaterial, [0, 0, 0], null, object); disc.rotation.x = Math.PI / 2;
+    mesh(coinRim, materials.white, [0, 0, .075], null, object);
+    coins.push({ object, progress, lane, cooldown: 0 });
+  }
+  for (const [fraction, lane] of [[.20, 4.5], [.68, -4.5]]) {
+    const progress = fraction * LENGTH, s = sample(progress), geometry = new T.BufferGeometry();
+    geometry.setAttribute('position', new T.Float32BufferAttribute([-2.1, 0, -4, 2.1, 0, -4, -2.1, .8, 4, 2.1, .8, 4], 3));
+    geometry.setAttribute('uv', new T.Float32BufferAttribute([0, 1, 1, 1, 0, 0, 1, 0], 2));
+    geometry.setIndex([0, 2, 1, 1, 2, 3]); geometry.computeVertexNormals();
+    const object = mesh(geometry, new T.MeshStandardMaterial({ map: padTexture, metalness: .2, roughness: .4, side: T.DoubleSide }), [0, 0, 0]);
+    object.position.copy(trackPosition(progress, lane, .04)); object.rotation.y = s.yaw;
+    ramps.push({ progress, lane });
+  }
+  const skidGeometry = new T.PlaneGeometry(.17, 1.3); skidGeometry.rotateX(-Math.PI / 2);
+  const skidMarks = new T.InstancedMesh(skidGeometry, new T.MeshBasicMaterial({ color: '#151a20', transparent: true, opacity: .3, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), 280);
+  skidMarks.frustumCulled = false; scene.add(skidMarks);
+  const skidDummy = new T.Object3D();
+  let skidIndex = 0, skidDistance = 0;
+  function resetSkids() {
+    skidDummy.position.set(0, -100, 0); skidDummy.rotation.set(0, 0, 0); skidDummy.updateMatrix();
+    for (let i = 0; i < 280; i++) skidMarks.setMatrixAt(i, skidDummy.matrix);
+    skidMarks.instanceMatrix.needsUpdate = true; skidIndex = 0; skidDistance = 0;
+  }
+  function addSkids() {
+    if (Math.abs(player.progress - skidDistance) < .9) return;
+    skidDistance = player.progress;
+    for (const side of [-1, 1]) {
+      skidDummy.position.copy(trackPosition(player.progress - .9, player.lane + side * .95, .025));
+      skidDummy.rotation.y = sample(player.progress).yaw + player.heading;
+      skidDummy.updateMatrix(); skidMarks.setMatrixAt(skidIndex++ % 280, skidDummy.matrix);
+    }
+    skidMarks.instanceMatrix.needsUpdate = true;
   }
   const sparkCount = 180, sparkData = Array.from({ length: sparkCount }, () => ({ life: 0, position: v3(), velocity: v3() }));
   const sparkPositions = new Float32Array(sparkCount * 3).fill(0), sparkColors = new Float32Array(sparkCount * 3);
@@ -424,10 +584,12 @@
     elapsed = 0; lapStart = 0; lastLap = 0; bestLap = Infinity; driftCharge = 0; drifting = false;
     clearKeys();
     racers.forEach((r, i) => {
-      Object.assign(r, { progress: -5 - (7 - i) * 2.5, lane: i % 2 ? -3 : 3, speed: 0, heading: 0, lateralSpeed: 0, boost: 0, shield: 0, stun: 0, collision: 0, item: null, finish: null, aiTimer: 7 + i, padCooldown: 0 });
+      Object.assign(r, { progress: -5 - (7 - i) * 2.5, lane: i % 2 ? -3 : 3, speed: 0, heading: 0, lateralSpeed: 0, boost: 0, shield: 0, stun: 0, collision: 0, item: null, finish: null, aiTimer: 7 + i, padCooldown: 0, coins: 0, height: 0, verticalSpeed: 0, rampCooldown: 0, trick: false, trickAngle: 0 });
       updateKart(r, 0);
     });
     pickups.forEach(p => { p.cooldown = 0; p.object.visible = true; });
+    coins.forEach(c => { c.cooldown = 0; c.object.visible = true; });
+    resetSkids();
     hazards.forEach(h => scene.remove(h.object)); hazards.length = 0;
     projectiles.forEach(p => scene.remove(p.object)); projectiles.length = 0;
     sparkData.forEach(p => { p.life = 0; });
@@ -471,7 +633,7 @@
   }
   function hit(racer, message) {
     if (racer.shield > 0) { racer.shield = 0; if (racer === player) toast('BOUCLIER · Impact absorbé'); return; }
-    racer.stun = 1.2; racer.speed *= .48; racer.boost = 0;
+    racer.stun = 1.2; racer.speed *= .48; racer.boost = 0; racer.coins = Math.max(0, racer.coins - 3);
     emitSparks(racer.model.root.position.clone().add(v3(0, 1, 0)), '#ffca62', 28);
     if (racer === player) { toast(message); beep(100, .25); driftCharge = 0; }
   }
@@ -491,7 +653,7 @@
       const target = racers.filter(r => r !== racer && r.finish === null && r.progress > racer.progress && r.progress - racer.progress < 210).sort((a, b) => a.progress - b.progress)[0];
       if (target) {
         const object = mesh(missileGeo, missileMaterial, [0, 0, 0]);
-        projectiles.push({ object, target, owner: racer, progress: racer.progress + 2, lane: racer.lane, life: 6 });
+        projectiles.push({ object, target, owner: racer, progress: racer.progress + 2, lane: racer.lane, height: racer.height, life: 6 });
         if (racer === player) toast(`MISSILE · ${target.name} en ligne de mire`);
       } else if (racer === player) toast('MISSILE · Aucune cible à portée');
     }
@@ -503,10 +665,10 @@
     return pool[Math.floor(Math.random() * pool.length)];
   }
   function updatePlayer(dt) {
-    const steering = Number(keys.right) - Number(keys.left);
+    const steering = Number(keys.left) - Number(keys.right);
     const s = sample(player.progress), ahead = sample(player.progress + Math.cos(player.heading) * player.speed * dt);
-    const offroad = Math.abs(player.lane) > 8.5;
-    const maximum = player.boost > 0 ? 54 : offroad ? 23 : 39;
+    const offroad = Math.abs(player.lane) > 8.5 && player.height < .1;
+    const maximum = player.boost > 0 ? 54 : offroad ? 23 : 39 + player.coins * .25;
     let acceleration = keys.gas ? 15 * (1 - .35 * player.speed / maximum) : -5;
     if (keys.brake) acceleration -= 33;
     if (offroad && player.speed > maximum) acceleration -= 26;
@@ -514,12 +676,13 @@
     if (player.boost > 0 && !keys.brake) acceleration += 30;
     if (player.stun > 0) acceleration -= 15;
     player.speed = clamp(player.speed + acceleration * dt, 0, 57);
-    const wantsDrift = keys.drift && Math.abs(steering) > 0 && player.speed > 13 && !offroad && player.stun <= 0;
+    const wantsDrift = keys.drift && Math.abs(steering) > 0 && player.speed > 13 && !offroad && player.stun <= 0 && player.height < .1;
     if (wantsDrift) {
-      driftCharge = Math.min(3, driftCharge + dt);
-      if (Math.random() < .65) emitSparks(trackPosition(player.progress - 1.2, player.lane + (steering > 0 ? .9 : -.9), .35), driftCharge >= 2 ? '#ffab36' : '#53d9ff', 2);
+      driftCharge = Math.min(3.5, driftCharge + dt);
+      addSkids();
+      if (Math.random() < .65) emitSparks(trackPosition(player.progress - 1.2, player.lane + (steering > 0 ? .9 : -.9), .35), driftCharge >= 3 ? '#db87ff' : driftCharge >= 2 ? '#ffab36' : '#53d9ff', 2);
     } else if (drifting) {
-      if (!keys.drift && driftCharge >= .75) { player.boost = Math.max(player.boost, driftCharge >= 2 ? 2.3 : 1.2); toast(driftCharge >= 2 ? 'SUPER-TURBO · Dérapage parfait !' : 'MINI-TURBO !', 1.5); beep(950, .2); }
+      if (!keys.drift && driftCharge >= .75) { player.boost = Math.max(player.boost, driftCharge >= 3 ? 3.2 : driftCharge >= 2 ? 2.3 : 1.2); toast(driftCharge >= 3 ? 'ULTRA-TURBO · MAGNIFIQUE !' : driftCharge >= 2 ? 'SUPER-TURBO · Dérapage parfait !' : 'MINI-TURBO !', 1.5); beep(950, .2); }
       driftCharge = 0;
     }
     drifting = wantsDrift;
@@ -549,7 +712,7 @@
     const difficulty = $('difficulty').value;
     const base = difficulty === 'easy' ? 25 : difficulty === 'hard' ? 36 : 31;
     const bend = Math.abs(angleDiff(sample(racer.progress + 24).yaw, sample(racer.progress).yaw));
-    const maximum = racer.boost > 0 ? 49 : base + racer.index * .25 - Math.min(9, bend * 10);
+    const maximum = racer.boost > 0 ? 49 : base + racer.index * .25 + racer.coins * .25 - Math.min(9, bend * 10);
     racer.speed = lerp(racer.speed, racer.stun > 0 ? 11 : maximum, 1 - Math.exp(-dt * .85));
     let targetLane = Math.sin(racer.progress * .012 + racer.index * 2.3) * 4.7;
     for (const other of racers) if (other !== racer && other.progress > racer.progress && other.progress - racer.progress < 8 && Math.abs(other.lane - targetLane) < 2.5) targetLane += targetLane > 0 ? -3 : 3;
@@ -562,11 +725,21 @@
   }
   function signedDistance(a, b) { return mod(a - b + LENGTH / 2, LENGTH) - LENGTH / 2; }
   function updateInteractions(dt) {
+    coins.forEach(coin => {
+      coin.cooldown = Math.max(0, coin.cooldown - dt); coin.object.visible = coin.cooldown === 0;
+      if (coin.cooldown > 0) return;
+      for (const racer of racers) {
+        if (racer.finish !== null || racer.height > 1.8 || racer.coins >= 10 || Math.abs(signedDistance(racer.progress, coin.progress)) > 1.5 || Math.abs(racer.lane - coin.lane) > 1.2) continue;
+        racer.coins++; coin.cooldown = 8; coin.object.visible = false;
+        if (racer === player) { beep(1400, .09, .045); emitSparks(coin.object.position, '#ffdc69', 10); }
+        break;
+      }
+    });
     pickups.forEach(p => {
       p.cooldown = Math.max(0, p.cooldown - dt); p.object.visible = p.cooldown === 0;
       if (p.cooldown > 0) return;
       for (const r of racers) {
-        if (r.finish !== null || r.item || Math.abs(signedDistance(r.progress, p.progress)) > 2 || Math.abs(r.lane - p.lane) > 1.75) continue;
+        if (r.finish !== null || r.height > 2.8 || r.item || Math.abs(signedDistance(r.progress, p.progress)) > 2 || Math.abs(r.lane - p.lane) > 1.75) continue;
         r.item = randomItem(r); p.cooldown = 6; p.object.visible = false;
         if (r === player) { updateItem(); toast(`OBJET · ${ITEM_TYPES[r.item].name}`, 1.3); beep(1100, .12); }
         break;
@@ -574,10 +747,14 @@
     });
     racers.forEach((r, i) => {
       if (r.finish !== null) return;
+      for (const ramp of ramps) if (r.rampCooldown <= 0 && r.height < .1 && r.speed > 12 && Math.abs(signedDistance(r.progress, ramp.progress + 2)) < 2 && Math.abs(r.lane - ramp.lane) < 2.3) {
+        r.height = .7; r.verticalSpeed = 7.5; r.rampCooldown = 3; r.trick = r !== player; r.trickAngle = 0;
+        if (r === player) { drifting = false; driftCharge = 0; toast('EN L’AIR · Appuie sur MAJ pour une figure !', 1.2); beep(700, .18); }
+      }
       for (const pad of pads) if (r.padCooldown <= 0 && Math.abs(signedDistance(r.progress, pad.progress)) < 3.2 && Math.abs(r.lane - pad.lane) < 2.5) { r.boost = Math.max(r.boost, 1.3); r.padCooldown = 2; if (r === player) { toast('PISTE TURBO !', 1); beep(750); } }
       for (let j = i + 1; j < racers.length; j++) {
         const other = racers[j];
-        if (other.finish !== null || r.collision > 0 || other.collision > 0 || Math.abs(signedDistance(r.progress, other.progress)) > 2.5 || Math.abs(r.lane - other.lane) > 1.9) continue;
+        if (other.finish !== null || Math.abs(r.height - other.height) > 1.2 || r.collision > 0 || other.collision > 0 || Math.abs(signedDistance(r.progress, other.progress)) > 2.5 || Math.abs(r.lane - other.lane) > 1.9) continue;
         const push = r.lane >= other.lane ? 1 : -1;
         r.lane = clamp(r.lane + push * .7, -11, 11); other.lane = clamp(other.lane - push * .7, -11, 11);
         if (r.shield <= 0) r.speed *= .86;
@@ -588,25 +765,28 @@
     });
     for (let i = hazards.length - 1; i >= 0; i--) {
       const h = hazards[i]; h.life -= dt; h.age += dt;
-      for (const r of racers) if (r.finish === null && (r !== h.owner || h.age > 2) && Math.abs(signedDistance(r.progress, h.progress)) < 1.6 && Math.abs(r.lane - h.lane) < 1.3) { hit(r, 'AÏE · Tu as touché une mine !'); h.life = 0; break; }
+      for (const r of racers) if (r.finish === null && r.height < .8 && (r !== h.owner || h.age > 2) && Math.abs(signedDistance(r.progress, h.progress)) < 1.6 && Math.abs(r.lane - h.lane) < 1.3) { hit(r, 'AÏE · Tu as touché une mine !'); h.life = 0; break; }
       if (h.life <= 0) { scene.remove(h.object); hazards.splice(i, 1); }
     }
     for (let i = projectiles.length - 1; i >= 0; i--) {
       const p = projectiles[i]; p.life -= dt; p.progress += 70 * dt; p.lane = lerp(p.lane, p.target.lane, 1 - Math.exp(-dt * 5));
-      p.object.position.copy(trackPosition(p.progress, p.lane, .8));
+      p.height = lerp(p.height, p.target.height, 1 - Math.exp(-dt * 5));
+      p.object.position.copy(trackPosition(p.progress, p.lane, .8 + p.height));
       emitSparks(p.object.position, '#ffa443', 1);
-      if (Math.hypot(p.progress - p.target.progress, p.lane - p.target.lane) < 1.5) { if (p.target.finish === null) hit(p.target, 'IMPACT · Un missile t’a touché !'); p.life = 0; }
+      if (Math.hypot(p.progress - p.target.progress, p.lane - p.target.lane, p.height - p.target.height) < 1.5) { if (p.target.finish === null) hit(p.target, 'IMPACT · Un missile t’a touché !'); p.life = 0; }
       if (p.life <= 0) { scene.remove(p.object); projectiles.splice(i, 1); }
     }
   }
   function updateKart(racer, dt) {
     const s = sample(racer.progress), model = racer.model;
     model.root.position.copy(s.p).addScaledVector(s.right, racer.lane);
-    model.root.position.y += .08 + (racer.speed > 5 ? Math.sin(animTime * 35 + racer.index) * .018 : 0);
-    model.root.rotation.set(-Math.atan2(s.tangent.y, Math.hypot(s.tangent.x, s.tangent.z)), s.yaw + racer.heading * (racer === player && drifting ? 1.5 : 1), 0, 'YXZ');
+    model.root.position.y += .08 + racer.height + (racer.speed > 5 ? Math.sin(animTime * 35 + racer.index) * .018 : 0);
+    const airbornePitch = racer.height > .1 ? -Math.atan2(racer.verticalSpeed, Math.max(15, racer.speed)) * .7 : 0;
+    model.root.rotation.set(-Math.atan2(s.tangent.y, Math.hypot(s.tangent.x, s.tangent.z)) + airbornePitch, s.yaw + racer.heading * (racer === player && drifting ? 1.5 : 1) + racer.trickAngle, 0, 'YXZ');
     model.body.rotation.z = lerp(model.body.rotation.z, -racer.heading * .1, Math.min(1, dt * 10));
     if (racer.stun > 0) model.body.rotation.y = Math.sin(racer.stun * 20) * .22; else model.body.rotation.y = 0;
-    model.wheels.forEach(w => { w.tire.rotation.y += racer.speed * dt / .38; w.hub.rotation.y += racer.speed * dt / .38; if (w.front) w.pivot.rotation.y = racer.heading * .7; });
+    model.helmet.rotation.z = -racer.heading * .28;
+    model.wheels.forEach(w => { w.tire.rotation.x += racer.speed * dt / .38; w.hub.rotation.x += racer.speed * dt / .38; if (w.front) w.pivot.rotation.y = racer.heading * .7; });
     model.flames.forEach(f => { f.visible = racer.boost > 0; f.scale.y = 1.1 + Math.sin(animTime * 70) * .4; });
     model.shield.visible = racer.shield > 0;
     if (racer.shield > 0) model.shield.rotation.y += dt;
@@ -616,16 +796,17 @@
     if (mode === 'menu') {
       const s = sample(player.progress), forward = s.tangent;
       target = player.model.root.position.clone().add(v3(0, 1, 0));
-      position = target.clone().addScaledVector(s.right, 7 + Math.sin(animTime * .1) * .7).addScaledVector(forward, 7).add(v3(0, 2.6, 0));
-      target.addScaledVector(s.right, -4.5).addScaledVector(forward, 1);
+      position = target.clone().addScaledVector(s.right, 6 + Math.sin(animTime * .1) * .4).addScaledVector(forward, 6).add(v3(0, 2.25, 0));
+      target.addScaledVector(s.right, -3.5).addScaledVector(forward, 1);
       camera.fov = 49;
     } else {
       const s = sample(player.progress), forward = s.tangent;
-      const distance = cameraMode ? 6 : 10.5 + player.speed * .045;
-      position = player.model.root.position.clone().addScaledVector(forward, -distance).add(v3(0, cameraMode ? 3 : 5.3, 0));
+      const distance = cameraMode ? 5.5 : 7.8 + player.speed * .025;
+      position = player.model.root.position.clone().addScaledVector(forward, -distance).add(v3(0, cameraMode ? 2.5 : 3.6, 0));
+      position.y -= player.height * .65;
       position.addScaledVector(s.right, -player.heading * 1.3);
-      target = trackPosition(player.progress + 12 + player.speed * .18, player.lane * .7, 1.3);
-      camera.fov = lerp(camera.fov, player.boost > 0 ? 70 : 58, 1 - Math.exp(-dt * 3));
+      target = trackPosition(player.progress + 12 + player.speed * .10, player.lane * .8, 1.3 + player.height * .35);
+      camera.fov = lerp(camera.fov, player.boost > 0 ? 76 : 56 + player.speed * .13, 1 - Math.exp(-dt * 3));
     }
     camera.position.lerp(position, snap ? 1 : 1 - Math.exp(-dt * 7));
     camera.lookAt(target); camera.updateProjectionMatrix();
@@ -652,14 +833,27 @@
     $('lap').innerHTML = `${Math.min(3, Math.floor(Math.max(0, player.progress) / LENGTH) + 1)} <span>/ 3</span>`;
     $('time').textContent = formatTime(elapsed); $('best-lap').textContent = formatTime(bestLap);
     $('speed').textContent = String(Math.round(player.speed * 3.6)); $('speed-bar').style.width = `${Math.min(100, player.speed / 54 * 100)}%`;
-    $('drift-bar').style.width = `${driftCharge / 3 * 100}%`; $('drift-bar').style.background = driftCharge >= 2 ? '#ffac3b' : '#5ce3ff';
-    $('drive-state').textContent = player.stun > 0 ? 'IMPACT !' : player.boost > 0 ? 'ϟ TURBO' : player.shield > 0 ? `BOUCLIER · ${Math.ceil(player.shield)} S` : drifting ? driftCharge >= 2 ? 'SUPER-TURBO PRÊT' : 'DÉRAPAGE' : Math.abs(player.lane) > 8.5 ? 'GRAVIER · RALENTI' : mode === 'countdown' ? 'PRÊT À PARTIR' : 'RIVIERA GP';
+    $('coins').textContent = String(player.coins).padStart(2, '0');
+    document.body.classList.toggle('boosting', mode === 'race' && player.boost > 0);
+    $('drift-bar').style.width = `${Math.min(100, driftCharge / 3 * 100)}%`; $('drift-bar').style.background = driftCharge >= 3 ? '#d988ff' : driftCharge >= 2 ? '#ffac3b' : '#5ce3ff';
+    $('drive-state').textContent = player.stun > 0 ? 'IMPACT !' : player.height > .3 ? player.trick ? 'FIGURE · TURBO À L’ARRIVÉE' : 'DÉCOLLAGE !' : player.boost > 0 ? 'ϟ TURBO' : player.shield > 0 ? `BOUCLIER · ${Math.ceil(player.shield)} S` : drifting ? driftCharge >= 3 ? 'ULTRA-TURBO PRÊT' : driftCharge >= 2 ? 'SUPER-TURBO PRÊT' : 'DÉRAPAGE' : Math.abs(player.lane) > 8.5 ? 'GRAVIER · RALENTI' : mode === 'countdown' ? 'PRÊT À PARTIR' : 'RIVIERA GP';
     drawMap($('minimap'), true);
   }
   function step(dt) {
     if (mode === 'race') {
       elapsed += dt;
-      racers.forEach(r => { for (const key of ['boost', 'shield', 'stun', 'collision', 'padCooldown']) r[key] = Math.max(0, r[key] - dt); });
+      racers.forEach(r => {
+        for (const key of ['boost', 'shield', 'stun', 'collision', 'padCooldown', 'rampCooldown']) r[key] = Math.max(0, r[key] - dt);
+        if (r.height > 0 || r.verticalSpeed > 0) {
+          r.verticalSpeed -= 14 * dt; r.height = Math.max(0, r.height + r.verticalSpeed * dt);
+          if (r.trick) r.trickAngle = Math.min(Math.PI * 2, r.trickAngle + dt * Math.PI * 4);
+          if (r.height === 0) {
+            r.verticalSpeed = 0; r.trickAngle = 0;
+            if (r.trick) { r.boost = Math.max(r.boost, 1.5); if (r === player) { toast('FIGURE RÉUSSIE · TURBO !', 1.4); beep(1050, .2); } }
+            r.trick = false;
+          }
+        }
+      });
       for (const racer of racers.slice(1)) updateAI(racer, dt);
       updatePlayer(dt);
       if (mode === 'race') updateInteractions(dt);
@@ -677,6 +871,7 @@
       while (remaining > 0) { const slice = Math.min(remaining, 1 / 120); step(slice); remaining -= slice; }
       racers.forEach(r => updateKart(r, dt));
       pickups.forEach(p => { p.object.rotation.y = animTime; p.object.rotation.z = Math.sin(animTime * 1.5) * .15; p.object.position.y = sample(p.progress).p.y + 1.8 + Math.sin(animTime * 2 + p.lane) * .25; });
+      coins.forEach(coin => { coin.object.rotation.y = animTime * 2.5; coin.object.position.y = sample(coin.progress).p.y + 1.1 + Math.sin(animTime * 3 + coin.progress) * .13; });
       waterTexture.offset.x = animTime * .002;
       sparkData.forEach((p, i) => {
         p.life -= dt;
@@ -696,6 +891,11 @@
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
+  function tryTrick() {
+    if (mode === 'race' && player.height > .3 && player.verticalSpeed > 0 && !player.trick) {
+      player.trick = true; player.trickAngle = 0; beep(950, .12); toast('FIGURE !', .7);
+    }
+  }
   document.addEventListener('keydown', event => {
     const inDialog = document.querySelector('dialog[open]');
     if (event.code === 'Escape' || event.code === 'KeyP') {
@@ -706,6 +906,7 @@
     if (mode !== 'race' && mode !== 'countdown' || inDialog) return;
     if (keyMap[event.code]) { event.preventDefault(); heldKeys.add(event.code); updateKeys(); }
     if (event.repeat) return;
+    if (keyMap[event.code] === 'drift') tryTrick();
     if (event.code === 'KeyE' || event.code === 'Enter') { event.preventDefault(); useItem(player); }
     if (event.code === 'KeyC') cameraMode = 1 - cameraMode;
     if (event.code === 'KeyR' && mode === 'race') { player.lane = 0; player.heading = 0; player.lateralSpeed = 0; player.speed *= .5; drifting = false; driftCharge = 0; toast('KART REPLACÉ', 1); }
@@ -717,7 +918,7 @@
   addEventListener('blur', () => { clearKeys(); pauseRace(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { clearKeys(); pauseRace(); } });
   document.querySelectorAll('[data-key]').forEach(button => {
-    button.addEventListener('pointerdown', event => { event.preventDefault(); button.setPointerCapture(event.pointerId); touchKeys.set(event.pointerId, button.dataset.key); button.classList.add('active'); updateKeys(); });
+    button.addEventListener('pointerdown', event => { event.preventDefault(); button.setPointerCapture(event.pointerId); touchKeys.set(event.pointerId, button.dataset.key); button.classList.add('active'); updateKeys(); if (button.dataset.key === 'drift') tryTrick(); });
     const release = event => { touchKeys.delete(event.pointerId); button.classList.remove('active'); updateKeys(); };
     button.addEventListener('pointerup', release); button.addEventListener('pointercancel', release); button.addEventListener('lostpointercapture', release);
   });
@@ -745,6 +946,6 @@
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, pixelRatioLimit)); });
   $('game').addEventListener('webglcontextlost', event => { event.preventDefault(); pauseRace(); fail('La connexion au moteur graphique a été interrompue. Recharge la page pour relancer le jeu.'); });
   resetRace(); drawMap($('preview-map'), false); updateCamera(1, true);
-  $('start').disabled = false; $('start').querySelector('span').textContent = 'PRENDRE LE DÉPART';
+  pineReady.then(() => { $('start').disabled = false; $('start').querySelector('span').textContent = 'PRENDRE LE DÉPART'; });
   requestAnimationFrame(frame);
 })();

@@ -1,11 +1,13 @@
 # Malo Kart — Riviera GP
 
-Jeu de kart 3D solo contre sept pilotes, inspiré des courses de kart arcade. Circuit côtier original, trois tours, dérapages avec mini-turbo, pistes turbo, quatre objets, classement et records locaux.
+Jeu de kart 3D solo contre sept pilotes, inspiré des courses de kart arcade. Circuit côtier original, trois tours, dérapages avec trois niveaux de turbo, pièces, tremplins et figures, pistes turbo, quatre objets, classement et records locaux.
 
 Ouvrir `malo-kart.html` dans un navigateur récent avec WebGL, ou cliquer sur **Malo Kart — Riviera GP** depuis l’accueil. Tous les fichiers nécessaires sont locaux ; aucune installation ni connexion n’est nécessaire pour jouer une fois le dossier téléchargé.
 
 - **ZQSD, WASD ou flèches** : accélérer, freiner, tourner.
-- **Maj ou Espace + direction** : déraper. Relâcher après 0,75 s pour un mini-turbo, après 2 s pour un super-turbo.
+- **Maj ou Espace + direction** : déraper. Relâcher après 0,75 s pour un mini-turbo bleu, après 2 s pour un super-turbo orange, après 3 s pour un ultra-turbo violet.
+- **Maj ou Espace pendant la montée d’un saut** : réaliser une figure et obtenir un turbo à l’atterrissage. Relâcher d’abord la touche si elle était maintenue en dérapage.
+- **Pièces** : augmentent légèrement la vitesse maximale, jusqu’à 10 pièces. Un impact d’objet fait perdre 3 pièces.
 - **E ou Entrée** : utiliser un objet. Un missile vise le prochain adversaire dans une portée de 210 mètres ; sans cible, il est perdu.
 - **R** : replacer le kart au centre de la piste, avec perte de vitesse.
 - **C** : changer de caméra.
@@ -14,7 +16,11 @@ Ouvrir `malo-kart.html` dans un navigateur récent avec WebGL, ou cliquer sur **
 
 Les niveaux modifient la vitesse des adversaires. Les records personnels, tous niveaux confondus, sont enregistrés dans le stockage local du navigateur quand il est disponible, sous le profil actif à l’ouverture du jeu. Sans profil, les records restent séparés dans la sauvegarde locale historique ; ils ne sont pas automatiquement attribués aux profils par le jeu. Le classement final fige les positions à l’arrivée du joueur ; les concurrents encore en piste affichent leur retard en mètres.
 
-Le jeu utilise une conduite arcade avec inertie latérale et collisions avec les rails, sur un parcours fermé. Il ne s’agit pas d’une simulation automobile. Les décors, les karts, les textures et les sons sont générés par le jeu. Le mode son s’active avec le bouton en haut à droite.
+Le jeu utilise une conduite arcade avec inertie latérale et collisions avec les rails, sur un parcours fermé. Il ne s’agit pas d’une simulation automobile. Les karts ont une carrosserie arrondie et vernie, des pneus texturés et des pilotes casqués. Le circuit comprend végétation, villas, phare, voiliers et nuages ; les dérapages laissent des traces. La caméra accompagne les sauts et élargit son champ pendant un turbo. Le mode son s’active avec le bouton en haut à droite.
+
+Les modèles, la plupart des textures et les sons sont générés par le jeu. La texture de pin détouré `assets/malo-kart-pine.png` a été créée avec l’outil OpenAI ImageGen (`image_gen.imagegen`) ; son prompt exact est conservé dans `assets/malo-kart-pine.prompt.txt`. `malo-kart-assets.js` embarque les mêmes octets PNG en base64 pour que la texture fonctionne aussi avec une ouverture directe en `file://`, sans requête externe. En cas d’échec de chargement, les arbres procéduraux prennent le relais.
+
+La vignette d’accueil `assets/malo-kart-preview.png` est une capture du rendu 3D du jeu pendant une figure.
 
 Moteur : [Three.js 0.160.1](https://github.com/mrdoob/three.js/tree/r160), distribué localement sous licence MIT dans `vendor/three.LICENSE.txt`. Le bundle classique permet aussi l’ouverture directe depuis un fichier ; sa console signale sa dépréciation au profit des modules JavaScript.
 
@@ -24,4 +30,4 @@ Pour servir le site localement, depuis la racine : `python -m http.server 8000`,
 
 Les scripts `tests/test_malo_kart.py` et `tests/test_malo_kart_edges.py` utilisent Python, Playwright (`python -m pip install playwright`) et Microsoft Edge installé. Démarrer le serveur local sur le port 8000, puis exécuter les deux scripts depuis la racine du dépôt. Les captures sont écrites dans `.tmp/kart-checks`.
 
-Ils contrôlent une course complète, le classement, les records et leur séparation par profil, la direction, les deux niveaux de turbo de dérapage, les quatre objets, les collisions (dont les missiles entre voies différentes et au passage de la ligne), les pistes turbo, le freinage, les niveaux des adversaires, la pause, le redémarrage, le tactile, le mode fichier local et les erreurs de stockage ou de contexte graphique. L’accès à l’état de simulation est injecté uniquement dans la réponse JavaScript du navigateur de test.
+Ils contrôlent une course complète, le classement, les records et leur séparation par profil, le sens réel à l’écran des commandes clavier et tactiles, les trois niveaux de turbo de dérapage, les pièces, les sauts et figures, les quatre objets, les collisions (dont les missiles entre voies et hauteurs différentes et au passage de la ligne), les pistes turbo, le freinage, les niveaux des adversaires, la pause, le redémarrage, le mode fichier local et les erreurs de stockage ou de contexte graphique. L’accès à l’état de simulation est injecté uniquement dans la réponse JavaScript du navigateur de test.

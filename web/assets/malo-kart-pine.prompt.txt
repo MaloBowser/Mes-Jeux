@@ -1,0 +1,5 @@
+Asset: malo-kart-pine.png
+Tool: OpenAI ImageGen (image_gen.imagegen)
+transparent_background: true
+
+Create one photorealistic Mediterranean stone pine tree as a game foliage billboard asset, isolated on a truly transparent background. Full tree from the visible root at bottom to entire umbrella canopy top, no cropping, no other trees, no ground plane, no background, no text, no border. Majestic mature Pinus pinea with a slender branching warm brown trunk, natural asymmetrical broad umbrella crown, extremely detailed dark olive and pine-green needles in dense irregular clusters with small transparent gaps, realistic three-dimensional volume. Front elevation view with minimal perspective, soft late afternoon sunlight from upper left, natural high quality PBR game asset look. Tree occupies 90 percent of the square image with generous small transparent margins. Avoid cartoon, low-poly blobs, flat illustration, white fringes, hard cast shadow.

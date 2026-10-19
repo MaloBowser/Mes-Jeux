@@ -19,7 +19,7 @@ with sync_playwright() as p:
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw new Error('Storage blocked for test')}})")
     source=(ROOT/'web/malo-kart.js').read_text(encoding='utf-8')
-    hook='''window.kartTest={player,racers,keys,step,startRace,resetRace,sample,updateAI,renderer,LENGTH,get state(){return {mode,elapsed,driftCharge}},getAudio(){return {soundOn,active:!!audio}},render(){racers.forEach(r=>updateKart(r,.016));updateCamera(1,true);updateHUD();renderer.render(scene,camera)}};'''
+    hook='''window.kartTest={player,racers,keys,step,startRace,resetRace,sample,updateAI,updateKart,renderer,camera,LENGTH,get state(){return {mode,elapsed,driftCharge}},getAudio(){return {soundOn,active:!!audio}},render(){racers.forEach(r=>updateKart(r,.016));updateCamera(1,true);updateHUD();renderer.render(scene,camera)}};'''
     page.route('**/malo-kart.js',lambda route:route.fulfill(body=source.replace('  resetRace(); drawMap',hook+'\n  resetRace(); drawMap'),content_type='application/javascript'))
     page.goto('http://127.0.0.1:8000/web/malo-kart.html')
     page.wait_for_function('window.kartTest')
@@ -28,10 +28,10 @@ with sync_playwright() as p:
     result=page.evaluate('''()=>{
       const t=kartTest,r=t.player;t.startRace();for(let i=0;i<425;i++)t.step(1/120);
       t.racers.slice(1).forEach((a,i)=>{a.progress=500+i*15});
-      r.progress=20;r.lane=-5;r.speed=32;t.keys.gas=true;t.keys.drift=true;t.keys.right=true;
+      r.progress=20;r.lane=-5;r.speed=32;t.keys.gas=true;t.keys.drift=true;t.keys.left=true;
       for(let i=0;i<250;i++)t.step(1/120);
       const charge=t.state.driftCharge,lane=r.lane;
-      t.keys.drift=false;t.keys.right=false;t.step(1/120);const boost=r.boost;
+      t.keys.drift=false;t.keys.left=false;t.step(1/120);const boost=r.boost;
       t.keys.gas=false;t.keys.brake=true;for(let i=0;i<500;i++)t.step(1/120);
       const stopped=r.speed===0;t.keys.brake=false;
       const ai=t.racers[1];ai.speed=0;ai.stun=0;ai.boost=0;ai.finish=null;ai.progress=0;
@@ -66,6 +66,26 @@ with sync_playwright() as p:
     cdp.send('Input.dispatchTouchEvent',{'type':'touchCancel','touchPoints':[]})
     assert not mp.evaluate('kartTest.keys.gas')
     print('TOUCH_RELEASE_OK',flush=True)
+    mp.evaluate('for(let i=0;i<425;i++)kartTest.step(1/120)')
+    for key,direction in [('left',-1),('right',1)]:
+        before_x=mp.evaluate('''()=>{
+          const t=kartTest;
+          Object.assign(t.player,{progress:100,lane:0,heading:0,lateralSpeed:0,speed:25,collision:0});
+          t.racers.slice(1).forEach((r,i)=>{r.progress=500+i*20;});
+          t.render();window.touchCamera=t.camera.clone();
+          return t.player.model.root.position.clone().project(window.touchCamera).x;
+        }''')
+        rect=mp.locator(f'[data-key={key}]').bounding_box()
+        cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':rect['x']+rect['width']/2,'y':rect['y']+rect['height']/2}]})
+        after_x=mp.evaluate('''()=>{
+          for(let i=0;i<30;i++)kartTest.step(1/120);
+          kartTest.updateKart(kartTest.player,0);
+          return kartTest.player.model.root.position.clone().project(window.touchCamera).x;
+        }''')
+        cdp.send('Input.dispatchTouchEvent',{'type':'touchCancel','touchPoints':[]})
+        assert (after_x-before_x)*direction>.005, f'Touch {key} must move in the matching SCREEN direction'
+        assert not mp.evaluate(f'kartTest.keys.{key}')
+    print('TOUCH_DIRECTIONS_OK',flush=True)
     assert not errors,errors
     print('ERRORS',errors,flush=True)
     browser.close()

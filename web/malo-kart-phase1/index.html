@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102c39">
+  <title>Malo Kart — Garage & circuits</title>
+  <link rel="icon" href="../console-de-jeu.png">
+  <link rel="stylesheet" href="style.css">
+  <script defer src="../vendor/three.min.js"></script>
+  <script defer src="simulation.js"></script>
+  <script defer src="garage.js"></script>
+  <script defer src="kart.js"></script>
+  <script defer src="circuit.js"></script>
+  <script defer src="scene.js"></script>
+  <script defer src="menus.js"></script>
+  <script defer src="game.js"></script>
+</head>
+<body>
+  <canvas id="game" aria-label="Circuit Azur en trois dimensions"></canvas>
+  <div class="shade" aria-hidden="true"></div>
+  <header><a href="../../index.html">↖ LES JEUX DE MALO</a><span class="wallet">◉ <b id="wallet">0</b> / 100</span></header>
+  <main id="intro">
+    <section id="home">
+      <p class="eyebrow">CHOISIS TON STYLE. TRACE TA ROUTE.</p>
+      <h1>MALO<span>KART</span></h1>
+      <p class="description">Quatre pilotes. Trois machines. Trois destinations.<br>Ramasse des pièces et personnalise ton kart.</p>
+      <button id="play" disabled>PRÉPARATION…</button>
+      <div class="home-links">
+        <button data-screen="driver" class="secondary">CHOIX DU PILOTE</button>
+        <button data-screen="vehicle" class="secondary">CHOIX DU VÉHICULE</button>
+        <button data-screen="course" class="secondary">CHOIX DU CIRCUIT</button>
+        <button data-screen="shop" class="secondary">◉ BOUTIQUE</button>
+      </div>
+      <button id="options" class="text-button">OPTIONS & COMMANDES</button>
+      <p id="current-choice" class="choice-summary"></p>
+    </section>
+    <section id="garage-panel" hidden>
+      <nav id="category-tabs" aria-label="Préparer la course">
+        <button data-screen="home" aria-label="Retour à l’accueil">↶</button><button data-screen="driver">PILOTE</button><button data-screen="vehicle">KART</button><button data-screen="course">CIRCUIT</button><button data-screen="shop">BOUTIQUE</button>
+      </nav>
+      <p class="eyebrow" id="selection-step"></p><h2 id="selection-title"></h2>
+      <div id="cards" class="cards"></div>
+      <div class="selection-detail"><h3 id="detail-name"></h3><p id="detail-description"></p><div id="stats"></div></div>
+      <p id="shop-status" role="status"></p>
+      <button id="continue">CONTINUER ↗</button>
+      <button id="start" hidden disabled>PRENDRE LE DÉPART ↗</button>
+    </section>
+    <p id="save-status" role="status"></p>
+  </main>
+  <section id="hud" hidden aria-label="Tableau de bord">
+    <div class="lap"><small>TOUR</small><strong id="lap">1 <span>/ 2</span></strong></div>
+    <div class="checkpoint"><small>CHECKPOINTS</small><b id="checkpoint">0 / 7</b><span id="message">En route vers la première porte</span></div>
+    <div class="speed"><strong id="speed">0</strong><small>KM/H</small><p id="handling">CIRCUIT AZUR</p></div>
+    <button id="pause" class="compact" aria-label="Mettre en pause">Ⅱ</button>
+    <p class="race-controls">↑ / Z ACCÉLÉRER　 ↓ / S FREINER　 ← → / Q D TOURNER　 ESPACE DÉRAPER　 ÉCHAP PAUSE</p>
+  </section>
+  <div id="countdown" hidden aria-live="polite"></div>
+  <dialog id="pause-dialog"><p class="eyebrow">PETITE PAUSE</p><h2>AU STAND.</h2><button id="resume">REPRENDRE ↗</button><button id="restart" class="secondary">RECOMMENCER</button><button id="back" class="secondary">RETOUR AU DÉPART</button></dialog>
+  <dialog id="finish-dialog"><p class="eyebrow" id="finish-course">2 TOURS VALIDÉS</p><h2>BIEN JOUÉ !</h2><p>Tu as franchi chaque checkpoint<br>et terminé la course.</p><p id="earned"></p><p>Retrouve tes pièces dans la boutique.</p><button id="replay">REJOUER ↗</button><button id="finish-back" class="secondary">RETOUR AU DÉPART</button></dialog>
+  <dialog id="options-dialog"><p class="eyebrow">À TON RYTHME</p><h2>OPTIONS</h2>
+    <label for="quality">Qualité graphique</label><select id="quality"><option value="auto">Automatique</option><option value="high">Élevée</option><option value="low">Légère</option></select>
+    <p>Flèches ou ZQSD : conduire.<br>Espace + direction : déraper.<br>Échap : pause.</p><p>Portefeuille limité à 100 pièces. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
+  </dialog>
+  <section id="error" hidden role="alert"><h2>Le moteur 3D n’a pas démarré.</h2><p id="error-text"></p><button id="reload">RECHARGER</button><a href="../../index.html">Retour aux jeux</a></section>
+  <noscript><p class="no-script">Active JavaScript pour jouer à Malo Kart.</p></noscript>
+</body>
+</html>

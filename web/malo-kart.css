@@ -51,6 +51,36 @@ button:focus-visible,a:focus-visible,select:focus-visible {
   pointer-events:none;
   background:linear-gradient(180deg,#07131e55,transparent 22%,transparent 70%,#07131e80);
 }
+.speed-lines {
+  position:fixed;
+  inset:-15%;
+  pointer-events:none;
+  opacity:0;
+  background:repeating-conic-gradient(from 7deg, transparent 0deg 12deg, #fff9 12.15deg 12.4deg, transparent 12.6deg 30deg);
+  mask-image:radial-gradient(ellipse, transparent 42%, #000 100%);
+  transition:opacity .25s;
+}
+.boosting .speed-lines {
+  opacity:.25;
+  animation:speed-rush .45s linear infinite;
+}
+@keyframes speed-rush {
+  from { transform:scale(.9); }
+  to { transform:scale(1.15); }
+}
+.coin-counter {
+  position:fixed;
+  top:190px;
+  left:48px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#ffe284;
+  text-shadow:0 2px 10px #0009;
+}
+.coin-counter span { font-size:25px; }
+.coin-counter b { font-size:24px; font-variant-numeric:tabular-nums; }
+.coin-counter small { font-size:12px; color:#fff9; }
 .topbar {
   position:fixed;
   z-index:5;
@@ -1028,4 +1058,14 @@ dialog h2 {
     font-size:12px;
     padding:4px 6px;
   }
+}
+@media(max-width:760px) {
+  .coin-counter { top:145px; left:24px; gap:6px; }
+  .coin-counter b { font-size:20px; }
+}
+@media(max-height:500px) {
+  .coin-counter { top:120px; left:24px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .boosting .speed-lines { animation:none; }
 }
