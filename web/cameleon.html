@@ -1,0 +1,497 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🦎 Le Mot Caméléon</title>
+<link rel="stylesheet" href="ui-commune.css">
+<script defer src="ui-commune.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#252d79,#070a1d 65%);color:white;font-family:Arial,sans-serif;text-align:center}
+main{max-width:1000px;margin:auto;padding:25px 15px}
+h1{font-size:clamp(35px,7vw,70px);background:linear-gradient(90deg,#ff597e,#ffcf53,#71ff99,#62dfff,#bb83ff);background-clip:text;color:transparent;text-shadow:0 0 35px #6b62ff44}
+.panel{background:#101735e8;border:1px solid #737eff77;border-radius:25px;padding:25px 15px;box-shadow:0 20px 60px #0009}
+.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.stat{background:#ffffff10;padding:12px 18px;border-radius:14px;min-width:110px}
+.stat strong{display:block;font-size:25px;color:#82f8ee;margin-top:7px}
+#letters{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:35px 0;min-height:80px}
+.letter{width:clamp(34px,6vw,59px);height:clamp(50px,8vw,73px);border-radius:12px;display:grid;place-items:center;font-size:clamp(20px,4vw,32px);font-weight:900;color:#101329;box-shadow:0 7px 0 #0007,0 0 20px currentColor;animation:appear .5s backwards,float 2s ease-in-out infinite alternate}
+.letter.fixed{background:#168d60!important;color:white;box-shadow:0 0 23px #50ff9a}
+@keyframes appear{from{opacity:0;transform:translateY(-30px) rotate(-15deg) scale(.5)}}
+@keyframes float{to{translate:0 -6px}}
+form{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
+input{width:min(340px,100%);background:#060a20;color:white;border:2px solid #858aff;border-radius:13px;padding:14px;font-size:21px;text-align:center;text-transform:uppercase;outline:none}
+input:focus{box-shadow:0 0 20px #6d7cff88}
+button{border:0;border-radius:13px;padding:14px 20px;font-size:16px;font-weight:bold;background:linear-gradient(110deg,#aa6aff,#4a8dff);color:white;cursor:pointer;box-shadow:0 5px 0 #28275b;transition:transform .15s}
+button:hover{transform:translateY(-3px)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:22px}
+#message{font-size:20px;min-height:28px}
+#hint{color:#ffd66b}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+.overlay{position:fixed;inset:0;background:#030618ed;display:grid;place-items:center;z-index:10;padding:15px}
+.overlay.hidden{display:none}
+.modal{background:linear-gradient(140deg,#202c70,#0b1230);border:1px solid #9d9fff;border-radius:24px;padding:35px 25px;max-width:500px;width:100%;box-shadow:0 25px 90px #000}
+.confetti{position:fixed;top:-20px;width:9px;height:15px;pointer-events:none;z-index:20;animation:fall 1.8s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+<a class="malo-home-button" href="../index.html" aria-label="Retourner à l’accueil" title="Accueil">🏠</a>
+<main>
+<div class="stats">
+<div class="stat">👤 Profil<strong id="profile">Joueur</strong></div>
+<div class="stat">🏆 Record<strong id="record">0</strong></div>
+</div>
+<h1>🦎 LE MOT CAMÉLÉON 🌈</h1>
+<p>Les lettres changent de place… Retrouve le mot mystère !</p>
+
+<section class="panel" id="game">
+<div class="stats">
+<div class="stat">⭐ Score<strong id="score">0</strong></div>
+<div class="stat">🔥 Série<strong id="streak">0</strong></div>
+<div class="stat">❌ Erreurs<strong id="errors">0</strong></div>
+<div class="stat">💡 Indices<strong id="hints">0</strong></div>
+</div>
+
+<div id="letters"></div>
+
+<form id="form">
+<input id="guess" placeholder="Quel est ce mot ?" maxlength="30" autocomplete="off" spellcheck="false" aria-label="Mot proposé">
+<button type="submit" id="validate">VALIDER ⚡</button>
+</form>
+
+<p id="message">Déchiffre les lettres !</p>
+<p id="hint"></p>
+
+<div class="actions">
+<button type="button" id="shuffle">🔀 Remélanger</button>
+<button type="button" id="next" disabled>➡️ Mot suivant</button>
+<button type="button" id="sound">🔊 Son activé</button>
+</div>
+</section>
+</main>
+
+<div id="win" class="overlay hidden">
+<div class="modal">
+<h2>🎉 BRAVO !</h2>
+<p id="winText"></p>
+<h2 id="points"></h2>
+<button id="continue">🚀 MOT SUIVANT</button>
+</div>
+</div>
+
+<script>
+const WORDS = [
+"MUFFIN","BOWSER","OLAF","MARIO","LUIGI",
+"PEACH","TOAD","YOSHI","WARIO","WALUIGI",
+"KIRBY","SONIC","TAILS","KNUCKLES","SHADOW",
+"ZELDA","LINK","PIKACHU","EVOLI","DRACAUFEU",
+"MINECRAFT","ROBLOX","FORTNITE","TETRIS","PACMAN",
+"POKEMON","NINTENDO","PLAYSTATION","XBOX","SWITCH",
+"MANETTE","CONSOLE","JOYSTICK","CLIER","SOURIS",
+"ECRAN","PIXEL","AVATAR","NIVEAU","BONUS",
+"TROPHEE","VICTOIRE","DEFAITE","MISSION","QUETE",
+"DRAGON","MONSTRE","ROBOT","PORTAIL","LABYRINTHE",
+"CHAT","CHIEN","LAPIN","HAMSTER","COCHON",
+"VACHE","CHEVAL","MOUTON","CHEVRE","POULE",
+"CANARD","OIE","DINDON","PIGEON","MOINEAU",
+"AIGLE","HIBOU","CHOUETTE","PERROQUET","FLAMANT",
+"LION","TIGRE","PANTHERE","LEOPARD","GUEPARD",
+"ELEPHANT","GIRAFE","ZEBRE","RHINOCEROS","HIPPOPOTAME",
+"CROCODILE","ALLIGATOR","SERPENT","LEZARD","TORTUE",
+"DAUPHIN","BALEINE","REQUIN","MEDUSE","PIEUVRE",
+"CRABE","HOMARD","CREVETTE","ETOILEDEMER","HIPPOCAMPE",
+"PAPILLON","ABEILLE","FOURMI","COCCINELLE","LIBELLULE",
+"PIZZA","BURGER","FRITES","SANDWICH","HOTDOG",
+"TACOS","KEBAB","SUSHI","RAMEN","LASAGNE",
+"SPAGHETTI","RAVIOLI","RISOTTO","OMELETTE","QUICHE",
+"CROISSANT","BAGUETTE","BRIOCHE","GAUFRE","CREPE",
+"PANCAKE","COOKIE","BROWNIE","DONUT","MACARON",
+"ECLAIR","TIRAMISU","MOUSSE","GLACE","SORBET",
+"CHOCOLAT","CARAMEL","VANILLE","FRAISE","FRAMBOISE",
+"MYRTILLE","CERISE","BANANE","ANANAS","MANGUE",
+"PASTEQUE","MELON","POMME","POIRE","ABRICOT",
+"CAROTTE","TOMATE","COURGETTE","BROCOLI","POTIRON",
+"ARBRE","FORET","JUNGLE","DESERT","SAVANE",
+"MONTAGNE","COLLINE","VALLEE","FALAISE","GROTTE",
+"RIVIERE","FLEUVE","LAC","OCEAN","MER",
+"PLAGE","ILE","CASCADE","VOLCAN","GLACIER",
+"SOLEIL","LUNE","ETOILE","NUAGE","PLUIE",
+"NEIGE","GRELE","ORAGE","TONNERRE","ECLAIR",
+"TEMPETE","TORNADE","OURAGAN","BROUILLARD","ARCENCIEL",
+"VENT","GIVRE","ROSEE","CHALEUR","FROID",
+"FLEUR","ROSE","TULIPE","TOURNESOL","MARGUERITE",
+"CACTUS","BAMBOU","MOUSSE","FOUGERE","CHAMPIGNON",
+"TABLE","CHAISE","BUREAU","CANAPE","FAUTEUIL",
+"ARMOIRE","PLACARD","TIROIR","ETAGERE","MIROIR",
+"LAMPE","HORLOGE","REVEIL","TELEPHONE","ORDINATEUR",
+"TABLETTE","CASQUE","ENCEINTE","MICROPHONE","CAMERA",
+"TELEVISION","TELECOMMANDE","CHARGEUR","BATTERIE","CABLE",
+"STYLO","CRAYON","GOMME","REGLE","CISEAUX",
+"CAHIER","LIVRE","CARNET","AGENDA","CARTABLE",
+"SAC","VALISE","PARAPLUIE","LUNETTES","MONTRE",
+"CLE","CADENAS","COFFRE","BOITE","BOUTEILLE",
+"VERRE","ASSIETTE","FOURCHETTE","CUILLERE","COUTEAU",
+"MEDECIN","POMPIER","POLICIER","BOULANGER","PATISSIER",
+"CUISINIER","SERVEUR","COIFFEUR","JARDINIER","FACTEUR",
+"PROFESSEUR","AVOCAT","JUGE","PILOTE","ASTRONAUTE",
+"ARCHITECTE","INGENIEUR","PROGRAMMEUR","DESSINATEUR","PEINTRE",
+"MUSICIEN","CHANTEUR","ACTEUR","DANSEUR","ECRIVAIN",
+"ECOLE","COLLEGE","LYCEE","UNIVERSITE","BIBLIOTHEQUE",
+"HOPITAL","PHARMACIE","BOULANGERIE","RESTAURANT","CINEMA",
+"THEATRE","MUSEE","STADE","PISCINE","GYMNASE",
+"AEROPORT","GARE","PORT","MAIRIE","CHATEAU",
+"PRISON","TRIBUNAL","USINE","MAGASIN","SUPERMARCHE",
+"VOITURE","CAMION","MOTO","SCOOTER","VELO",
+"TROTTINETTE","BUS","TRAMWAY","METRO","TRAIN",
+"TGV","AVION","HELICOPTERE","FUSEE","VAISSEAU",
+"BATEAU","VOILIER","PAQUEBOT","SOUSMARIN","KAYAK",
+"CANOE","MONTGOLFIERE","PARACHUTE","PARAPENTE","SKATEBOARD",
+"ROLLER","TRAINEAU","TRACTEUR","AMBULANCE","LOCOMOTIVE",
+"TRESOR","CARTE","BOUSSOLE","ENIGME","SECRET",
+"MYSTERE","AVENTURE","EXPLORATEUR","PIRATE","CAPITAINE",
+"NAVIGATEUR","TEMPLE","PYRAMIDE","RUINE","DONJON",
+"FORTERESSE","PASSAGE","SOUTERRAIN","BUNKER","PHARE",
+"FOOTBALL","BASKETBALL","HANDBALL","VOLLEYBALL","TENNIS",
+"BADMINTON","RUGBY","HOCKEY","BASEBALL","GOLF",
+"NATATION","PLONGEE","SURF","SKI","SNOWBOARD",
+"ESCALADE","RANDONNEE","COURSE","SPRINT","MARATHON",
+"GYMNASTIQUE","KARATE","JUDO","BOXE","ESCRIME",
+"EQUITATION","CYCLISME","ATHLETISME","PATINAGE","AVIRON",
+"PEINTURE","DESSIN","SCULPTURE","POTERIE","BRICOLAGE",
+"COUTURE","LECTURE","ECRITURE","PHOTOGRAPHIE","CINEMA",
+"MUSIQUE","GUITARE","PIANO","VIOLON","BATTERIE",
+"TROMPETTE","FLUTE","SAXOPHONE","ACCORDEON","HARMONICA",
+"MAGIE","SORCIER","SORCIERE","POTION","BAGUETTE",
+"SORTILEGE","FANTOME","VAMPIRE","LOUPGAROU","ZOMBIE",
+"LICORNE","PHENIX","GRIFFON","SIRENE","GEANT",
+"NAIN","ELFE","TROLL","GOBELIN","CYCLOPE",
+"PLANETE","GALAXIE","UNIVERS","ASTEROIDE","COMETE",
+"METEORITE","SATELLITE","TELESCOPE","MICROSCOPE","LABORATOIRE",
+"EXPERIENCE","INVENTION","MACHINE","CIRCUIT","ELECTRICITE",
+"AIMANT","ATOMES","MOLECULE","ENERGIE","LASER",
+"HOLOGRAMME","TELEPORTATION","INTELLIGENCE","ALGORITHME",
+"PROGRAMMATION","INTERNET","SERVEUR","RESEAU","LOGICIEL",
+"APPLICATION","CAMELEON","XYLOPHONE","KALEIDOSCOPE",
+"PARADOXE","ILLUSION","MIRAGE","ENCHANTEMENT",
+"METAMORPHOSE","INVISIBLE","ETRANGE","EXTRAORDINAIRE",
+"MYSTERIEUX","FANTASTIQUE","IMAGINATION","CREATIVITE",
+"ORIGINALITE","CURIOSITE","INTUITION","REFLEXION","LOGIQUE",
+"STRATEGIE","PRECISION","PATIENCE","COURAGE","AUDACE",
+"HUMOUR","SURPRISE","HASARD","CHANCE","DESTIN",
+"AMITIE","CONFIANCE","ENTRAIDE","SOLIDARITE","LIBERTE",
+"JUSTICE","EGALITE","RESPECT","HONNETETE","SINCERITE",
+"PERSEVERANCE","DETERMINATION","AMBITION","PASSION",
+"REUSSITE","DECOUVERTE","EXPLORATION","CONNAISSANCE",
+"APPRENTISSAGE","SAVOIR"
+];
+
+const $ = id => document.getElementById(id);
+
+let word = "";
+let previous = "";
+let errors = 0;
+let score = 0;
+let streak = 0;
+let solved = false;
+let soundEnabled = true;
+let player = "Joueur";
+let audioContext;
+
+function getProfile() {
+  try {
+    const profiles = JSON.parse(
+      localStorage.getItem("malo.profiles.v1") || "[]"
+    );
+    const active = localStorage.getItem("malo.activeProfile");
+    const found = profiles.find(p => p.id === active);
+    if (found && found.name) return found.name;
+  } catch (e) {}
+
+  for (const key of [
+    "malo.nomUtilisateur",
+    "pseudo",
+    "pseudoJoueur",
+    "nomJoueur",
+    "playerName",
+    "username"
+  ]) {
+    const value = localStorage.getItem(key);
+    if (value) return value;
+  }
+
+  return "Joueur";
+}
+
+function recordKey() {
+  return "cameleon.record." + player.toLowerCase();
+}
+
+function updateProfile() {
+  player = getProfile();
+  $("profile").textContent = player;
+  $("record").textContent =
+    localStorage.getItem(recordKey()) || "0";
+}
+
+function beep(frequency = 440, duration = 0.1, type = "sine") {
+  if (!soundEnabled) return;
+
+  try {
+    audioContext ??= new (
+      window.AudioContext || window.webkitAudioContext
+    )();
+
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    gain.gain.value = 0.045;
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start();
+
+    gain.gain.exponentialRampToValueAtTime(
+      0.0001,
+      audioContext.currentTime + duration
+    );
+
+    oscillator.stop(audioContext.currentTime + duration);
+  } catch (e) {}
+}
+
+function victorySound() {
+  [440, 554, 659, 880].forEach((frequency, index) => {
+    setTimeout(() => {
+      beep(frequency, 0.17, "triangle");
+    }, index * 105);
+  });
+}
+
+function shuffleLetters(text) {
+  const original = [...text];
+  let result = [...original];
+
+  for (let attempt = 0; attempt < 40; attempt++) {
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    if (result.join("") !== original.join("")) break;
+  }
+
+  return result;
+}
+
+function revealedLetters() {
+  return Math.min(
+    Math.max(0, errors - 2),
+    Math.max(0, word.length - 2)
+  );
+}
+
+function renderLetters() {
+  const revealed = revealedLetters();
+  const fixed = [...word.slice(0, revealed)];
+  const mixed = shuffleLetters(word.slice(revealed));
+
+  const letters = [...fixed, ...mixed];
+
+  const colors = [
+    "#ff527b",
+    "#ffca52",
+    "#73ec82",
+    "#59dcff",
+    "#6e98ff",
+    "#b78aff"
+  ];
+
+  $("letters").replaceChildren();
+
+  letters.forEach((letter, index) => {
+    const tile = document.createElement("div");
+    tile.className = "letter";
+
+    if (index < revealed) {
+      tile.classList.add("fixed");
+    } else {
+      tile.style.background = colors[index % colors.length];
+    }
+
+    tile.textContent = letter;
+    tile.style.animationDelay = index * 0.055 + "s";
+
+    $("letters").appendChild(tile);
+  });
+
+  $("errors").textContent = errors;
+  $("hints").textContent = revealed;
+
+  if (revealed > 0) {
+    $("hint").textContent =
+      "💡 " + revealed + " lettre(s) bien placée(s) !";
+  } else {
+    $("hint").textContent =
+      "Après 3 erreurs, des indices apparaissent !";
+  }
+}
+
+function newWord() {
+  word = WORDS[Math.floor(Math.random() * WORDS.length)];
+
+  while (word === previous) {
+    word = WORDS[Math.floor(Math.random() * WORDS.length)];
+  }
+
+  previous = word;
+  errors = 0;
+  solved = false;
+
+  $("guess").value = "";
+  $("guess").disabled = false;
+  $("validate").disabled = false;
+  $("next").disabled = true;
+
+  $("message").textContent = "Déchiffre les lettres !";
+  $("message").style.color = "white";
+
+  $("win").classList.add("hidden");
+
+  renderLetters();
+  $("guess").focus();
+
+  beep(620, 0.07);
+}
+
+function confetti() {
+  const colors = [
+    "#ff507f",
+    "#ffe06a",
+    "#6bffa4",
+    "#70ddff",
+    "#b68bff"
+  ];
+
+  for (let i = 0; i < 90; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti";
+
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = Math.random() * 0.6 + "s";
+
+    document.body.appendChild(piece);
+
+    setTimeout(() => piece.remove(), 2500);
+  }
+}
+
+function checkAnswer() {
+  if (solved) return;
+
+  const answer = $("guess").value
+    .trim()
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (!answer) return;
+
+  if (answer === word) {
+    solved = true;
+
+    const earned =
+      Math.max(10, 100 - errors * 15) +
+      Math.min(50, streak * 10);
+
+    score += earned;
+    streak++;
+
+    $("score").textContent = score;
+    $("streak").textContent = streak;
+
+    const record = Number(
+      localStorage.getItem(recordKey()) || 0
+    );
+
+    if (score > record) {
+      localStorage.setItem(recordKey(), score);
+      $("record").textContent = score;
+    }
+
+    $("message").textContent = "✨ TROUVÉ : " + word + " !";
+    $("message").style.color = "#8affb2";
+
+    $("guess").disabled = true;
+    $("validate").disabled = true;
+    $("next").disabled = false;
+
+    $("winText").textContent = "Le mot était " + word + " !";
+    $("points").textContent =
+      "+" + earned + " points • " + errors + " erreur(s)";
+
+    confetti();
+    victorySound();
+
+    setTimeout(() => {
+      $("win").classList.remove("hidden");
+    }, 650);
+
+  } else {
+    errors++;
+    streak = 0;
+
+    $("streak").textContent = 0;
+    $("message").textContent =
+      "❌ Mauvaise réponse ! Réessaie !";
+    $("message").style.color = "#ff9ba7";
+
+    $("game").classList.remove("shake");
+    void $("game").offsetWidth;
+    $("game").classList.add("shake");
+
+    beep(190, 0.16, "sawtooth");
+
+    renderLetters();
+    $("guess").select();
+  }
+}
+
+$("form").addEventListener("submit", event => {
+  event.preventDefault();
+  checkAnswer();
+});
+
+$("shuffle").addEventListener("click", () => {
+  if (!solved) {
+    renderLetters();
+    beep(450, 0.05);
+  }
+});
+
+$("next").addEventListener("click", newWord);
+$("continue").addEventListener("click", newWord);
+
+$("sound").addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+
+  $("sound").textContent = soundEnabled
+    ? "🔊 Son activé"
+    : "🔇 Son coupé";
+
+  beep(660, 0.08);
+});
+
+updateProfile();
+newWord();
+</script>
+</body>
+</html>
