@@ -18,7 +18,7 @@
     const state = { x: 0, z: 0, yaw: 0, vx: 0, vz: 0, speed: 0, laps: 0, nextGate: 1, finished: false, drift: false, impact: 0 };
     function reset() {
       const start = track.points[3], next = track.points[4];
-      Object.assign(state, { x: start.x, z: start.z, yaw: Math.atan2(next.x - start.x, next.z - start.z), vx: 0, vz: 0, speed: 0, laps: 0, nextGate: 1, finished: false, drift: false, impact: 0 });
+      Object.assign(state, { x: start.x, z: start.z, yaw: Math.atan2(next.x - start.x, next.z - start.z), vx: 0, vz: 0, speed: 0, laps: 0, nextGate: 1, finished: false, drift: false, impact: 0, boost: 0, stun: 0, shield: 0, grace: 0, driftCharge: 0 });
     }
     function checkGate(previous) {
       const gate = track.gates[state.nextGate];
@@ -38,15 +38,22 @@
       if (state.finished) return;
       const previous = { x: state.x, z: state.z };
       state.impact = Math.max(0, state.impact - dt);
+      for (const effect of ['boost', 'stun', 'shield', 'grace']) state[effect] = Math.max(0, state[effect] - dt);
       const steering = Number(!!input.left) - Number(!!input.right);
-      state.drift = !!input.drift && steering !== 0 && state.speed > 8;
+      const wasDrifting = state.drift;
+      state.drift = !!input.drift && steering !== 0 && state.speed > 8 && state.stun === 0;
+      if (state.drift) state.driftCharge = Math.min(2, state.driftCharge + dt);
+      else {
+        if (wasDrifting && state.driftCharge >= .8 && state.stun === 0) state.boost = Math.max(state.boost, state.driftCharge >= 1.6 ? 1.4 : .8);
+        state.driftCharge = 0;
+      }
       const steerAngle = steering * .46 * vehicle.handling / (1 + state.speed * .12);
       state.yaw += state.speed / 2.1 * Math.tan(steerAngle) * dt * (state.drift ? 1.22 : 1);
       const fx = Math.sin(state.yaw), fz = Math.cos(state.yaw);
       let forward = state.vx * fx + state.vz * fz;
       const lateral = (state.vx * fz - state.vz * fx) * Math.exp(-(state.drift ? 2.4 : 10) * dt);
-      forward += ((input.gas ? vehicle.acceleration : 0) - (input.brake ? 27 / Math.sqrt(vehicle.weight) : 0) - .7 - .004 * forward * forward) * dt;
-      forward = clamp(forward, 0, vehicle.speed);
+      forward += ((state.stun > 0 ? -18 : (input.gas ? vehicle.acceleration : 0) + (state.boost > 0 ? 28 : 0)) - (input.brake ? 27 / Math.sqrt(vehicle.weight) : 0) - .7 - .004 * forward * forward) * dt;
+      forward = clamp(forward, 0, vehicle.speed * (state.boost > 0 ? 1.35 : 1));
       state.vx = fx * forward + fz * lateral;
       state.vz = fz * forward - fx * lateral;
       state.x += state.vx * dt; state.z += state.vz * dt;

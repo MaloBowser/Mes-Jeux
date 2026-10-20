@@ -6,7 +6,7 @@
     const root = new T.Group(), body = new T.Group(), pilot = new T.Group(); root.add(body); body.add(pilot);
     const mat = (color, roughness = .7, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
     const dark = mat('#152735'), white = mat('#fff3de'), suit = mat(driver.color), skin = mat('#f1bd8c'), hair = mat('#51382e');
-    const paint = new T.MeshPhysicalMaterial({ color: api.paints[choice.paint].color || vehicle.color, roughness: .25, metalness: choice.paint === 'gold' ? .7 : .3, clearcoat: 1 });
+    const paint = new T.MeshPhysicalMaterial({ color: api.paints[choice.paint].color || (driver.guest ? driver.color : vehicle.color), roughness: .25, metalness: choice.paint === 'gold' ? .7 : .3, clearcoat: 1 });
     const sphere = new T.SphereGeometry(1, 20, 14), rounded = new T.BoxGeometry(1, 1, 1, 5, 5, 5), vertices = rounded.attributes.position;
     for (let i = 0; i < vertices.count; i++) { const p = new T.Vector3().fromBufferAttribute(vertices, i), core = p.clone().clampScalar(-.35, .35); p.sub(core).normalize().multiplyScalar(.15).add(core); vertices.setXYZ(i, p.x, p.y, p.z); }
     rounded.computeVertexNormals();
@@ -40,6 +40,8 @@
       for (let spoke = 0; spoke < 5; spoke++) { const spokeMesh = box(white, [x * (long ? .235 : .195), 0, 0], [.02, .42, .045], pivot); spokeMesh.rotation.x = spoke * Math.PI / 5; spokes.push(spokeMesh); }
       wheels.push({ pivot, tire, rim, spokes, front: z > 0 });
     }
+    if (driver.guest) api.addGuestPilot(T, pilot, choice.driver);
+    else {
     ball(suit, [0, 1.17, -.1], [choice.driver === 'rocky' ? .43 : .34, .43, .28], pilot);
     box(white, [0, 1.18, .16], [.11, .46, .03], pilot);
     for (const side of [-1, 1]) {
@@ -76,6 +78,7 @@
       for (const side of [-1, 1]) { ball(white, [side * .15, 1.94, .28], [.105, .12, .055], pilot); ball(dark, [side * .15, 1.94, .33], [.052, .075, .025], pilot); }
       ball(skin, [0, 1.83, .32], [.09, .09, .1], pilot);
       box(dark, [0, 1.71, .29], [.13, .025, .025], pilot);
+    }
     }
     const steering = mesh(new T.TorusGeometry(.26, .04, 8, 20), dark, [0, 1.03, .48], [1, 1, 1]); steering.rotation.x = -.6;
     return { root, body, pilot, wheels, paint };

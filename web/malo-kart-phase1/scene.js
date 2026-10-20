@@ -4,6 +4,8 @@
     const theme = window.MaloPrototype.courses[track.id], night = track.id === 'neon', desert = track.id === 'desert';
     const scene = new T.Scene();
     scene.background = new T.Color(theme.sky); scene.fog = new T.Fog(theme.fog, 200, 650);
+    const raceBackground = scene.background, raceFog = scene.fog;
+    const scenery = new T.Group(); scene.add(scenery);
     const camera = new T.PerspectiveCamera(55, innerWidth / innerHeight, .1, 1100);
     const sun = new T.DirectionalLight(night ? '#8dbeff' : '#fff2d0', night ? 1.8 : 2.8);
     sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
@@ -13,7 +15,7 @@
     const material = (color, roughness = .8, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
     const white = material('#fff4da'), dark = material('#142f3c'), blue = material('#1479d0', .28, .25);
     const boxGeometry = new T.BoxGeometry(1, 1, 1);
-    function mesh(geometry, mat, position, scale = [1, 1, 1], parent = scene) {
+    function mesh(geometry, mat, position, scale = [1, 1, 1], parent = scenery) {
       const object = new T.Mesh(geometry, mat); object.position.set(...position); object.scale.set(...scale);
       object.castShadow = object.receiveShadow = true; parent.add(object); return object;
     }
@@ -60,9 +62,9 @@
         if (i % 2 === 0) { const index = i + side; panels.setMatrixAt(index, dummy.matrix); panels.setColorAt(index, new T.Color(i % 12 < 6 ? theme.accent : '#fff1d0')); }
       }
     });
-    panels.castShadow = panels.receiveShadow = true; scene.add(panels);
+    panels.castShadow = panels.receiveShadow = true; scenery.add(panels);
     const gates = track.gates.map((p, i) => {
-      const group = new T.Group(); group.position.set(p.x, 0, p.z); group.rotation.y = Math.atan2(p.tx, p.tz); scene.add(group);
+      const group = new T.Group(); group.position.set(p.x, 0, p.z); group.rotation.y = Math.atan2(p.tx, p.tz); scenery.add(group);
       const gateMaterial = material(i ? '#48c7b9' : '#ffd15a');
       for (const side of [-1, 1]) { box(dark, [side * 9, 2.7, 0], [.45, 5.4, .5], group); box(gateMaterial, [side * 9, 4.3, 0], [.6, 1.5, .65], group); }
       box(dark, [0, 5.6, 0], [18.6, .9, .55], group);
@@ -88,7 +90,7 @@
     function instances(geometry, mat, entries) {
       const object = new T.InstancedMesh(geometry, mat, entries.length);
       entries.forEach((p, i) => { dummy.position.set(...p.slice(0, 3)); dummy.scale.set(...p.slice(3)); dummy.rotation.set(0, i, 0); dummy.updateMatrix(); object.setMatrixAt(i, dummy.matrix); });
-      object.castShadow = object.receiveShadow = true; scene.add(object);
+      object.castShadow = object.receiveShadow = true; scenery.add(object);
     }
     if (!desert) instances(new T.CylinderGeometry(1, 1.3, 1, 7), material('#88674a'), trunks);
     if (desert) {
@@ -104,9 +106,14 @@
       const angle = i * Math.PI / 6, radius = 340 + (i % 3) * 40;
       mesh(new T.IcosahedronGeometry(1, 1), material(i % 2 ? '#74a5a8' : '#88b7ba'), [Math.cos(angle) * radius, 12, Math.sin(angle) * radius], [65 + i * 3, 30 + i * 3, 65]);
     }
-    const building = new T.Group(); building.position.set(37, 0, 132); scene.add(building);
+    const building = new T.Group(); building.position.set(37, 0, 132); scenery.add(building);
     box(white, [0, 3, 0], [18, 6, 9], building); box(blue, [0, 6.3, 0], [20, .6, 11], building);
     for (let i = -2; i <= 2; i++) box(dark, [i * 3.3, 2.5, -4.55], [2.4, 3.5, .1], building);
+    const podium = new T.Group(); scene.add(podium);
+    mesh(new T.CylinderGeometry(3.05, 3.2, .42, 64), material('#354353', .32, .6), [0, -.2, 0], [1, 1, 1], podium);
+    mesh(new T.CylinderGeometry(2.92, 2.92, .04, 64), material('#677784', .4, .4), [0, .03, 0], [1, 1, 1], podium);
+    const ring = mesh(new T.TorusGeometry(3.08, .045, 8, 64), new T.MeshBasicMaterial({ color: '#7ae9ff' }), [0, -.08, 0], [1, 1, 1], podium);
+    ring.rotation.x = Math.PI / 2;
     let model;
     function setKart(choice) {
       if (model) { scene.remove(model.root); window.MaloPrototype.disposeObject(model.root); }
@@ -117,7 +124,7 @@
     const coinGeometry = new T.CylinderGeometry(.48, .48, .12, 20);
     const coinMaterial = new T.MeshStandardMaterial({ color: '#ffcf41', metalness: .6, roughness: .25, emissive: '#ad6d00', emissiveIntensity: .4 });
     for (let i = 12; i < track.points.length; i += 9) {
-      const p = track.points[i], object = new T.Group(); object.position.set(p.x, 1.1, p.z); scene.add(object);
+      const p = track.points[i], object = new T.Group(); object.position.set(p.x, 1.1, p.z); scenery.add(object);
       const disc = mesh(coinGeometry, coinMaterial, [0, 0, 0], [1, 1, 1], object); disc.rotation.x = Math.PI / 2;
       coins.push({ object, x: p.x, z: p.z, lap: -1 });
     }
@@ -125,15 +132,18 @@
     const look = new T.Vector3(), destination = new T.Vector3();
     function update(state, dt, menu, snap = false) {
       const { root: kart, body, wheels } = model;
+      scenery.visible = !menu; podium.visible = menu; podium.position.set(state.x, 0, state.z);
+      scene.background = menu ? null : raceBackground; scene.fog = menu ? null : raceFog;
       kart.position.set(state.x, .08, state.z); kart.rotation.y = state.yaw;
       animation += dt;
       coins.forEach(c => { c.object.rotation.y = animation * 2; c.object.position.y = 1.1 + Math.sin(animation * 3 + c.x) * .12; });
       body.rotation.z = Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * Math.min(state.speed / 60, .15);
-      wheels.forEach(w => { w.tire.rotation.x += state.speed * dt / .4; w.rim.rotation.x = w.tire.rotation.x; w.spokes.forEach(s => { s.rotation.x += state.speed * dt / .4; }); w.pivot.rotation.y = w.front ? Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * .6 : 0; });
+      wheels.forEach(w => { w.tire.rotation.x += state.speed * dt / .4; w.rim.rotation.x = w.tire.rotation.x; w.spokes.forEach(s => { s.rotation.x += state.speed * dt / .4; }); w.pivot.rotation.y = w.front && !menu ? Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * .6 : 0; });
       const fx = Math.sin(state.yaw), fz = Math.cos(state.yaw);
       if (menu) {
-        destination.set(state.x + fx * 6 + fz * 6, 3.3, state.z + fz * 6 - fx * 6);
-        look.set(state.x - fz * 3.2, 1, state.z + fx * 3.2);
+        destination.set(state.x + fx * 6 + fz * 6, 4.3, state.z + fz * 6 - fx * 6);
+        look.set(state.x - fz * 3, .85, state.z + fx * 3);
+        kart.rotation.y += Math.sin(animation * .45) * .12;
       } else {
         destination.set(state.x - fx * (8 + state.speed * .045), 4.6, state.z - fz * (8 + state.speed * .045));
         look.set(state.x + fx * 4, 1, state.z + fz * 4);

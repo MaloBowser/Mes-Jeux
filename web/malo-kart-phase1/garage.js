@@ -2,6 +2,18 @@
   'use strict';
   const api = window.MaloPrototype;
   api.drivers = {
+    mario: { name: 'Mario', color: '#e83232', guest: true, description: 'Casquette rouge, moustache et salopette bleue.' },
+    luigi: { name: 'Luigi', color: '#30a849', guest: true, description: 'La casquette verte et une silhouette élancée.' },
+    peach: { name: 'Peach', color: '#fa85bd', guest: true, description: 'Une couronne dorée et une tenue rose.' },
+    daisy: { name: 'Daisy', color: '#ffae22', guest: true, description: 'Une princesse en orange, toujours prête à courir.' },
+    yoshi: { name: 'Yoshi', color: '#58bf43', guest: true, description: 'Le dinosaure vert au grand museau.' },
+    toad: { name: 'Toad', color: '#2772e3', guest: true, description: 'Un grand chapeau champignon à pois rouges.' },
+    koopa: { name: 'Koopa', color: '#f6bf39', guest: true, description: 'Une carapace verte et un sourire de tortue.' },
+    shyguy: { name: 'Maskass', color: '#df3542', guest: true, description: 'Une capuche rouge et un masque blanc.' },
+    bowser: { name: 'Bowser', color: '#dfab2c', guest: true, description: 'Cornes, crinière rousse et carapace à pointes.' },
+    wario: { name: 'Wario', color: '#f6d42a', guest: true, description: 'Casquette jaune et salopette violette.' },
+    waluigi: { name: 'Waluigi', color: '#8644bf', guest: true, description: 'Une silhouette fine et une casquette violette.' },
+    rosalina: { name: 'Harmonie', color: '#63d5d4', guest: true, description: 'Une tenue turquoise et une chevelure blonde.' },
     malo: { name: 'Malo', color: '#248eea', description: 'Le pilote à la casquette bleue. Toujours prêt au départ.' },
     nova: { name: 'Nova', color: '#c15dff', description: 'Une exploratrice aux cheveux violets et au bandeau turquoise.' },
     rocky: { name: 'Rocky', color: '#ed8542', description: 'Un renard aventurier, de grandes oreilles et un sourire malicieux.' },
@@ -27,7 +39,7 @@
   api.createGarage = () => {
     let key = 'malo-kart-garage-v1', available = true;
     try { const profile = localStorage.getItem('malo.activeProfile'); if (profile) key = `malo.profileData.${profile}.${key}`; } catch (_) { available = false; }
-    let state = { driver: 'malo', vehicle: 'standard', course: 'azur', paint: 'original', coins: 0, owned: ['original'], quality: 'auto' };
+    let state = { driver: 'mario', vehicle: 'standard', course: 'azur', paint: 'original', coins: 0, owned: ['original'], quality: 'auto' };
     function read() {
       try {
         const raw = localStorage.getItem(key), saved = raw ? JSON.parse(raw) : null;

@@ -84,5 +84,44 @@ body.selecting #intro { top:95px; bottom:25px; left:4vw; transform:none; width:m
 .paint-sample { height:78px; display:flex; align-items:center; justify-content:center; background:radial-gradient(ellipse at 35% 20%,#ffffff80,transparent 50%),var(--paint); }
 .paint-sample b { font-size:28px; color:#ffffffa0; text-shadow:0 2px 4px #0006; }
 #quality { display:block; width:100%; background:#203e50; color:white; padding:12px; border-radius:7px; border:1px solid #809baa; margin-top:12px; font:inherit; }
+.sound-option { display:flex; align-items:center; gap:10px; margin-top:18px; cursor:pointer; }
+.sound-option input { width:18px; height:18px; accent-color:#ffe06a; }
 @media(max-height:720px) { #home h1 { font-size:70px; } .home-links { gap:7px; } .home-links button { padding:12px 5px; } #home .description { font-size:13px; } body.selecting #intro { top:70px; bottom:10px; } .card img,.card canvas { height:85px; } #selection-title { font-size:24px; margin-bottom:12px; } }
 @media(max-width:750px) { body.selecting #intro { width:88vw; left:6vw; background:#102537e8; border-radius:15px; padding:15px; } #category-tabs { gap:3px; } #selection-title { font-size:24px; } #home .description { font-size:14px; } }
+.race-position { position:fixed; left:40px; top:205px; text-shadow:0 2px 8px #0008; }
+.race-position small { display:block; font-size:10px; letter-spacing:3px; font-weight:800; }
+.race-position strong { display:block; color:#ffe06a; font-size:68px; font-style:italic; line-height:1.15; }
+.race-position strong span { font-size:22px; color:#fff8; }
+#race-time { display:block; margin-top:9px; font-size:17px; font-variant-numeric:tabular-nums; }
+.item-slots { position:fixed; right:40px; top:170px; display:flex; align-items:center; gap:10px; }
+#reserve-item { width:110px; padding:12px 8px; border:1px solid #ffffff50; border-radius:12px; background:#112b40e8; text-align:center; }
+#reserve-item small { font-size:9px; letter-spacing:1px; color:#8ee4dc; }
+#reserve-symbol { display:block; margin:5px 0; font-size:30px; color:#ffe06a; }
+#reserve-name { display:block; font-size:12px; }
+#use-item { width:150px; padding:13px 10px; background:#112b40e8; border:2px solid #8ee4dc; color:#fff; box-shadow:0 5px 20px #0003; }
+#use-item:disabled { opacity:.8; border-color:#ffffff40; }
+#item-symbol { display:block; font-size:40px; line-height:1.1; color:#ffe06a; }
+#item-name { display:block; font-size:13px; margin:8px 0; }
+#use-item small { font-size:8px; color:#8ee4dc; }
+.radar { position:fixed; bottom:58px; left:32px; margin:0; padding:8px; background:#102c39b8; border:1px solid #ffffff25; border-radius:20px; }
+.radar canvas { display:block; width:160px; height:160px; }
+.radar figcaption { text-align:center; font-size:9px; letter-spacing:1px; color:#ffe06a; }
+.radar figcaption span { color:#b5ced2; }
+#race-notice { position:fixed; top:max(29%,310px); left:22%; right:22%; text-align:center; font-size:14px; font-weight:800; color:#ffe06a; text-shadow:0 2px 6px #000; pointer-events:none; }
+#race-notice:not(:empty) { padding:12px; border-radius:20px; background:#102c39cc; }
+#drift-charge { display:block; width:100%; height:10px; margin-top:12px; accent-color:#ffe06a; }
+#results { padding-left:28px; font-size:14px; font-variant-numeric:tabular-nums; }
+#results li { padding:7px 10px; border-bottom:1px solid #ffffff18; }
+#results .is-player { color:#ffe06a; background:#ffe06a12; font-weight:bold; }
+@media(max-width:650px) {
+  .race-position { left:20px; top:175px; } .race-position strong { font-size:45px; }
+  .checkpoint { top:90px; } .checkpoint span { display:none; } .checkpoint b { font-size:19px; }
+  .item-slots { right:20px; top:160px; gap:6px; } #use-item { width:115px; } #reserve-item { width:90px; } #race-notice { top:max(42%,300px); left:15%; right:15%; font-size:11px; }
+  .radar { left:15px; bottom:72px; padding:4px; } .radar canvas { width:105px; height:105px; }
+  .speed strong { font-size:46px; } .speed p { font-size:8px; letter-spacing:0; }
+}
+@media(max-height:650px) and (min-width:651px) {
+  .race-position { top:185px; } .race-position strong { font-size:46px; }
+  .radar { bottom:50px; } .radar canvas { width:112px; height:112px; }
+  .item-slots { top:155px; } #race-notice { top:max(32%,295px); }
+}

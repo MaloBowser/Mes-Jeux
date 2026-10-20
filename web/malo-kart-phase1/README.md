@@ -1,6 +1,6 @@
-# Malo Kart — Pilotes, véhicules, circuits et boutique
+# Malo Kart — Grand Prix
 
-Jeu de kart 3D original, jouable dans un navigateur desktop. Cette version prolonge la Phase 1 avec les choix et la boutique demandés : quatre pilotes, trois véhicules, trois circuits et des pièces à dépenser. Le chemin `web/malo-kart-phase1/` est conservé pour garder les liens existants fonctionnels. L’ancienne version Riviera GP reste séparée dans `../malo-kart.html`.
+Jeu de kart 3D original, jouable dans un navigateur desktop. Affronte cinq adversaires sur deux tours, ramasse des objets et charge un mini-turbo en dérapant. Le garage conserve quatre pilotes, trois véhicules, trois circuits et des pièces à dépenser. Le chemin `web/malo-kart-phase1/` est conservé pour garder les liens existants fonctionnels. L’ancienne version Riviera GP reste séparée dans `../malo-kart.html`.
 
 ## Lancer
 
@@ -55,9 +55,30 @@ Choix, qualité, solde et couleurs acquises sont sauvegardés sous `malo-kart-ga
 
 - Flèches ou ZQSD/WASD : accélérer, freiner et tourner.
 - Espace + direction en roulant : déraper avec moins d’adhérence.
+- Maintenir le dérapage au moins 0,8 seconde, puis relâcher : mini-turbo. À partir de 1,6 seconde, le turbo dure plus longtemps.
+- E, Maj ou bouton de l’objet : utiliser le premier objet ; l’objet en réserve prend automatiquement sa place.
 - Échap ou Ⅱ : pause. Reprendre, recommencer ou retourner à l’accueil depuis la pause.
 
 Départ 3–2–1–GO, deux tours et sept checkpoints à passer dans l’ordre. La ligne ne valide un tour qu’après ces portes et dans le bon sens. Rester immobile, revenir sur la ligne ou sauter des portes ne valide pas un tour. La caméra suit le kart librement déplacé en X/Z. Les barrières limitent la trajectoire et réduisent la vitesse au contact. Perdre le focus ou changer d’onglet met le jeu en pause et libère les touches.
+
+## Adversaires et objets
+
+Cinq rivaux suivent des trajectoires décalées, ralentissent dans les virages et utilisent les mêmes objets que toi. Les contacts entre ton kart et un rival ralentissent les deux véhicules. Le classement suit la progression sur les deux tours et conserve l’ordre des pilotes ayant franchi l’arrivée. À ton arrivée, la course s’arrête : les rivaux restants sont classés selon leur progression et portent la mention « En piste ». La mini-carte affiche tous les karts ; le tien est jaune.
+
+Traverse une boîte bleue « ? » avec un emplacement d’objet vide. Chaque boîte revient après quatre secondes. Tu peux conserver deux objets à la fois, utilisés dans l’ordre du ramassage : un objet prêt à utiliser et un en réserve, tous deux affichés à l’écran. Si les deux emplacements sont pleins, la boîte reste sur la piste. Les adversaires disposent aussi de deux emplacements ; les pilotes dans la seconde moitié du classement ont davantage de chances d’obtenir un turbo.
+
+| Objet | Effet |
+| --- | --- |
+| Turbo | Accélération et vitesse maximale augmentées pendant 2 secondes. |
+| Orbe | Poursuit le rival le plus proche devant toi à moins de 100 mètres. Sans cible, l’objet est conservé. |
+| Bouclier | Absorbe une attaque ; expire après 6 secondes. |
+| Piège | Obstacle posé derrière le kart ; disparaît après un impact ou 14 secondes. Son propriétaire est immunisé. |
+
+Une attaque ralentit le kart pendant une seconde, avec deux secondes de protection contre les attaques successives. Le temps, les rivaux, les objets et leurs effets sont figés en pause. Recommencer remet la course et les objets à zéro, sans effacer le garage ni les pièces déjà sauvegardées.
+
+## Sons
+
+Le moteur monte dans les tours avec la vitesse. Le départ, les pièces, les objets, les impacts et l’arrivée ont leurs effets sonores, synthétisés localement sans téléchargement. Le son démarre après le clic sur « Prendre le départ ». La pause, le retour au menu et la perte de focus coupent le son. La case « Activer les sons » dans les options permet de le désactiver pour la session. Si Web Audio est indisponible, le jeu reste jouable silencieusement.
 
 ## Fichiers
 
@@ -67,11 +88,15 @@ Départ 3–2–1–GO, deux tours et sept checkpoints à passer dans l’ordre.
 - `menus.js` : cartes, aperçus 3D, mini-cartes, statistiques et navigation.
 - `circuit.js` : trois tracés originaux et checkpoints.
 - `simulation.js` : conduite, différences de véhicules, collisions et tours.
+- `race.js` : adversaires, classement, boîtes à objets, attaques et effets.
+- `race-view.js` : karts adverses, objets en 3D, boucliers et mini-carte.
+- `audio.js` : moteur et effets sonores synthétisés avec Web Audio.
 - `scene.js` : décor, thèmes, pièces et caméra.
 - `game.js` : clavier, course, collecte, application des choix et qualité.
 - `preview.png` : capture réelle du jeu pour l’accueil du dépôt.
 - `../../index.html` : lien vers cette version.
 - `../../tests/test_malo_kart_phase1.py` et `../../tests/test_malo_kart_garage.py` : vérifications navigateur.
+- `../../tests/test_malo_kart_race.py` : courses avec adversaires, deux emplacements d’objets, classement, mini-turbo, signal audio et coupure du son.
 
 ## Vérifications
 
@@ -81,9 +106,10 @@ Depuis la racine du dépôt, avec Python et Microsoft Edge installé :
 python -m pip install playwright
 python tests/test_malo_kart_phase1.py
 python tests/test_malo_kart_garage.py
+python tests/test_malo_kart_race.py
 ```
 
-Chaque script gère son propre serveur temporaire. Captures dans `.tmp/malo-phase1-checks/` et `.tmp/malo-garage-checks/`.
+Chaque script gère son propre serveur temporaire. Captures dans `.tmp/malo-phase1-checks/`, `.tmp/malo-garage-checks/` et `.tmp/malo-race-checks/`.
 
 Les vérifications couvrent commandes simultanées, sens à l’écran, freinage, dérapage, barrières, checkpoints, pause, rejeu, caméra et ouverture locale ; navigation, aperçus distincts, sauvegarde des choix, différences physiques de véhicules ; neuf courses de deux tours (chaque véhicule sur chaque circuit) ; collecte au-delà de dix pièces, plafond de 100, absence de double collecte, achats, solde insuffisant, absence de double débit, persistance après rechargement, isolation des profils et repli sans stockage. Les accès à l’état du jeu utilisés par les tests sont injectés dans la réponse JavaScript de test uniquement.
 
@@ -93,4 +119,4 @@ Objectif : 60 FPS sur PC standard, sans garantie pour tous les GPU. Options Auto
 
 Three.js 0.160.1 est fourni localement sous licence MIT (`../vendor/three.LICENSE.txt`). Son bundle classique affiche un avertissement de dépréciation non bloquant, mais permet l’ouverture en fichier local. Aucun asset Nintendo, musique externe, police distante ou dépendance payante. Les modèles et textures sont générés par le code ; aucune requête externe à l’exécution. Si Three.js ou WebGL manque, un message propose de recharger la page.
 
-Jeu solo pour le moment : les adversaires IA, le classement, les objets offensifs, les sons et le multijoueur ne sont pas encore implémentés. Pas de commandes tactiles ni de marche arrière. Les graphismes restent stylisés et les collisions simplifiées. Les tests ont été exécutés dans Edge/Chromium ; Chrome desktop reste à vérifier sur un poste qui le possède.
+Jeu solo contre cinq adversaires automatisés ; pas de multijoueur ni de musique. Pas de commandes tactiles ni de marche arrière. Les graphismes restent stylisés et les collisions simplifiées ; les adversaires suivent le tracé avec une conduite simplifiée. Ce jeu original ne reproduit pas exactement Mario Kart. Les tests ont été exécutés dans Edge/Chromium ; Chrome desktop reste à vérifier sur un poste qui le possède.

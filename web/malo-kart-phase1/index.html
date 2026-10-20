@@ -4,15 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#102c39">
-  <title>Malo Kart — Garage & circuits</title>
+  <title>Malo Kart — Grand Prix</title>
   <link rel="icon" href="../console-de-jeu.png">
   <link rel="stylesheet" href="style.css">
   <script defer src="../vendor/three.min.js"></script>
   <script defer src="simulation.js"></script>
   <script defer src="garage.js"></script>
+  <script defer src="guest-drivers.js"></script>
   <script defer src="kart.js"></script>
   <script defer src="circuit.js"></script>
   <script defer src="scene.js"></script>
+  <script defer src="race.js"></script>
+  <script defer src="race-view.js"></script>
+  <script defer src="audio.js"></script>
   <script defer src="menus.js"></script>
   <script defer src="game.js"></script>
 </head>
@@ -22,9 +26,9 @@
   <header><a href="../../index.html">↖ LES JEUX DE MALO</a><span class="wallet">◉ <b id="wallet">0</b> / 100</span></header>
   <main id="intro">
     <section id="home">
-      <p class="eyebrow">CHOISIS TON STYLE. TRACE TA ROUTE.</p>
+      <p class="eyebrow">6 KARTS. 2 TOURS. UNE SEULE PREMIÈRE PLACE.</p>
       <h1>MALO<span>KART</span></h1>
-      <p class="description">Quatre pilotes. Trois machines. Trois destinations.<br>Ramasse des pièces et personnalise ton kart.</p>
+      <p class="description">Défie cinq rivaux sur trois circuits en 3D.<br>Dérape, lance tes objets et vise la victoire !</p>
       <button id="play" disabled>PRÉPARATION…</button>
       <div class="home-links">
         <button data-screen="driver" class="secondary">CHOIX DU PILOTE</button>
@@ -50,17 +54,26 @@
   </main>
   <section id="hud" hidden aria-label="Tableau de bord">
     <div class="lap"><small>TOUR</small><strong id="lap">1 <span>/ 2</span></strong></div>
+    <div class="race-position"><small>POSITION</small><strong id="position">6<span> / 6</span></strong><time id="race-time">0:00.00</time></div>
     <div class="checkpoint"><small>CHECKPOINTS</small><b id="checkpoint">0 / 7</b><span id="message">En route vers la première porte</span></div>
-    <div class="speed"><strong id="speed">0</strong><small>KM/H</small><p id="handling">CIRCUIT AZUR</p></div>
+    <div class="speed"><strong id="speed">0</strong><small>KM/H</small><p id="handling">CIRCUIT AZUR</p><meter id="drift-charge" min="0" max="2" low=".8" high="1.6" optimum="2" value="0" aria-label="Charge du mini-turbo"></meter></div>
+    <div class="item-slots" aria-label="Deux emplacements d’objets">
+      <div id="reserve-item"><small>EN RÉSERVE</small><b id="reserve-symbol">?</b><span id="reserve-name">Vide</span></div>
+      <button id="use-item" disabled><b id="item-symbol">?</b><span id="item-name">Aucun objet</span><small>E / MAJ · UTILISER</small></button>
+    </div>
+    <figure class="radar"><canvas id="radar" width="180" height="180" aria-label="Mini-carte : ton kart est le point jaune"></canvas><figcaption>● TOI <span>· CIRCUIT</span></figcaption></figure>
+    <p id="race-notice" role="status"></p>
     <button id="pause" class="compact" aria-label="Mettre en pause">Ⅱ</button>
-    <p class="race-controls">↑ / Z ACCÉLÉRER　 ↓ / S FREINER　 ← → / Q D TOURNER　 ESPACE DÉRAPER　 ÉCHAP PAUSE</p>
+    <p class="race-controls">↑ / Z ACCÉLÉRER　 ↓ / S FREINER　 ← → / Q D TOURNER　 ESPACE DÉRAPER　 E / MAJ OBJET　 ÉCHAP PAUSE</p>
   </section>
   <div id="countdown" hidden aria-live="polite"></div>
   <dialog id="pause-dialog"><p class="eyebrow">PETITE PAUSE</p><h2>AU STAND.</h2><button id="resume">REPRENDRE ↗</button><button id="restart" class="secondary">RECOMMENCER</button><button id="back" class="secondary">RETOUR AU DÉPART</button></dialog>
-  <dialog id="finish-dialog"><p class="eyebrow" id="finish-course">2 TOURS VALIDÉS</p><h2>BIEN JOUÉ !</h2><p>Tu as franchi chaque checkpoint<br>et terminé la course.</p><p id="earned"></p><p>Retrouve tes pièces dans la boutique.</p><button id="replay">REJOUER ↗</button><button id="finish-back" class="secondary">RETOUR AU DÉPART</button></dialog>
+  <dialog id="finish-dialog"><p class="eyebrow" id="finish-course">2 TOURS VALIDÉS</p><h2 id="finish-title">BIEN JOUÉ !</h2><p>Classement à ton arrivée · 2 tours validés</p><ol id="results"></ol><p id="earned"></p><button id="replay">REJOUER ↗</button><button id="finish-back" class="secondary">RETOUR AU DÉPART</button></dialog>
   <dialog id="options-dialog"><p class="eyebrow">À TON RYTHME</p><h2>OPTIONS</h2>
     <label for="quality">Qualité graphique</label><select id="quality"><option value="auto">Automatique</option><option value="high">Élevée</option><option value="low">Légère</option></select>
-    <p>Flèches ou ZQSD : conduire.<br>Espace + direction : déraper.<br>Échap : pause.</p><p>Portefeuille limité à 100 pièces. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
+    <label class="sound-option"><input id="sound-enabled" type="checkbox" checked> Activer les sons</label>
+    <p>Flèches ou ZQSD/WASD : conduire.<br>Espace + direction : déraper. Charge la jauge, puis relâche pour un mini-turbo.<br>E ou Maj : utiliser le premier objet ; celui en réserve prend sa place. Tu peux garder deux objets à la fois. Échap : pause.</p>
+    <p>Traverse les boîtes ? pour obtenir un turbo, un orbe qui vise le kart devant toi, un bouclier ou un piège à poser. Le point jaune de la mini-carte, c’est toi !</p><p>Portefeuille limité à 100 pièces. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
   </dialog>
   <section id="error" hidden role="alert"><h2>Le moteur 3D n’a pas démarré.</h2><p id="error-text"></p><button id="reload">RECHARGER</button><a href="../../index.html">Retour aux jeux</a></section>
   <noscript><p class="no-script">Active JavaScript pour jouer à Malo Kart.</p></noscript>
