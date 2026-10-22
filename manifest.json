@@ -1,0 +1,23 @@
+
+{
+  "name": "Les Jeux de Malo",
+  "short_name": "Jeux de Malo",
+  "description": "Tous les jeux de Malo dans une seule application !",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101827",
+  "theme_color": "#00D9FF",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
