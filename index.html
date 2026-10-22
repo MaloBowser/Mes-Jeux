@@ -3,10 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Les jeux de Malo</title>
 
+    <!-- 📱 Configuration de l'application PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#00D9FF">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+    <!-- 🎮 Icône et styles de ton site -->
     <link rel="icon" type="image/png" href="web/console-de-jeu.png">
     <link rel="stylesheet" href="web/ui-commune.css">
+
 
     <style>
         body {
@@ -741,7 +749,23 @@ c'est la personne qu'il vous faut  </p></h5>
         if (lien) window.location.href = lien.href;
     });
 
+    
     filtrerJeux();
+</script>
+
+<!-- 📱 Activation de la PWA -->
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("./service-worker.js")
+                .then(() => {
+                    console.log("✅ PWA activée !");
+                })
+                .catch((erreur) => {
+                    console.error("❌ Erreur PWA :", erreur);
+                });
+        });
+    }
 </script>
 
 </body>
