@@ -24,6 +24,21 @@
     turbo: { name: 'Turbo', description: 'Plus rapide et plus lourd. Anticipe tes freinages.', speed: 41, acceleration: 11, handling: .84, weight: 1.4, color: '#ef4656' },
     compact: { name: 'Compact', description: 'Léger, nerveux et facile à placer dans les courbes.', speed: 30, acceleration: 17, handling: 1.22, weight: .75, color: '#f5bd36' }
   };
+  api.tires = {
+    standard: { name: 'Standard', description: 'Des pneus équilibrés pour tous les circuits.', radius: .4, width: .36, color: '#152735', rim: '#a5c1c9', speed: 0, acceleration: 0, handling: 0, weight: 0 },
+    roller: { name: 'Roller', description: 'Petites roues rouges : accélération et virages plus vifs.', radius: .3, width: .3, color: '#e44049', rim: '#ffe67c', speed: -2, acceleration: 2, handling: .1, weight: -.1 },
+    cyber: { name: 'Cyber', description: 'Pneus larges violets : plus de vitesse, moins de maniabilité.', radius: .43, width: .48, color: '#48245e', rim: '#69ee65', speed: 2, acceleration: -1, handling: -.07, weight: .15 }
+  };
+  api.gliders = {
+    delta: { name: 'Delta', description: 'Une aile triangulaire rouge et blanche.' },
+    flower: { name: 'Fleur', description: 'Une grande fleur jaune en guise de voile.' },
+    cloud: { name: 'Nuage', description: 'Une voile ronde, blanche et bleu ciel.' }
+  };
+  api.vehicleStats = choice => {
+    const vehicle = { ...api.vehicles[choice.vehicle] }, tire = api.tires[choice.tire] || api.tires.standard;
+    for (const key of ['speed', 'acceleration', 'handling', 'weight']) vehicle[key] += tire[key];
+    return vehicle;
+  };
   api.courses = {
     azur: { name: 'Circuit Azur', difficulty: 'FACILE', description: 'Bord de mer, grandes courbes et ciel bleu.', sky: '#77c9ef', fog: '#b1dbe5', ground: '#83b66b', outer: '#259fae', tree: '#3e9574', accent: '#13a5b1' },
     neon: { name: 'Forêt Néon', difficulty: 'TECHNIQUE', description: 'Slalom nocturne entre les sapins et les portes lumineuses.', sky: '#111c35', fog: '#1d3454', ground: '#183b3d', outer: '#102331', tree: '#317a79', accent: '#c952ff' },
@@ -39,12 +54,12 @@
   api.createGarage = () => {
     let key = 'malo-kart-garage-v1', available = true;
     try { const profile = localStorage.getItem('malo.activeProfile'); if (profile) key = `malo.profileData.${profile}.${key}`; } catch (_) { available = false; }
-    let state = { driver: 'mario', vehicle: 'standard', course: 'azur', paint: 'original', coins: 0, owned: ['original'], quality: 'auto' };
+    let state = { driver: 'mario', vehicle: 'standard', tire: 'standard', glider: 'delta', course: 'azur', paint: 'original', coins: 0, owned: ['original'], quality: 'auto' };
     function read() {
       try {
         const raw = localStorage.getItem(key), saved = raw ? JSON.parse(raw) : null;
         if (saved && typeof saved === 'object') {
-          for (const [field, list] of [['driver', api.drivers], ['vehicle', api.vehicles], ['course', api.courses]]) if (Object.hasOwn(list, saved[field])) state[field] = saved[field];
+          for (const [field, list] of [['driver', api.drivers], ['vehicle', api.vehicles], ['tire', api.tires], ['glider', api.gliders], ['course', api.courses]]) if (Object.hasOwn(list, saved[field])) state[field] = saved[field];
           state.coins = Number.isFinite(saved.coins) ? Math.max(0, Math.min(100, Math.floor(saved.coins))) : 0;
           state.owned = ['original', ...(Array.isArray(saved.owned) ? saved.owned.filter(id => Object.hasOwn(api.paints, id) && id !== 'original') : [])];
           state.paint = state.owned.includes(saved.paint) ? saved.paint : 'original';
@@ -56,7 +71,7 @@
     function save() { try { localStorage.setItem(key, JSON.stringify(state)); } catch (_) { available = false; } }
     function select(field, id) {
       read();
-      const list = { driver: api.drivers, vehicle: api.vehicles, course: api.courses, paint: api.paints }[field];
+      const list = { driver: api.drivers, vehicle: api.vehicles, tire: api.tires, glider: api.gliders, course: api.courses, paint: api.paints }[field];
       if (!list || !Object.hasOwn(list, id) || field === 'paint' && !state.owned.includes(id)) return false;
       state[field] = id; save(); return true;
     }

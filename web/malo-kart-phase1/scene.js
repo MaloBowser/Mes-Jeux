@@ -12,6 +12,7 @@
     Object.assign(sun.shadow.camera, { left: -35, right: 35, top: 35, bottom: -35, near: 1, far: 180 });
     sun.shadow.normalBias = .05;
     scene.add(sun, sun.target, new T.HemisphereLight('#d3f4ff', '#648444', 1.8));
+    const showroomLight = new T.DirectionalLight('#fff4e5', 2.6); showroomLight.target = sun.target; scene.add(showroomLight);
     const material = (color, roughness = .8, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
     const white = material('#fff4da'), dark = material('#142f3c'), blue = material('#1479d0', .28, .25);
     const boxGeometry = new T.BoxGeometry(1, 1, 1);
@@ -110,9 +111,9 @@
     box(white, [0, 3, 0], [18, 6, 9], building); box(blue, [0, 6.3, 0], [20, .6, 11], building);
     for (let i = -2; i <= 2; i++) box(dark, [i * 3.3, 2.5, -4.55], [2.4, 3.5, .1], building);
     const podium = new T.Group(); scene.add(podium);
-    mesh(new T.CylinderGeometry(3.05, 3.2, .42, 64), material('#354353', .32, .6), [0, -.2, 0], [1, 1, 1], podium);
-    mesh(new T.CylinderGeometry(2.92, 2.92, .04, 64), material('#677784', .4, .4), [0, .03, 0], [1, 1, 1], podium);
-    const ring = mesh(new T.TorusGeometry(3.08, .045, 8, 64), new T.MeshBasicMaterial({ color: '#7ae9ff' }), [0, -.08, 0], [1, 1, 1], podium);
+    mesh(new T.CylinderGeometry(2.6, 2.75, .42, 64), material('#354353', .32, .6), [0, -.2, 0], [1, 1, 1], podium);
+    mesh(new T.CylinderGeometry(2.49, 2.49, .04, 64), material('#677784', .4, .4), [0, .03, 0], [1, 1, 1], podium);
+    const ring = mesh(new T.TorusGeometry(2.63, .045, 8, 64), new T.MeshBasicMaterial({ color: '#7ae9ff' }), [0, -.08, 0], [1, 1, 1], podium);
     ring.rotation.x = Math.PI / 2;
     let model;
     function setKart(choice) {
@@ -131,18 +132,22 @@
     let animation = 0;
     const look = new T.Vector3(), destination = new T.Vector3();
     function update(state, dt, menu, snap = false) {
-      const { root: kart, body, wheels } = model;
+      const { root: kart, body, wheels, glider } = model;
+      const deployed = menu && document.body.dataset.menu === 'vehicle';
+      glider.scale.setScalar(deployed ? 1 : .15); glider.position.set(0, deployed ? 3.1 : 1.15, deployed ? -.35 : -.9);
       scenery.visible = !menu; podium.visible = menu; podium.position.set(state.x, 0, state.z);
       scene.background = menu ? null : raceBackground; scene.fog = menu ? null : raceFog;
+      showroomLight.visible = menu;
       kart.position.set(state.x, .08, state.z); kart.rotation.y = state.yaw;
       animation += dt;
       coins.forEach(c => { c.object.rotation.y = animation * 2; c.object.position.y = 1.1 + Math.sin(animation * 3 + c.x) * .12; });
       body.rotation.z = Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * Math.min(state.speed / 60, .15);
-      wheels.forEach(w => { w.tire.rotation.x += state.speed * dt / .4; w.rim.rotation.x = w.tire.rotation.x; w.spokes.forEach(s => { s.rotation.x += state.speed * dt / .4; }); w.pivot.rotation.y = w.front && !menu ? Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * .6 : 0; });
+      wheels.forEach(w => { w.tire.rotation.x += state.speed * dt / w.radius; w.rim.rotation.x = w.tire.rotation.x; w.spokes.forEach(s => { s.rotation.x += state.speed * dt / w.radius; }); w.pivot.rotation.y = w.front && !menu ? Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * .6 : 0; });
       const fx = Math.sin(state.yaw), fz = Math.cos(state.yaw);
       if (menu) {
         destination.set(state.x + fx * 6 + fz * 6, 4.3, state.z + fz * 6 - fx * 6);
-        look.set(state.x - fz * 3, .85, state.z + fx * 3);
+        look.set(state.x - fz * 3, 0, state.z + fx * 3);
+        showroomLight.position.set(destination.x, 7, destination.z);
         kart.rotation.y += Math.sin(animation * .45) * .12;
       } else {
         destination.set(state.x - fx * (8 + state.speed * .045), 4.6, state.z - fz * (8 + state.speed * .045));

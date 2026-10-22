@@ -18,8 +18,8 @@
   function rebuild() {
     if (view) api.disposeObject(view.scene);
     track = api.createTrack(T, garage.state.course);
-    simulation = api.createSimulation(track, api.vehicles[garage.state.vehicle]);
-    vehicleId = garage.state.vehicle;
+    simulation = api.createSimulation(track, api.vehicleStats(garage.state));
+    vehicleId = `${garage.state.vehicle}/${garage.state.tire}`;
     view = api.createScene(T, renderer, track, garage.state);
     race = api.createRace(track, simulation, garage.state);
     raceView = api.createRaceView(T, view.scene, track, race);
@@ -157,8 +157,8 @@
   addEventListener('resize', () => { view.camera.aspect = innerWidth / innerHeight; view.camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
   $('game').addEventListener('webglcontextlost', event => { event.preventDefault(); pause(); fail('Le contexte graphique a été perdu. Recharge la page pour recommencer.'); });
   menus = api.createMenus({ T, renderer, garage, onPlay: start,
-    onChange(field) { if (field === 'course' || field === 'vehicle') rebuild(); else { view.setKart(garage.state); view.update(simulation.state, 0, true, true); } },
-    onPreviewPaint(paint) { if (track.id !== garage.state.course || vehicleId !== garage.state.vehicle) rebuild(); view.setKart({ ...garage.state, paint }); view.update(simulation.state, 0, true, true); }
+    onChange(field) { if (field === 'course' || field === 'vehicle' || field === 'tire') rebuild(); else { view.setKart(garage.state); view.update(simulation.state, 0, true, true); } },
+    onPreviewPaint(paint) { if (track.id !== garage.state.course || vehicleId !== `${garage.state.vehicle}/${garage.state.tire}`) rebuild(); view.setKart({ ...garage.state, paint }); view.update(simulation.state, 0, true, true); }
   });
   function applyQuality() {
     resolution = garage.state.quality === 'low' ? .8 : Math.min(devicePixelRatio, 1.5);

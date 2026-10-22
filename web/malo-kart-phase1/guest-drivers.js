@@ -49,7 +49,7 @@
       ctx.fillStyle = api.drivers[id].color; ctx.font = 'bold 45px Arial'; ctx.textAlign = 'center';
       ctx.fillText({ mario: 'M', luigi: 'L', wario: 'W', waluigi: 'Γ' }[id], 32, 48);
       const map = new T.CanvasTexture(canvas); map.colorSpace = T.SRGBColorSpace;
-      shape(new T.PlaneGeometry(.27, .27), new T.MeshStandardMaterial({ map, transparent: true }), [0, headY + .35, .34]);
+      shape(new T.PlaneGeometry(.27, .27), new T.MeshStandardMaterial({ map, transparent: true }), [0, headY + .35, .385]);
     } else if (princess) {
       const hair = id === 'daisy' ? material('#c4792c') : material('#ffe28a');
       ball(hair, [0, 1.76, -.22], [.44, .59, .34]);

@@ -32,19 +32,62 @@ try:
         page.wait_for_function('window.testGarage')
         page.screenshot(path=str(OUT/'home.png'))
         page.locator('#play').click()
-        assert page.locator('.card').count()==4
+        assert page.locator('.card').count()==16
+        page.wait_for_function('Array.from(document.querySelectorAll(".card img")).every(img=>img.complete && img.naturalWidth>0)')
         thumbnails=page.locator('.card img').evaluate_all('(images)=>images.map(i=>i.src)')
-        assert len(set(thumbnails))==4
-        for driver in ['malo','nova','rocky','zephyr']:
+        assert len(set(thumbnails))==16
+        for driver in ['mario','luigi','peach','daisy','yoshi','toad','koopa','shyguy','bowser','wario','waluigi','rosalina','malo','nova','rocky','zephyr']:
             page.locator(f'[data-choice={driver}]').click()
+            page.wait_for_function('Array.from(document.querySelectorAll(".card img")).every(img=>img.complete && img.naturalWidth>0)')
             assert page.evaluate('testGarage.garage.state.driver')==driver
+            assert page.locator('#menu-selection').inner_text()==page.evaluate('MaloPrototype.drivers[testGarage.garage.state.driver].name')
             page.evaluate('testGarage.render()')
             page.screenshot(path=str(OUT/f'driver-{driver}.png'))
         page.locator('#continue').click()
-        assert page.locator('.card').count()==3
+        assert page.locator('.part-column').count()==3
+        assert page.locator('.card').count()==9
+        assert page.locator('.card[aria-pressed=true]').count()==3
         for vehicle in ['standard','turbo','compact']:
-            page.locator(f'[data-choice={vehicle}]').click()
+            page.locator(f'[data-part=vehicle][data-choice={vehicle}]').click()
             assert page.evaluate('testGarage.garage.state.vehicle')==vehicle
+        accelerations={}
+        for tire in ['standard','roller','cyber']:
+            page.locator(f'[data-part=tire][data-choice={tire}]').click()
+            assert page.evaluate('testGarage.garage.state.tire')==tire
+            accelerations[tire]=page.evaluate('''()=>{
+              const sim=testGarage.simulation;for(let i=0;i<120;i++)sim.step(1/120,{gas:true});
+              const speed=sim.state.speed;sim.reset();return speed;
+            }''')
+        assert accelerations['roller']>accelerations['standard']>accelerations['cyber'],accelerations
+        for glider in ['delta','flower','cloud']:
+            page.locator(f'[data-part=glider][data-choice={glider}]').click()
+            assert page.evaluate('testGarage.garage.state.glider')==glider
+            page.evaluate('testGarage.render()')
+            assert page.evaluate('testGarage.view.kart.getObjectByName("glider").scale.x')==1
+            page.screenshot(path=str(OUT/f'glider-{glider}.png'))
+        assert page.locator('.card[aria-pressed=true]').count()==3
+        combinations=page.evaluate('''()=>{
+          const api=MaloPrototype,results=[];
+          for(const vehicle of Object.keys(api.vehicles))for(const tire of Object.keys(api.tires))for(const glider of Object.keys(api.gliders)){
+            const model=api.createKart(THREE,{driver:'mario',vehicle,tire,glider,paint:'original'});
+            const bounds=new THREE.Box3().setFromObject(model.root),stats=api.vehicleStats({vehicle,tire});
+            results.push(Number.isFinite(bounds.max.y) && bounds.max.y>2 && model.wheels.every(w=>w.radius===api.tires[tire].radius) && stats.speed>0);
+            api.disposeObject(model.root);
+          }
+          return results;
+        }''')
+        assert len(combinations)==27 and all(combinations)
+        migration=page.evaluate('''()=>{
+          const api=MaloPrototype,key='malo-kart-garage-v1',raw=localStorage.getItem(key),old=JSON.parse(raw);
+          delete old.tire;delete old.glider;localStorage.setItem(key,JSON.stringify(old));
+          const migrated=api.createGarage();
+          const ok=migrated.state.tire==='standard' && migrated.state.glider==='delta' && migrated.state.driver===old.driver;
+          old.tire='missing';old.glider='constructor';localStorage.setItem(key,JSON.stringify(old));
+          const corrupt=api.createGarage();
+          const valid=corrupt.state.tire==='standard' && corrupt.state.glider==='delta' && !corrupt.select('tire','missing') && !corrupt.select('glider','constructor');
+          localStorage.setItem(key,raw);return ok && valid;
+        }''')
+        assert migration
         page.screenshot(path=str(OUT/'vehicles.png'))
         page.locator('#continue').click()
         assert page.locator('.card').count()==3
@@ -56,10 +99,34 @@ try:
             page.evaluate('testGarage.render()')
             page.screenshot(path=str(OUT/f'course-{course}.png'))
         assert len(set(layouts))==3
+        assert page.locator('.course-medal').count()==3
+        course_previews=page.locator('.card img').evaluate_all('(images)=>images.map(i=>i.src)')
+        assert len(set(course_previews))==3 and all(src.startswith('data:image/jpeg') for src in course_previews)
+        page.locator('#menu-back').click()
+        assert page.evaluate('testGarage.menus.screen')=='vehicle'
+        page.set_viewport_size({'width':800,'height':600})
+        page.wait_for_timeout(100)
+        page.evaluate('testGarage.render()')
+        page.screenshot(path=str(OUT/'garage-compact.png'))
+        assert page.evaluate('document.getElementById("stats").getBoundingClientRect().bottom <= document.getElementById("intro").getBoundingClientRect().bottom')
+        page.locator('#menu-back').click()
+        assert page.evaluate('testGarage.menus.screen')=='driver'
+        page.wait_for_function('Array.from(document.querySelectorAll(".card img")).every(img=>img.complete && img.naturalWidth>0)')
+        page.set_viewport_size({'width':800,'height':600})
+        page.wait_for_timeout(100)
+        page.evaluate('testGarage.render()')
+        page.screenshot(path=str(OUT/'driver-compact.png'))
+        assert page.locator('#continue').is_visible()
+        assert page.evaluate('document.getElementById("cards").getBoundingClientRect().bottom <= document.getElementById("intro").getBoundingClientRect().bottom')
+        page.set_viewport_size({'width':1440,'height':900})
         page.reload();page.wait_for_function('window.testGarage')
         saved=page.evaluate('testGarage.garage.state')
         assert (saved['driver'],saved['vehicle'],saved['course'])==('zephyr','compact','desert')
-        print('SELECTIONS_PREVIEWS_SAVE_OK',flush=True)
+        assert (saved['tire'],saved['glider'])==('cyber','cloud')
+        page.evaluate('testGarage.start();testGarage.render()')
+        assert page.evaluate('testGarage.view.kart.getObjectByName("glider").scale.x')==.15
+        page.evaluate('testGarage.menu()')
+        print('SELECTIONS_PREVIEWS_27_COMBINATIONS_TIRE_PHYSICS_SAVE_MIGRATION_OK',flush=True)
         page.locator('#home [data-screen=shop]').click()
         page.locator('[data-choice=gold]').click()
         assert page.locator('#continue').is_disabled()

@@ -15,6 +15,8 @@
     const ball = (m, p, s, parent) => mesh(sphere, m, p, s, parent);
     const long = choice.vehicle === 'turbo', small = choice.vehicle === 'compact';
     const length = long ? 1.16 : small ? .83 : 1, width = small ? .88 : 1;
+    const tireType = api.tires[choice.tire] || api.tires.standard;
+    body.position.y = tireType.radius - .4;
     box(dark, [0, .42, 0], [1.6 * width, .23, 2.7 * length]);
     box(paint, [0, .66, .85 * length], [1.3 * width, .45, 1.5 * length]);
     ball(paint, [0, .63, 1.4 * length], [.76 * width, .24, .5]);
@@ -32,14 +34,40 @@
       const exhaust = mesh(new T.CylinderGeometry(.1, .1, .55, 12), metal, [side * .6, .53, -1.4 * length], [1, 1, 1]); exhaust.rotation.x = Math.PI / 2;
     }
     const wheels = [];
+    const rubber = mat(tireType.color, .6), wheelMetal = mat(tireType.rim, .25, .65);
     for (const x of [-1, 1]) for (const z of [-.86, .97]) {
-      const pivot = new T.Group(); pivot.position.set(x * width, .4, z * length); root.add(pivot);
-      const tire = mesh(new T.CylinderGeometry(.4, .4, long ? .44 : .36, 24), dark, [0, 0, 0], [1, 1, 1], pivot); tire.rotation.z = Math.PI / 2;
-      const rim = mesh(new T.CylinderGeometry(.25, .25, long ? .46 : .38, 16), metal, [0, 0, 0], [1, 1, 1], pivot); rim.rotation.z = Math.PI / 2;
+      const pivot = new T.Group(); pivot.position.set(x * width, tireType.radius, z * length); root.add(pivot);
+      const tire = mesh(new T.CylinderGeometry(tireType.radius, tireType.radius, tireType.width, 32), rubber, [0, 0, 0], [1, 1, 1], pivot); tire.rotation.z = Math.PI / 2;
+      const rim = mesh(new T.CylinderGeometry(tireType.radius * .63, tireType.radius * .63, tireType.width + .02, 24), wheelMetal, [0, 0, 0], [1, 1, 1], pivot); rim.rotation.z = Math.PI / 2;
       const spokes = [];
-      for (let spoke = 0; spoke < 5; spoke++) { const spokeMesh = box(white, [x * (long ? .235 : .195), 0, 0], [.02, .42, .045], pivot); spokeMesh.rotation.x = spoke * Math.PI / 5; spokes.push(spokeMesh); }
-      wheels.push({ pivot, tire, rim, spokes, front: z > 0 });
+      for (let spoke = 0; spoke < 5; spoke++) { const spokeMesh = box(white, [x * (tireType.width / 2 + .015), 0, 0], [.02, tireType.radius * 1.05, .045], pivot); spokeMesh.rotation.x = spoke * Math.PI / 5; spokes.push(spokeMesh); }
+      wheels.push({ pivot, tire, rim, spokes, radius: tireType.radius, front: z > 0 });
     }
+    const glider = new T.Group(); glider.name = 'glider'; body.add(glider); glider.position.set(0, 2.9, -.35);
+    const fabric = color => new T.MeshStandardMaterial({ color, side: T.DoubleSide, roughness: .7 });
+    const gliderId = choice.glider || 'delta';
+    if (gliderId === 'flower') {
+      const petal = fabric('#ffd440');
+      for (let i = 0; i < 10; i++) {
+        const a = i * Math.PI / 5;
+        const leaf = ball(petal, [Math.cos(a) * 1.15, .2, Math.sin(a) * 1.15], [.72, .09, .38], glider); leaf.rotation.y = -a;
+      }
+      ball(fabric('#bd702f'), [0, .24, 0], [.76, .11, .76], glider);
+    } else if (gliderId === 'cloud') {
+      mesh(new T.SphereGeometry(1, 32, 12, 0, Math.PI * 2, 0, Math.PI / 2), fabric('#f2fcff'), [0, -.15, 0], [1.75, .6, 1.15], glider);
+      for (const x of [-1, 1]) ball(fabric('#7bd7f5'), [x * 1.15, .02, 0], [.45, .3, 1.05], glider);
+    } else {
+      for (const side of [-1, 1]) {
+        const shape = new T.BufferGeometry();
+        shape.setAttribute('position', new T.Float32BufferAttribute([0, .25, 1, side * 2, 0, -1, 0, .08, -.5], 3)); shape.computeVertexNormals();
+        mesh(shape, fabric(side === 1 ? '#ed3e43' : '#fff3de'), [0, 0, 0], [1, 1, 1], glider);
+      }
+    }
+    for (const side of [-1, 1]) {
+      const line = new T.BufferGeometry().setFromPoints([new T.Vector3(side * .4, -1.65, -.1), new T.Vector3(side * 1.25, -.05, -.3)]);
+      glider.add(new T.Line(line, new T.LineBasicMaterial({ color: '#586571' })));
+    }
+    glider.scale.setScalar(.15); glider.position.set(0, 1.15, -.9);
     if (driver.guest) api.addGuestPilot(T, pilot, choice.driver);
     else {
     ball(suit, [0, 1.17, -.1], [choice.driver === 'rocky' ? .43 : .34, .43, .28], pilot);
@@ -81,6 +109,6 @@
     }
     }
     const steering = mesh(new T.TorusGeometry(.26, .04, 8, 20), dark, [0, 1.03, .48], [1, 1, 1]); steering.rotation.x = -.6;
-    return { root, body, pilot, wheels, paint };
+    return { root, body, pilot, wheels, paint, glider };
   };
 })();

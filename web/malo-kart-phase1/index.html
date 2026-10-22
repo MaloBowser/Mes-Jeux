@@ -7,6 +7,7 @@
   <title>Malo Kart — Grand Prix</title>
   <link rel="icon" href="../console-de-jeu.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="menu.css">
   <script defer src="../vendor/three.min.js"></script>
   <script defer src="simulation.js"></script>
   <script defer src="garage.js"></script>
@@ -26,9 +27,9 @@
   <header><a href="../../index.html">↖ LES JEUX DE MALO</a><span class="wallet">◉ <b id="wallet">0</b> / 100</span></header>
   <main id="intro">
     <section id="home">
-      <p class="eyebrow">6 KARTS. 2 TOURS. UNE SEULE PREMIÈRE PLACE.</p>
+      <p class="eyebrow">16 PILOTES · 3 CIRCUITS · GRAND PRIX</p>
       <h1>MALO<span>KART</span></h1>
-      <p class="description">Défie cinq rivaux sur trois circuits en 3D.<br>Dérape, lance tes objets et vise la victoire !</p>
+      <p class="description">Choisis ton personnage et prends le départ !<br>Deux objets, du turbo et cinq rivaux à dépasser.</p>
       <button id="play" disabled>PRÉPARATION…</button>
       <div class="home-links">
         <button data-screen="driver" class="secondary">CHOIX DU PILOTE</button>
@@ -47,8 +48,12 @@
       <div id="cards" class="cards"></div>
       <div class="selection-detail"><h3 id="detail-name"></h3><p id="detail-description"></p><div id="stats"></div></div>
       <p id="shop-status" role="status"></p>
-      <button id="continue">CONTINUER ↗</button>
-      <button id="start" hidden disabled>PRENDRE LE DÉPART ↗</button>
+      <footer class="menu-footer">
+        <button id="menu-back" class="secondary">← RETOUR</button>
+        <strong id="menu-selection"></strong>
+        <button id="continue">OK →</button>
+        <button id="start" hidden disabled>PRENDRE LE DÉPART →</button>
+      </footer>
     </section>
     <p id="save-status" role="status"></p>
   </main>

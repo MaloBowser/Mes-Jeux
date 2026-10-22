@@ -1,0 +1,101 @@
+body:not(.racing) { min-height:100vh; background:radial-gradient(ellipse at 72% 25%,#a0f5ff80,transparent 65%),linear-gradient(155deg,#15b7df,#62daef 55%,#3e69dd); }
+body:not(.racing)::before { content:""; position:fixed; inset:0; background:url("assets/menu-pattern.svg") repeat; background-size:400px 280px; pointer-events:none; }
+body:not(.racing)::after { content:""; position:fixed; left:-20%; right:-20%; bottom:-60px; height:28%; background:repeating-conic-gradient(#1944b56b 0% 25%,#8af4ff30 0% 50%) 50% / 80px 80px; transform:perspective(300px) rotateX(28deg); pointer-events:none; }
+body:not(.racing) #game { z-index:1; }
+body:not(.racing) .shade { z-index:2; background:linear-gradient(90deg,#0876b325,transparent 62%); }
+body:not(.racing) header { z-index:4; color:#075178; text-shadow:0 1px #ffffff70; }
+body:not(.racing) header .wallet { background:#073d77b8; color:#ffe94d; text-shadow:none; border:2px solid #a2faff; }
+body:not(.racing) #intro { z-index:3; }
+body:not(.racing) #home h1 { color:white; text-shadow:3px 4px #284782,0 7px 0 #153e6f; letter-spacing:-6px; }
+body:not(.racing) #home h1 span { color:#fff; background:linear-gradient(90deg,#fff 15%,#e1fbff 50%,#ffe85a); background-clip:text; -webkit-text-fill-color:transparent; }
+body:not(.racing) #home .description { color:#084366; font-weight:600; text-shadow:0 1px #ffffff60; }
+body:not(.racing) .eyebrow { color:#075178; }
+body:not(.racing) #home .secondary { color:#073b6c; background:#e6fcffce; border:2px solid #fff; box-shadow:0 3px 0 #16659955; }
+body:not(.racing) #play { background:linear-gradient(#fff77a,#ffd530); border:3px solid white; box-shadow:0 5px 0 #c09123,0 8px 20px #08538344; font-size:20px; font-style:italic; }
+body:not(.racing) #options,body:not(.racing) .choice-summary { color:#064c75; font-weight:700; }
+body.selecting #intro { top:86px; bottom:98px; left:4vw; width:min(560px,46vw); padding:8px 12px 10px 8px; background:none; border-radius:0; }
+#category-tabs { gap:5px; margin-bottom:15px; }
+#category-tabs button { background:#e9fcffcc; color:#115477; border:2px solid #ffffffd0; border-radius:5px; }
+#category-tabs button.active { background:#ffec5c; color:#1b4164; border-color:white; }
+#selection-title { margin:7px 0 16px; font-size:26px; color:white; text-shadow:0 3px #236da5; }
+body[data-menu=driver] .cards { grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; padding:6px; border:3px solid #deffff8c; background:#85e8ef55; box-shadow:0 4px 0 #036b9c55; }
+body.selecting .card { position:relative; border:3px solid #e4ffff; border-radius:5px; background:linear-gradient(#ecfdffb8,#90dcebaa); color:#06496a; box-shadow:0 3px 0 #14698f70; }
+body.selecting .card:hover { background:#e7fcff; }
+body.selecting .card[aria-pressed=true] { border-color:#ffe800; outline:3px solid #fff6a0; box-shadow:0 0 18px #ffff53; background:linear-gradient(#fffde2,#ffe873); color:#173d5a; }
+body.selecting .card[aria-pressed=true]::after { content:"✓"; position:absolute; right:3px; top:3px; padding:1px 5px; border-radius:4px; background:#ffdf00; color:#17375c; font-size:12px; }
+body.selecting .card img { background:none; object-fit:contain; }
+body[data-menu=driver] .card img { height:clamp(50px,8.5vh,92px); padding:4px; }
+body[data-menu=driver] .card .label { padding:5px 3px; justify-content:center; font-size:10px; letter-spacing:0; background:#ffffff60; }
+body[data-menu=driver] .card small { display:none; }
+.selection-detail h3 { color:#fff; text-shadow:0 2px #166496; }
+.selection-detail p { color:#06466d; font-weight:600; }
+body[data-menu=driver] .selection-detail { padding:12px 5px; }
+body[data-menu=driver] #detail-name { font-size:24px; }
+body[data-menu=vehicle] .cards { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:10px; border:3px solid #e0fdff; background:linear-gradient(#154766bb,#c5f4f588,#154766bb); }
+.part-column { min-width:0; display:grid; gap:8px; align-content:start; }
+.part-column h3 { margin:0 0 2px; text-align:center; font-size:12px; letter-spacing:2px; color:#e4fcff; text-shadow:0 2px #164667; }
+body[data-menu=vehicle] .card img { height:clamp(44px,8vh,76px); width:100%; padding:2px; }
+body[data-menu=vehicle] .card .label { display:block; text-align:center; padding:4px 2px; font-size:11px; background:#ffffff55; }
+body[data-menu=vehicle] .card small { display:none; }
+#stats { padding:14px 18px; background:#075280a6; border:1px solid #9af1ff; border-radius:8px; }
+#stats:empty { display:none; }
+.stat i { background:linear-gradient(90deg,#fff5aa,#ffd52f); }
+.stat small { color:white; }
+#shop-status { color:#06374f; font-weight:700; }
+.menu-footer { position:fixed; bottom:0; left:0; right:0; height:82px; display:flex; align-items:center; gap:22px; padding:12px 28px; border-top:3px solid #a5edff; background:linear-gradient(#1a64acde,#123a85f0); box-shadow:0 -5px 30px #0c407433; }
+.menu-footer button { width:auto; min-width:145px; padding:13px 25px; border:2px solid #fff8bd; border-radius:3px; box-shadow:0 3px 0 #0b2d57; font-size:16px; }
+.menu-footer #menu-back { background:linear-gradient(#575e66,#172738); color:#ffe943; margin:0; }
+.menu-footer strong { flex:1; text-align:center; font-size:25px; font-style:italic; text-shadow:0 2px #0e3b77; }
+.menu-footer #continue,.menu-footer #start { background:linear-gradient(#fff483,#ffcc24); color:#24425d; }
+body[data-menu=course]:not(.racing) { background:radial-gradient(ellipse at 65% 5%,#dd78cc,#9353c7 44%,#363ba6); }
+body[data-menu=course]:not(.racing) #game { visibility:hidden; }
+body[data-menu=course] #intro { left:5vw; width:90vw; }
+body[data-menu=course] #category-tabs { max-width:530px; }
+body[data-menu=course] #selection-title { text-align:center; }
+body[data-menu=course] .cards { grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+body[data-menu=course] .card { padding:0 0 12px; background:linear-gradient(#a3ddff44,#ebf5ffdd); }
+body[data-menu=course] .card img { width:100%; height:auto; aspect-ratio:2; object-fit:cover; border-block:3px solid #f4fdff; }
+.course-medal { display:grid; place-items:center; width:clamp(80px,11vw,150px); aspect-ratio:1; margin:14px auto; border:8px ridge #e1e9f5; border-radius:50%; background:radial-gradient(circle,#285b94 40%,#162f60 70%); box-shadow:0 4px 0 #252d73,0 0 0 4px #ffffff88; color:#ffef8e; font-size:clamp(50px,7vw,96px); line-height:1; text-shadow:0 3px #ac7b32; }
+body[data-menu=course] .card[aria-pressed=true] .course-medal { box-shadow:0 0 0 5px #ffeb4f,0 0 25px #fff68f; }
+body[data-menu=course] .card .label { justify-content:center; flex-direction:column; gap:6px; padding:14px 5px 2px; font-size:clamp(13px,1.6vw,23px); letter-spacing:0; }
+body[data-menu=course] .card small { color:#38557c; font-size:10px; }
+body[data-menu=course] .selection-detail { text-align:center; }
+body[data-menu=course] .selection-detail p { color:#f5eaff; }
+body[data-menu=course] #selection-step { color:#f8ddff; }
+body:not(.racing) #save-status { color:#053958; background:#fff9b8cc; }
+body:not(.racing) #save-status:empty { background:none; }
+@media(max-height:720px) {
+  body.selecting #intro { top:69px; bottom:83px; }
+  #selection-title { font-size:22px; margin-bottom:10px; } #category-tabs { margin-bottom:10px; }
+  body[data-menu=driver] .card img { height:42px; }
+  body[data-menu=driver] .selection-detail { display:none; }
+  body[data-menu=vehicle] .cards { padding:6px; gap:6px; }
+  .part-column { gap:5px; }
+  body[data-menu=vehicle] .card img { height:38px; }
+  body[data-menu=vehicle] .card .label { font-size:9px; padding:2px; }
+  body[data-menu=vehicle] .selection-detail { padding:8px 0; }
+  body[data-menu=vehicle] #detail-name { display:none; }
+  body[data-menu=vehicle] #detail-description { display:none; }
+  body[data-menu=vehicle] #stats { gap:4px; padding:5px 9px; margin-top:4px; }
+  body[data-menu=vehicle] .stat { grid-template-columns:80px 1fr 48px; gap:6px; font-size:10px; }
+  .menu-footer { height:70px; padding:10px 20px; }
+  .course-medal { width:90px; font-size:60px; margin:12px auto; }
+  body[data-menu=course] .card img { max-height:150px; }
+}
+@media(max-width:750px) {
+  body.selecting #intro { left:4vw; width:56vw; top:74px; }
+  #category-tabs button { font-size:8px; padding:8px 2px; }
+  #selection-title { font-size:18px; }
+  body[data-menu=driver] .cards { gap:4px; padding:3px; }
+  body[data-menu=driver] .card img { height:48px; padding:2px; }
+  body[data-menu=driver] .card .label { font-size:8px; }
+  .menu-footer { gap:10px; padding:10px 12px; }
+  .menu-footer button { min-width:85px; padding:12px 10px; font-size:11px; }
+  .menu-footer strong { font-size:16px; }
+  body[data-menu=course] #intro { width:92vw; }
+  body[data-menu=course] .cards { gap:10px; }
+  .course-medal { width:65px; font-size:40px; border-width:5px; }
+  body[data-menu=course] .card img { min-height:100px; object-fit:cover; }
+  body[data-menu=vehicle] .cards { gap:6px; padding:10px 4px; }
+  body[data-menu=vehicle] .card .label { font-size:10px; }
+}
