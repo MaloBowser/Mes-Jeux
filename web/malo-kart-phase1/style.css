@@ -101,6 +101,11 @@ body.selecting #intro { top:95px; bottom:25px; left:4vw; transform:none; width:m
 #use-item { width:150px; padding:13px 10px; background:#112b40e8; border:2px solid #8ee4dc; color:#fff; box-shadow:0 5px 20px #0003; }
 #use-item:disabled { opacity:.8; border-color:#ffffff40; }
 #item-symbol { display:block; font-size:40px; line-height:1.1; color:#ffe06a; }
+#item-symbol[data-item]:not([data-item=""]), #reserve-symbol[data-item]:not([data-item=""]) { color:transparent; background-position:center; background-repeat:no-repeat; background-size:contain; }
+[data-item="turbo"] { background-image:url('assets/items/mushroom.svg'); }
+[data-item="orb"] { background-image:url('assets/items/shell.svg'); }
+[data-item="shield"] { background-image:url('assets/items/star.svg'); }
+[data-item="trap"] { background-image:url('assets/items/banana.svg'); }
 #item-name { display:block; font-size:13px; margin:8px 0; }
 #use-item small { font-size:8px; color:#8ee4dc; }
 .radar { position:fixed; bottom:58px; left:32px; margin:0; padding:8px; background:#102c39b8; border:1px solid #ffffff25; border-radius:20px; }

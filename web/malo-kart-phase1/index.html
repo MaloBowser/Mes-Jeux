@@ -2,12 +2,13 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#102c39">
   <title>Malo Kart — Grand Prix</title>
   <link rel="icon" href="../console-de-jeu.png">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="menu.css">
+  <link rel="stylesheet" href="mobile.css">
   <script defer src="../vendor/three.min.js"></script>
   <script defer src="simulation.js"></script>
   <script defer src="garage.js"></script>
@@ -69,6 +70,10 @@
     <figure class="radar"><canvas id="radar" width="180" height="180" aria-label="Mini-carte : ton kart est le point jaune"></canvas><figcaption>● TOI <span>· CIRCUIT</span></figcaption></figure>
     <p id="race-notice" role="status"></p>
     <button id="pause" class="compact" aria-label="Mettre en pause">Ⅱ</button>
+    <div id="touch-controls" aria-label="Commandes tactiles">
+      <div class="touch-steering"><button data-drive="left" aria-label="Tourner à gauche">◀</button><button data-drive="right" aria-label="Tourner à droite">▶</button></div>
+      <div class="touch-pedals"><button data-drive="brake" aria-label="Freiner">FREIN</button><button data-drive="drift" aria-label="Maintenir pour déraper">DÉRAPAGE</button><button data-drive="gas" aria-label="Accélérer">ACCÉLÉRER</button></div>
+    </div>
     <p class="race-controls">↑ / Z ACCÉLÉRER　 ↓ / S FREINER　 ← → / Q D TOURNER　 ESPACE DÉRAPER　 E / MAJ OBJET　 ÉCHAP PAUSE</p>
   </section>
   <div id="countdown" hidden aria-live="polite"></div>
@@ -77,8 +82,10 @@
   <dialog id="options-dialog"><p class="eyebrow">À TON RYTHME</p><h2>OPTIONS</h2>
     <label for="quality">Qualité graphique</label><select id="quality"><option value="auto">Automatique</option><option value="high">Élevée</option><option value="low">Légère</option></select>
     <label class="sound-option"><input id="sound-enabled" type="checkbox" checked> Activer les sons</label>
+    <label class="sound-option"><input id="auto-gas" type="checkbox"> Accélération automatique</label>
+    <p class="touch-help">Sur téléphone et tablette : utilise les flèches à gauche pour tourner. Maintiens DÉRAPAGE en tournant, puis relâche pour le mini-turbo. Touche l’objet pour l’utiliser. Le frein coupe l’accélération automatique. Tu peux jouer dans les deux orientations.</p>
     <p>Flèches ou ZQSD/WASD : conduire.<br>Espace + direction : déraper. Charge la jauge, puis relâche pour un mini-turbo.<br>E ou Maj : utiliser le premier objet ; celui en réserve prend sa place. Tu peux garder deux objets à la fois. Échap : pause.</p>
-    <p>Traverse les boîtes ? pour obtenir un turbo, un orbe qui vise le kart devant toi, un bouclier ou un piège à poser. Le point jaune de la mini-carte, c’est toi !</p><p>Portefeuille limité à 100 pièces. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
+    <p>Traverse les boîtes ? pour obtenir un champignon accélérateur, une carapace rouge qui poursuit le kart devant toi, une étoile ou une banane à poser. L’étoile augmente ta vitesse et te protège des objets et des autres karts pendant 6 secondes. Touche ton objet pour l’utiliser, ou appuie sur E / Maj au clavier. Le point jaune de la mini-carte, c’est toi !</p><p>Portefeuille limité à 100 pièces. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
   </dialog>
   <section id="error" hidden role="alert"><h2>Le moteur 3D n’a pas démarré.</h2><p id="error-text"></p><button id="reload">RECHARGER</button><a href="../../index.html">Retour aux jeux</a></section>
   <noscript><p class="no-script">Active JavaScript pour jouer à Malo Kart.</p></noscript>

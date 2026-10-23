@@ -5,11 +5,15 @@
   $('reload').onclick = () => location.reload();
   if (!window.THREE) { fail('Le moteur local est absent. Garde le dossier web/vendor avec le jeu.'); return; }
   const T = window.THREE, api = window.MaloPrototype;
+  const touchDevice = navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
+  document.body.classList.toggle('touch-device', touchDevice);
+  $('auto-gas').checked = touchDevice;
+  document.body.classList.toggle('auto-gas', touchDevice);
   let renderer;
   try { renderer = new T.WebGLRenderer({ canvas: $('game'), antialias: true, alpha: true, powerPreference: 'high-performance' }); }
   catch (_) { fail('WebGL est indisponible. Active l’accélération graphique dans Chrome, puis recharge la page.'); return; }
   let resolution = Math.min(devicePixelRatio, 1.5);
-  renderer.setPixelRatio(resolution); renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(resolution); renderer.setSize(innerWidth, innerHeight, false);
   renderer.outputColorSpace = T.SRGBColorSpace; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
   const garage = api.createGarage();
@@ -21,18 +25,27 @@
     simulation = api.createSimulation(track, api.vehicleStats(garage.state));
     vehicleId = `${garage.state.vehicle}/${garage.state.tire}`;
     view = api.createScene(T, renderer, track, garage.state);
+    fitViewport();
     race = api.createRace(track, simulation, garage.state);
     raceView = api.createRaceView(T, view.scene, track, race);
     raceView.update(0, false);
     view.update(simulation.state, 0, true, true);
   }
   rebuild();
-  const held = new Set();
+  const held = new Set(), touches = new Map();
   const bindings = { ArrowUp: 'gas', KeyZ: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyQ: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'drift' };
   const input = { gas: false, brake: false, left: false, right: false, drift: false };
   let mode = 'menu', previousMode = 'race', countdown = 3, lastFrame = 0, accumulator = 0, sampleTime = 0, sampleFrames = 0, goTime = 0;
-  function clearInput() { held.clear(); Object.keys(input).forEach(key => { input[key] = false; }); }
-  function syncInput() { Object.keys(input).forEach(key => { input[key] = [...held].some(code => bindings[code] === key); }); }
+  function clearInput() {
+    held.clear(); touches.clear(); Object.keys(input).forEach(key => { input[key] = false; });
+    document.querySelectorAll('[data-drive]').forEach(button => button.classList.remove('pressed'));
+  }
+  function syncInput() {
+    const active = mode === 'race' || mode === 'countdown';
+    Object.keys(input).forEach(key => { input[key] = active && ([...held].some(code => bindings[code] === key) || [...touches.values()].includes(key)); });
+    if (active && $('auto-gas').checked) input.gas = !input.brake;
+    document.querySelectorAll('[data-drive]').forEach(button => button.classList.toggle('pressed', input[button.dataset.drive]));
+  }
   function closeDialogs() { for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
   function start() {
     audio.silence(); audio.unlock(); audio.play('countdown');
@@ -66,21 +79,26 @@
     $('position').innerHTML = `${rank}<span> / 6</span>`;
     $('race-time').textContent = clock(race.elapsed);
     $('item-symbol').textContent = item ? item.symbol : '?';
+    $('item-symbol').dataset.item = race.player.item || '';
     $('item-name').textContent = item ? item.name : 'Aucun objet';
     const reserve = api.items[race.player.reserveItem];
     $('reserve-symbol').textContent = reserve ? reserve.symbol : '?';
+    $('reserve-symbol').dataset.item = race.player.reserveItem || '';
+    $('reserve-item').setAttribute('aria-label', reserve ? `En réserve : ${reserve.name}` : 'Réserve vide');
     $('reserve-name').textContent = reserve ? reserve.name : 'Vide';
     $('use-item').disabled = !item || mode !== 'race';
     $('use-item').title = item ? item.hint : 'Traverse une boîte ? sur la piste';
+    $('use-item').setAttribute('aria-label', item ? `Utiliser : ${item.name}. ${item.hint}` : 'Aucun objet');
     $('race-notice').textContent = race.notice;
     $('drift-charge').value = s.driftCharge;
     $('lap').innerHTML = `${Math.min(2, s.laps + 1)} <span>/ 2</span>`;
     $('checkpoint').textContent = `${s.nextGate === 0 ? 7 : s.nextGate - 1} / 7`;
     $('message').textContent = s.nextGate === 0 ? 'Tous validés · Rejoins la ligne' : `Prochaine porte : 0${s.nextGate}`;
     $('speed').textContent = Math.round(s.speed * 3.6);
-    $('handling').textContent = s.stun > 0 ? 'TOUCHÉ !' : s.boost > 0 ? 'TURBO !' : s.shield > 0 ? 'BOUCLIER ACTIF' : s.impact > 0 ? 'CONTACT AVEC LA BARRIÈRE' : s.driftCharge >= .8 ? 'RELÂCHE ESPACE : MINI-TURBO' : s.drift ? 'DÉRAPAGE · CHARGE LE TURBO' : garage.state.coins === 100 ? 'PORTEFEUILLE PLEIN · 100 PIÈCES' : api.courses[track.id].name.toUpperCase();
+    $('handling').textContent = s.stun > 0 ? 'TOUCHÉ !' : s.shield > 0 ? 'ÉTOILE · INVINCIBLE !' : s.boost > 0 ? 'TURBO !' : s.impact > 0 ? 'CONTACT AVEC LA BARRIÈRE' : s.driftCharge >= .8 ? touchDevice ? 'RELÂCHE DÉRAPAGE : MINI-TURBO' : 'RELÂCHE ESPACE : MINI-TURBO' : s.drift ? 'DÉRAPAGE · CHARGE LE TURBO' : garage.state.coins === 100 ? 'PORTEFEUILLE PLEIN · 100 PIÈCES' : api.courses[track.id].name.toUpperCase();
   }
   function tick(dt) {
+    if ((mode === 'race' || mode === 'countdown') && $('auto-gas').checked) input.gas = !input.brake;
     if (mode === 'countdown') {
       const previousCount = Math.ceil(countdown);
       countdown -= dt; $('countdown').textContent = Math.max(1, Math.ceil(countdown));
@@ -147,6 +165,14 @@
     if ((mode === 'race' || mode === 'countdown') && bindings[event.code]) { event.preventDefault(); held.add(event.code); syncInput(); }
   });
   document.addEventListener('keyup', event => { held.delete(event.code); syncInput(); });
+  document.querySelectorAll('[data-drive]').forEach(button => {
+    button.addEventListener('pointerdown', event => {
+      if (mode !== 'race' && mode !== 'countdown' || event.button !== 0) return;
+      event.preventDefault(); button.setPointerCapture(event.pointerId); touches.set(event.pointerId, button.dataset.drive); syncInput();
+    });
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, event => { touches.delete(event.pointerId); syncInput(); });
+    button.addEventListener('contextmenu', event => event.preventDefault());
+  });
   $('pause-dialog').addEventListener('cancel', event => { event.preventDefault(); resume(); });
   $('finish-dialog').addEventListener('cancel', event => { event.preventDefault(); });
   addEventListener('blur', () => { clearInput(); pause(); audio.silence(); });
@@ -154,19 +180,27 @@
   $('replay').onclick = start; $('restart').onclick = start;
   $('use-item').onclick = useItem;
   $('pause').onclick = pause; $('resume').onclick = resume; $('back').onclick = menu; $('finish-back').onclick = menu;
-  addEventListener('resize', () => { view.camera.aspect = innerWidth / innerHeight; view.camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  function fitViewport() {
+    const width = $('game').clientWidth, height = $('game').clientHeight;
+    if (!width || !height) return;
+    view.camera.aspect = width / height; view.camera.updateProjectionMatrix(); renderer.setSize(width, height, false);
+  }
+  addEventListener('resize', () => { clearInput(); fitViewport(); });
+  screen.orientation?.addEventListener('change', () => { clearInput(); pause(); });
+  new ResizeObserver(fitViewport).observe($('game'));
   $('game').addEventListener('webglcontextlost', event => { event.preventDefault(); pause(); fail('Le contexte graphique a été perdu. Recharge la page pour recommencer.'); });
   menus = api.createMenus({ T, renderer, garage, onPlay: start,
     onChange(field) { if (field === 'course' || field === 'vehicle' || field === 'tire') rebuild(); else { view.setKart(garage.state); view.update(simulation.state, 0, true, true); } },
     onPreviewPaint(paint) { if (track.id !== garage.state.course || vehicleId !== `${garage.state.vehicle}/${garage.state.tire}`) rebuild(); view.setKart({ ...garage.state, paint }); view.update(simulation.state, 0, true, true); }
   });
   function applyQuality() {
-    resolution = garage.state.quality === 'low' ? .8 : Math.min(devicePixelRatio, 1.5);
-    renderer.setPixelRatio(resolution); renderer.shadowMap.enabled = garage.state.quality !== 'low';
+    resolution = garage.state.quality === 'low' ? .8 : Math.min(devicePixelRatio, touchDevice && garage.state.quality === 'auto' ? 1 : 1.5);
+    renderer.setPixelRatio(resolution); renderer.shadowMap.enabled = garage.state.quality !== 'low' && !(touchDevice && garage.state.quality === 'auto');
   }
   $('quality').value = garage.state.quality;
   $('quality').onchange = () => { garage.quality($('quality').value); applyQuality(); menus.wallet(); };
   $('sound-enabled').onchange = () => audio.setEnabled($('sound-enabled').checked);
+  $('auto-gas').onchange = () => { document.body.classList.toggle('auto-gas', $('auto-gas').checked); syncInput(); };
   $('options').onclick = () => $('options-dialog').showModal();
   $('options-close').onclick = () => $('options-dialog').close();
   addEventListener('storage', () => { garage.read(); menus.wallet(); });

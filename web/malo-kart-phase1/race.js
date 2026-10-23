@@ -2,10 +2,10 @@
   'use strict';
   const api = window.MaloPrototype;
   api.items = {
-    turbo: { name: 'Turbo', symbol: '»', hint: 'Une accélération pendant 2 secondes', color: '#ffbc48' },
-    orb: { name: 'Orbe', symbol: '●', hint: 'Vise le kart devant toi à moins de 100 m', color: '#ed83ff' },
-    shield: { name: 'Bouclier', symbol: '◇', hint: 'Absorbe une attaque pendant 6 secondes', color: '#67efff' },
-    trap: { name: 'Piège', symbol: '▲', hint: 'Pose un obstacle derrière ton kart', color: '#ff7191' }
+    turbo: { name: 'Champignon', symbol: '»', hint: 'Accélère pendant 2 secondes', color: '#ffbc48' },
+    orb: { name: 'Carapace rouge', symbol: '●', hint: 'Poursuit le kart devant toi à moins de 100 m', color: '#ef4d43' },
+    shield: { name: 'Étoile', symbol: '★', hint: 'Vitesse et invincibilité contre les objets et les karts pendant 6 secondes', color: '#ffe469' },
+    trap: { name: 'Banane', symbol: '▲', hint: 'Pose une banane derrière ton kart', color: '#ffe469' }
   };
   api.createRace = (track, simulation, choice, random = Math.random) => {
     const unit = track.length / track.points.length;
@@ -46,8 +46,7 @@
       const s = racer.state;
       if (s.finished || s.grace > 0) return;
       if (s.shield > 0) {
-        s.shield = 0; s.grace = .6;
-        if (racer === player) announce('BOUCLIER · Attaque bloquée !');
+        if (racer === player) announce('ÉTOILE · Attaque bloquée !');
         return;
       }
       s.stun = 1; s.grace = 2; s.boost = 0; s.speed *= .45;
@@ -59,10 +58,10 @@
       if (item === 'orb') {
         const target = racers.filter(other => other !== racer && !other.state.finished && other.progress > racer.progress && other.progress - racer.progress < 100)
           .sort((a, b) => a.progress - b.progress)[0];
-        if (!target) { if (racer === player) announce('ORBE · Aucun adversaire à portée devant toi'); return false; }
+        if (!target) { if (racer === player) announce('CARAPACE · Aucun adversaire à portée devant toi'); return false; }
         shots.push({ x: s.x, z: s.z, target, owner: racer.id, ttl: 3 });
-      } else if (item === 'turbo') s.boost = 2;
-      else if (item === 'shield') s.shield = 6;
+      } else if (item === 'turbo') s.boost = Math.max(s.boost, 2);
+      else if (item === 'shield') { s.shield = 6; s.boost = Math.max(s.boost, 6); s.stun = 0; }
       else if (item === 'trap') hazards.push({ x: s.x - Math.sin(s.yaw) * 3, z: s.z - Math.cos(s.yaw) * 3, owner: racer.id, ttl: 14 });
       racer.item = racer.reserveItem; racer.reserveItem = null;
       if (racer === player) announce(`${api.items[item].name.toUpperCase()} !`);
@@ -101,7 +100,7 @@
           if (racer.item) racer.reserveItem = item;
           else { racer.item = item; racer.nextUse = elapsed + 1.5; }
           box.cooldown = 4;
-          if (racer === player) announce(`${api.items[item].name.toUpperCase()} · ${racer.reserveItem ? 'En réserve' : 'Appuie sur E'}`);
+          if (racer === player) announce(`${api.items[item].name.toUpperCase()} · ${racer.reserveItem ? 'En réserve' : 'Objet prêt'}`);
           break;
         }
       }
@@ -124,7 +123,10 @@
       }
       for (const rival of rivals) {
         const s = player.state, other = rival.state;
-        if (s.finished || other.finished || s.grace > 0 || Math.hypot(s.x - other.x, s.z - other.z) >= 1.8) continue;
+        if (s.finished || other.finished || Math.hypot(s.x - other.x, s.z - other.z) >= 1.8) continue;
+        if (s.shield > 0) { hit(rival); continue; }
+        if (other.shield > 0) { hit(player); continue; }
+        if (s.grace > 0) continue;
         s.vx *= .82; s.vz *= .82; s.speed *= .82; s.grace = .8;
         other.speed *= .85;
       }

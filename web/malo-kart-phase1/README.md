@@ -1,6 +1,6 @@
 # Malo Kart — Grand Prix
 
-Jeu de kart 3D pour navigateur desktop, avec des menus inspirés de Mario Kart 8 Deluxe. Affronte cinq adversaires sur deux tours, ramasse deux objets et charge un mini-turbo en dérapant. Le garage propose seize pilotes, trois châssis, trois types de roues, trois ailes, trois circuits et des pièces à dépenser. Le chemin `web/malo-kart-phase1/` est conservé pour garder les liens existants fonctionnels. L’ancienne version Riviera GP reste séparée dans `../malo-kart.html`.
+Jeu de kart 3D pour ordinateur, téléphone et tablette, avec des menus inspirés de Mario Kart 8 Deluxe. Affronte cinq adversaires sur deux tours, ramasse deux objets et charge un mini-turbo en dérapant. Le garage propose seize pilotes, trois châssis, trois types de roues, trois ailes, trois circuits et des pièces à dépenser. Le chemin `web/malo-kart-phase1/` est conservé pour garder les liens existants fonctionnels. L’ancienne version Riviera GP reste séparée dans `../malo-kart.html`.
 
 ## Lancer
 
@@ -13,6 +13,8 @@ python -m http.server 8000 --bind 127.0.0.1
 ```
 
 Ouvrir `http://127.0.0.1:8000/web/malo-kart-phase1/`. Arrêter le serveur avec Ctrl+C. Tous les fichiers sont statiques et utilisent des chemins relatifs, compatibles avec une publication de la racine du dépôt sur GitHub Pages. Conserver `web/vendor/`. Aucune publication n’a été effectuée ici.
+
+Sur téléphone ou tablette, utiliser l’adresse web du jeu dans le navigateur. Le chemin local du PC et l’adresse `127.0.0.1` de ce PC ne sont pas accessibles depuis un autre appareil. Pour un essai sur le même réseau Wi-Fi, servir le dossier avec `python -m http.server 8000 --bind 0.0.0.0`, puis ouvrir `http://<adresse-IP-locale-du-PC>:8000/web/malo-kart-phase1/` sur le mobile. Le PC doit rester allumé ; arrêter le serveur après l’essai. L’ouverture locale `file://` est vérifiée sur ordinateur ; l’ouverture mobile est prévue via HTTP/HTTPS.
 
 ## Préparer une course
 
@@ -71,6 +73,10 @@ Choix, qualité, solde et couleurs acquises sont sauvegardés sous `malo-kart-ga
 - E, Maj ou bouton de l’objet : utiliser le premier objet ; l’objet en réserve prend automatiquement sa place.
 - Échap ou Ⅱ : pause. Reprendre, recommencer ou retourner à l’accueil depuis la pause.
 
+Sur écran tactile, les flèches du bas permettent de tourner, **FREIN** de ralentir et **DÉRAPAGE** de charger le mini-turbo pendant un virage. L’accélération automatique est activée par défaut : maintenir le frein la coupe temporairement. La désactiver dans Options affiche une pédale **ACCÉLÉRER** à maintenir. Ce réglage vaut pour la session. Toucher l’objet actif utilise le premier objet, puis fait avancer la réserve. Plusieurs doigts peuvent maintenir plusieurs commandes ; relâcher, interrompre le geste ou quitter l’application libère les commandes. Changer d’orientation met la course en pause.
+
+Les menus sont défilables en portrait et en paysage, avec une confirmation toujours accessible. En portrait, le kart apparaît au-dessus des choix et la caméra de course élargit son champ de vision. Le tableau de bord tactile garde la place, les tours, les deux objets, la mini-carte et le compteur. Les étincelles du dérapage deviennent bleues à 0,8 seconde, puis orange à 1,6 seconde ; la flamme apparaît pendant le turbo.
+
 Départ 3–2–1–GO, deux tours et sept checkpoints à passer dans l’ordre. La ligne ne valide un tour qu’après ces portes et dans le bon sens. Rester immobile, revenir sur la ligne ou sauter des portes ne valide pas un tour. La caméra suit le kart librement déplacé en X/Z. Les barrières limitent la trajectoire et réduisent la vitesse au contact. Perdre le focus ou changer d’onglet met le jeu en pause et libère les touches.
 
 ## Adversaires et objets
@@ -81,10 +87,12 @@ Traverse une boîte bleue « ? » avec un emplacement d’objet vide. Chaque bo�
 
 | Objet | Effet |
 | --- | --- |
-| Turbo | Accélération et vitesse maximale augmentées pendant 2 secondes. |
-| Orbe | Poursuit le rival le plus proche devant toi à moins de 100 mètres. Sans cible, l’objet est conservé. |
-| Bouclier | Absorbe une attaque ; expire après 6 secondes. |
-| Piège | Obstacle posé derrière le kart ; disparaît après un impact ou 14 secondes. Son propriétaire est immunisé. |
+| Champignon | Accélération et vitesse maximale augmentées pendant 2 secondes. |
+| Carapace rouge | Poursuit le rival le plus proche devant toi à moins de 100 mètres. Sans cible, l’objet est conservé. |
+| Étoile | Accélération et protection contre les attaques et les karts pendant 6 secondes, sans être consommée au premier impact. Annule l’étourdissement et repousse les rivaux au contact. Les barrières restent solides. |
+| Banane | Obstacle posé derrière le kart ; disparaît après un impact ou 14 secondes. Son propriétaire est immunisé. |
+
+Les quatre icônes sont des SVG dessinés pour cette adaptation. Les carapaces et les bananes ont leurs modèles 3D ; des étoiles tournent autour des karts invincibles. Les durées et les règles ci-dessus sont propres à ce jeu simplifié.
 
 Une attaque ralentit le kart pendant une seconde, avec deux secondes de protection contre les attaques successives. Le temps, les rivaux, les objets et leurs effets sont figés en pause. Recommencer remet la course et les objets à zéro, sans effacer le garage ni les pièces déjà sauvegardées.
 
@@ -98,12 +106,13 @@ Le moteur monte dans les tours avec la vitesse. Le départ, les pièces, les obj
 - `garage.js` : catalogue, portefeuille, achats, validation et sauvegarde par profil.
 - `kart.js` : modèles 3D des pilotes et des véhicules.
 - `menus.js`, `menu.css` : grille de personnages, aperçus de circuits, statistiques et navigation des nouveaux menus.
+- `mobile.css` : commandes tactiles, écrans portrait/paysage, zones de sécurité et tableau de bord mobile.
 - `guest-drivers.js` : modèles 3D simplifiés des douze personnages ajoutés.
 - `assets/portraits/` : portraits et [sources des images](assets/portraits/SOURCES.md) ; `assets/menu-pattern.svg` : motifs dessinés pour les menus.
 - `circuit.js` : trois tracés originaux et checkpoints.
 - `simulation.js` : conduite, différences de véhicules, collisions et tours.
 - `race.js` : adversaires, classement, boîtes à objets, attaques et effets.
-- `race-view.js` : karts adverses, objets en 3D, boucliers et mini-carte.
+- `race-view.js` : karts adverses, objets en 3D, étoiles et mini-carte.
 - `audio.js` : moteur et effets sonores synthétisés avec Web Audio.
 - `scene.js` : décor, thèmes, pièces et caméra.
 - `game.js` : clavier, course, collecte, application des choix et qualité.
@@ -111,6 +120,7 @@ Le moteur monte dans les tours avec la vitesse. Le départ, les pièces, les obj
 - `../../index.html` : lien vers cette version.
 - `../../tests/test_malo_kart_phase1.py` et `../../tests/test_malo_kart_garage.py` : vérifications navigateur.
 - `../../tests/test_malo_kart_race.py` : courses avec adversaires, deux emplacements d’objets, classement, mini-turbo, signal audio et coupure du son.
+- `../../tests/test_malo_kart_mobile.py` : parcours depuis l’accueil, cinq tailles téléphone/tablette, gestes multitouch, freinage, dérapage, annulation, pause, rotation, objets et accélération manuelle.
 
 ## Vérifications
 
@@ -121,9 +131,12 @@ python -m pip install playwright
 python tests/test_malo_kart_phase1.py
 python tests/test_malo_kart_garage.py
 python tests/test_malo_kart_race.py
+python tests/test_malo_kart_mobile.py
 ```
 
 Chaque script gère son propre serveur temporaire. Captures dans `.tmp/malo-phase1-checks/`, `.tmp/malo-garage-checks/` et `.tmp/malo-race-checks/`.
+
+Les captures mobiles sont dans `.tmp/malo-mobile-checks/`. Le test mobile utilise l’émulation tactile d’Edge aux dimensions 320 × 568, 390 × 844, 844 × 390, 768 × 1024 et 1024 × 768. Le service worker est bloqué uniquement dans le contexte de test instrumenté pour permettre l’injection des accès à l’état du jeu. Des essais sur appareils Android/iOS physiques restent nécessaires, notamment pour Safari, le clavier virtuel, les encoches et les performances réelles.
 
 Les vérifications couvrent commandes simultanées, sens à l’écran, freinage, dérapage, barrières, checkpoints, pause, rejeu, caméra et ouverture locale ; navigation, aperçus distincts, sauvegarde des choix, différences physiques de véhicules ; les 27 assemblages du garage, l’accélération avec chaque type de pneus, l’ouverture et le repli des ailes, les anciennes sauvegardes et les identifiants de pièces invalides ; neuf courses de deux tours (chaque véhicule sur chaque circuit) ; collecte au-delà de dix pièces, plafond de 100, absence de double collecte, achats, solde insuffisant, absence de double débit, persistance après rechargement, isolation des profils et repli sans stockage. Les accès à l’état du jeu utilisés par les tests sont injectés dans la réponse JavaScript de test uniquement.
 
@@ -131,6 +144,8 @@ Les vérifications couvrent commandes simultanées, sens à l’écran, freinage
 
 Objectif : 60 FPS sur PC standard, sans garantie pour tous les GPU. Options Automatique, Élevée ou Légère. En automatique, résolution limitée à 1,5 fois la taille CSS et abaissée progressivement jusqu’à 0,75 si la moyenne dépasse 24 ms/image sur quatre secondes ; les ombres sont alors désactivées au facteur 1 ou moins. Le mode léger utilise un facteur 0,8 sans ombres. Les anciens modèles, matériaux, textures et ombres sont libérés lors des changements.
 
+Sur écran tactile, la qualité Automatique démarre au facteur 1 maximum, sans ombres, puis conserve l’adaptation à la cadence. Le mode Élevée permet de réactiver les ombres. Le formulaire de profil commun à l’accueil est désormais limité à la hauteur visible et défilable ; la version du cache d’accueil a été mise à jour pour distribuer sa nouvelle feuille de style.
+
 Three.js 0.160.1 est fourni localement sous licence MIT (`../vendor/three.LICENSE.txt`). Son bundle classique affiche un avertissement de dépréciation non bloquant, mais permet l’ouverture en fichier local. Les douze portraits de personnages sont © Nintendo et proviennent de la [page officielle de Mario Kart 8 Deluxe](https://www.nintendo.com/au/games/nintendo-switch/mario-kart-8-deluxe/) ; les liens individuels sont conservés dans `assets/portraits/SOURCES.md`. Ils ne sont pas sous la licence MIT du moteur. Les modèles 3D et les motifs du menu sont générés localement. Aucune requête externe à l’exécution, musique externe, police distante ou dépendance payante. Si Three.js ou WebGL manque, un message propose de recharger la page.
 
-Jeu solo contre cinq adversaires automatisés ; pas de multijoueur ni de musique. Pas de commandes tactiles ni de marche arrière. Les graphismes restent stylisés et les collisions simplifiées ; les adversaires suivent le tracé avec une conduite simplifiée. Cette version n’est pas le jeu officiel : elle ne reproduit pas ses modèles détaillés, ses circuits, l’antigravité ou le vol. Les tests ont été exécutés dans Edge/Chromium ; Chrome desktop reste à vérifier sur un poste qui le possède.
+Jeu solo contre cinq adversaires automatisés ; pas de multijoueur, de musique ni de marche arrière. Les graphismes restent stylisés et les collisions simplifiées ; les adversaires suivent le tracé avec une conduite simplifiée. Cette version n’est pas le jeu officiel : elle ne reproduit pas ses modèles détaillés, ses circuits, l’antigravité ou le vol. Les tests ont été exécutés dans Edge/Chromium, avec émulation mobile ; Safari iOS, Chrome Android et les appareils physiques restent à vérifier.

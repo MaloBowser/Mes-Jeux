@@ -113,10 +113,22 @@ try:
             checks.orbHit ||= race.rivals.some(r=>r.state.stun>0);
           }
           sim.reset();race.reset();
-          player.item='shield';race.useItem();
+          s.stun=1;player.item='shield';race.useItem();
+          checks.starActivation=s.shield===6 && s.boost===6 && s.stun===0;
           const hazard=()=>race.hazards.push({x:s.x,z:s.z,owner:1,ttl:14});
           hazard();race.step(1/120);
-          checks.shield=s.shield===0 && s.stun===0 && race.hazards.length===0;
+          checks.starBlocks=s.shield===6 && s.stun===0 && race.hazards.length===0;
+          hazard();race.step(1/120);
+          checks.starRepeated=s.shield===6 && s.stun===0;
+          player.item='turbo';race.useItem();
+          checks.mushroomPreservesStar=s.boost===6;
+          const contact=race.rivals[0];
+          Object.assign(s,{x:contact.state.x,z:contact.state.z,speed:25,vx:25,vz:0});
+          race.step(1/120);
+          checks.starContact=s.speed===25 && contact.state.stun>0;
+          for(let i=0;i<721;i++)sim.step(1/120,{});
+          checks.starExpires=s.shield===0 && s.boost===0;
+          sim.reset();race.reset();
           s.grace=0;hazard();race.step(1/120);
           checks.trapHit=s.stun>0;
           for(let i=0;i<250;i++)sim.step(1/120,{gas:true});
@@ -160,16 +172,34 @@ try:
         print('RACE_MECHANICS', json.dumps(mechanics), flush=True)
         assert all(mechanics.values()), mechanics
         page.evaluate("testRace.race.player.item='turbo';testRace.race.player.reserveItem='shield';testRace.render()")
-        assert page.locator('#item-name').inner_text() == 'Turbo'
-        assert page.locator('#reserve-name').inner_text() == 'Bouclier'
+        assert page.locator('#item-name').inner_text() == 'Champignon'
+        assert page.locator('#reserve-name').inner_text() == 'Étoile'
+        for item, filename in [('turbo', 'mushroom'), ('orb', 'shell'), ('shield', 'star'), ('trap', 'banana')]:
+            page.evaluate('(item)=>{testRace.race.player.item=item;testRace.render()}', item)
+            assert filename + '.svg' in page.locator('#item-symbol').evaluate('(el)=>getComputedStyle(el).backgroundImage')
+            assert page.locator('#use-item').get_attribute('aria-label').startswith('Utiliser : ')
+            assert page.evaluate('''async (filename)=>{
+              const image=new Image();image.src=`assets/items/${filename}.svg`;
+              await image.decode();return image.naturalWidth>0;
+            }''', filename)
+        page.evaluate("testRace.race.player.item='turbo';testRace.render()")
         page.screenshot(path=str(OUT / 'two-items.png'))
         page.keyboard.press('KeyE')
         assert page.evaluate('testRace.simulation.state.boost') == 2
-        assert page.locator('#item-name').inner_text() == 'Bouclier'
+        assert page.locator('#item-name').inner_text() == 'Étoile'
         assert page.locator('#reserve-name').inner_text() == 'Vide'
         page.locator('#use-item').click()
         assert page.evaluate('testRace.simulation.state.shield') == 6
         assert page.locator('#use-item').is_disabled()
+        page.evaluate('''()=>{
+          const r=testRace.race,s=testRace.simulation.state;
+          const point=(side)=>({x:s.x+Math.sin(s.yaw)*5+Math.cos(s.yaw)*side,z:s.z+Math.cos(s.yaw)*5-Math.sin(s.yaw)*side});
+          r.hazards.push({...point(-2),owner:0,ttl:14});
+          r.shots.push({...point(2),target:r.rivals[0],owner:0,ttl:3});
+          testRace.render();
+        }''')
+        page.screenshot(path=str(OUT / 'items-3d.png'))
+        page.evaluate('testRace.race.hazards.pop();testRace.race.shots.pop()')
         page.evaluate("testRace.race.player.item='turbo';testRace.race.player.reserveItem='shield'")
         page.keyboard.press('Escape')
         page.wait_for_function('testAudio.engineGain.gain.value===0 && testAudio.effects===0')

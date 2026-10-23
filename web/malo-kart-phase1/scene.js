@@ -147,6 +147,7 @@
       if (menu) {
         destination.set(state.x + fx * 6 + fz * 6, 4.3, state.z + fz * 6 - fx * 6);
         look.set(state.x - fz * 3, 0, state.z + fx * 3);
+        if (innerWidth <= 900 && innerHeight > innerWidth) look.set(state.x, deployed ? 1.7 : 1.2, state.z);
         showroomLight.position.set(destination.x, 7, destination.z);
         kart.rotation.y += Math.sin(animation * .45) * .12;
       } else {
@@ -154,7 +155,7 @@
         look.set(state.x + fx * 4, 1, state.z + fz * 4);
       }
       camera.position.lerp(destination, snap ? 1 : 1 - Math.exp(-dt * 8)); camera.lookAt(look);
-      camera.fov = menu ? 49 : 55 + state.speed * .18; camera.updateProjectionMatrix();
+      camera.fov = menu ? 49 : Math.min(90, 2 * Math.atan(Math.tan((55 + state.speed * .18) * Math.PI / 360) / Math.min(1, camera.aspect)) * 180 / Math.PI); camera.updateProjectionMatrix();
       sun.position.set(state.x - 45, 70, state.z + 30); sun.target.position.set(state.x, 0, state.z);
       gates.forEach((mat, i) => { mat.emissive.set(i === state.nextGate ? '#1b6756' : '#000000'); });
     }
