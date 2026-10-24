@@ -1,7 +1,8 @@
 (() => {
   'use strict';
   window.MaloPrototype.createScene = (T, renderer, track, choice) => {
-    const theme = window.MaloPrototype.courses[track.id], night = track.id === 'neon', desert = track.id === 'desert';
+    const theme = window.MaloPrototype.courses[track.id], rainbow=theme.presentation==='rainbow', tropical=theme.presentation==='tropical';
+    const night = theme.theme === 'forest' || theme.theme === 'city' || rainbow, desert = theme.theme === 'sand';
     const scene = new T.Scene();
     scene.background = new T.Color(theme.sky); scene.fog = new T.Fog(theme.fog, 200, 650);
     const raceBackground = scene.background, raceFog = scene.fog;
@@ -28,11 +29,18 @@
       map.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy()); return map;
     }
     const roadMap = texture(128, 128, (ctx, w, h) => {
+      if(rainbow){
+        const colors=['#ff75ad','#f6b95a','#eee774','#8ee8a7','#77daee','#9aa5f1','#cb94f2','#f5a7d8'];
+        colors.forEach((color,i)=>{ctx.fillStyle=color;ctx.fillRect(i*16,0,16,h);});
+        ctx.strokeStyle='#e6faffbb';ctx.lineWidth=1;
+        for(let i=0;i<=128;i+=16){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,128);ctx.moveTo(0,i);ctx.lineTo(128,i);ctx.stroke();}
+        return;
+      }
       ctx.fillStyle = '#475a64'; ctx.fillRect(0, 0, w, h);
       let seed = 91;
       const noise = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
       for (let i = 0; i < 3500; i++) { ctx.fillStyle = i % 2 ? '#ffffff0b' : '#0000000d'; ctx.fillRect(noise() * w, noise() * h, 1, 1); }
-      ctx.fillStyle = '#f5e9cf'; ctx.fillRect(3, 0, 1, h); ctx.fillRect(w - 4, 0, 1, h);
+      ctx.fillStyle = tropical?'#ffd15c':'#f5e9cf'; ctx.fillRect(3, 0, tropical?3:1, h); ctx.fillRect(w - 4, 0, tropical?3:1, h);
       ctx.fillStyle = '#d3ddd455'; ctx.fillRect(w / 2 - 1, 18, 2, 45);
     });
     roadMap.wrapS = roadMap.wrapT = T.RepeatWrapping;
@@ -51,27 +59,44 @@
     const sea = mesh(new T.PlaneGeometry(2200, 2200), material(theme.outer, .35, .15), [0, -1.2, 0]); sea.rotation.x = -Math.PI / 2; sea.castShadow = false;
     const beach = mesh(new T.CircleGeometry(185, 96), material('#efd29a'), [0, -.3, 0]); beach.rotation.x = -Math.PI / 2; beach.castShadow = false;
     const island = mesh(new T.CircleGeometry(174, 96), material(theme.ground), [0, -.05, 0]); island.rotation.x = -Math.PI / 2; island.castShadow = false;
-    ribbon(-9.3, 9.3, white, .01);
-    ribbon(-8, 8, new T.MeshStandardMaterial({ map: roadMap, roughness: .95 }), .04);
-    const panels = new T.InstancedMesh(boxGeometry, white, track.points.length);
+    sea.visible=beach.visible=island.visible=!rainbow;
+    ribbon(-9.3, 9.3, rainbow?new T.MeshStandardMaterial({color:'#9b86e6',emissive:'#7a5eb8',emissiveIntensity:.5}):white, .01);
+    ribbon(-8, 8, new T.MeshStandardMaterial({ map: roadMap, roughness:rainbow?.3:.95,emissive:rainbow?'#ffffff':'#000000',emissiveMap:rainbow?roadMap:null,emissiveIntensity:.45 }), .04);
+    const arrows = texture(128, 128, ctx => {
+      ctx.fillStyle = '#ffffff';
+      for (const y of [30,80]) { ctx.beginPath(); ctx.moveTo(14,y+24); ctx.lineTo(64,y); ctx.lineTo(114,y+24); ctx.lineTo(114,y+38); ctx.lineTo(64,y+14); ctx.lineTo(14,y+38); ctx.closePath(); ctx.fill(); }
+    });
+    for (const zone of track.zones || []) {
+      const ramp = zone.type === 'glide', group = new T.Group();
+      group.position.set(zone.x,.07,zone.z); group.rotation.y = Math.atan2(zone.tx,zone.tz); scenery.add(group);
+      const surface = new T.MeshStandardMaterial({ color:ramp?'#1ccaff':'#ffae32', map:arrows, emissive:ramp?'#087cca':'#dd621a', emissiveIntensity:.6, side:T.DoubleSide });
+      const panel = mesh(new T.PlaneGeometry(12,6),surface,[0,ramp?.6:.02,-2.8],[1,1,1],group);
+      panel.rotation.set(-Math.PI/2-(ramp?.2:0),0,Math.PI);
+      for (const side of [-1,1]) box(ramp?blue:white,[side*6.2,.15,-2.8],[.2,.2,6],group);
+    }
+    const panels = new T.InstancedMesh(boxGeometry, rainbow?new T.MeshBasicMaterial({color:'#ffffff',toneMapped:false}):white, track.points.length);
     const dummy = new T.Object3D();
     track.points.forEach((p, i) => {
       for (let side = 0; side < 2; side++) {
         const offset = side ? 8.25 : -8.25;
-        dummy.position.set(p.x + p.tz * offset, .5, p.z - p.tx * offset);
-        dummy.rotation.set(0, Math.atan2(p.tx, p.tz), 0); dummy.scale.set(.45, .9, track.length / track.points.length * 2.1); dummy.updateMatrix();
-        if (i % 2 === 0) { const index = i + side; panels.setMatrixAt(index, dummy.matrix); panels.setColorAt(index, new T.Color(i % 12 < 6 ? theme.accent : '#fff1d0')); }
+        dummy.position.set(p.x + p.tz * offset, rainbow?.85:.5, p.z - p.tx * offset);
+        dummy.rotation.set(0, Math.atan2(p.tx, p.tz), 0); dummy.scale.set(rainbow?.25:.45, rainbow?.22:.9, track.length / track.points.length * 2.1); dummy.updateMatrix();
+        if (i % 2 === 0) { const index = i + side; panels.setMatrixAt(index, dummy.matrix); panels.setColorAt(index, rainbow?new T.Color().setHSL(i/480,.8,.75):new T.Color(i % 12 < 6 ? theme.accent : '#fff1d0')); }
       }
     });
     panels.castShadow = panels.receiveShadow = true; scenery.add(panels);
     const gates = track.gates.map((p, i) => {
       const group = new T.Group(); group.position.set(p.x, 0, p.z); group.rotation.y = Math.atan2(p.tx, p.tz); scenery.add(group);
       const gateMaterial = material(i ? '#48c7b9' : '#ffd15a');
+      if(i){
+        for(const side of [-1,1]) { box(gateMaterial,[side*9,1.2,0],[.25,2.4,.3],group);box(white,[side*9,2.3,0],[.65,.25,.4],group); }
+        return gateMaterial;
+      }
       for (const side of [-1, 1]) { box(dark, [side * 9, 2.7, 0], [.45, 5.4, .5], group); box(gateMaterial, [side * 9, 4.3, 0], [.6, 1.5, .65], group); }
       box(dark, [0, 5.6, 0], [18.6, .9, .55], group);
       const sign = texture(512, 64, (ctx, w, h) => {
         ctx.fillStyle = '#163746'; ctx.fillRect(0, 0, w, h); ctx.fillStyle = i ? '#baf6df' : '#ffdf71';
-        ctx.font = 'bold 31px Arial'; ctx.textAlign = 'center'; ctx.fillText(i ? `CHECKPOINT  0${i}` : window.MaloPrototype.courses[track.id].name.toUpperCase(), w / 2, 44);
+        ctx.font = 'italic bold 38px Arial'; ctx.textAlign = 'center'; ctx.fillText('MALO KART', w / 2, 46);
       });
       const label = mesh(new T.PlaneGeometry(9, .8), new T.MeshBasicMaterial({ map: sign }), [0, 5.6, -.29], [1, 1, 1], group); label.rotation.y = Math.PI;
       const lineMap = texture(256, 32, (ctx, w, h) => {
@@ -82,7 +107,7 @@
       return gateMaterial;
     });
     const trunks = [], crowns = [];
-    for (let i = 0; i < 86; i++) {
+    for (let i = 0; i < (rainbow||tropical?0:86); i++) {
       const angle = i * 2.39996, radius = 30 + ((i * 71) % 132), x = Math.sin(angle) * radius, z = Math.cos(angle) * radius;
       if (window.MaloPrototype.nearestPoint(track.points, x, z).distance < 15) continue;
       const h = 5 + i % 4;
@@ -93,23 +118,37 @@
       entries.forEach((p, i) => { dummy.position.set(...p.slice(0, 3)); dummy.scale.set(...p.slice(3)); dummy.rotation.set(0, i, 0); dummy.updateMatrix(); object.setMatrixAt(i, dummy.matrix); });
       object.castShadow = object.receiveShadow = true; scenery.add(object);
     }
-    if (!desert) instances(new T.CylinderGeometry(1, 1.3, 1, 7), material('#88674a'), trunks);
+    if (['coast','forest','snow'].includes(theme.theme)) instances(new T.CylinderGeometry(1, 1.3, 1, 7), material('#88674a'), trunks);
     if (desert) {
       instances(new T.CylinderGeometry(.35, .45, 1, 8), material(theme.tree), crowns.map(p => [p[0], 2.3, p[2], 2, 4.6, 2]));
       instances(boxGeometry, material(theme.tree), crowns.flatMap(p => [[p[0] + 1, 2.3, p[2], 2, .6, .6], [p[0] + 1.7, 3.1, p[2], .6, 2.1, .6]]));
       instances(new T.IcosahedronGeometry(1, 0), material('#b37349'), crowns.map(p => [p[0] + 4, 1.2, p[2] + 3, 2.6, 2, 2]));
+    } else if (['city','lava','candy','cloud'].includes(theme.theme)) {
+      if (theme.theme === 'city') {
+        instances(boxGeometry,material('#35445f'),crowns.map((p,i)=>[p[0],5+i%5*2,p[2],4,10+i%5*4,4]));
+        instances(boxGeometry,new T.MeshStandardMaterial({color:'#fff0a0',emissive:'#e6bc63',emissiveIntensity:.8}),crowns.map((p,i)=>[p[0],6+i%5*2,p[2]-2.05,2.5,3,.1]));
+      } else if (theme.theme === 'lava') {
+        instances(new T.ConeGeometry(1,2,6),material('#533a4b'),crowns.map(p=>[p[0],3,p[2],4,5,4]));
+        instances(new T.IcosahedronGeometry(1,0),material('#ffad35'),crowns.map(p=>[p[0],5,p[2],1.5,1,1.5]));
+      } else if (theme.theme === 'candy') {
+        instances(new T.CylinderGeometry(.15,.15,1,6),white,trunks);
+        instances(new T.SphereGeometry(1,10,8),material('#f5a1cf'),crowns);
+        instances(new T.TorusGeometry(1,.4,6,12),material('#ffe7a0'),crowns.map(p=>[p[0]+4,1.8,p[2],2,2,2]));
+      } else instances(new T.SphereGeometry(1,10,8),white,crowns.map(p=>[p[0],3,p[2],6,2,4]));
     } else {
       const foliage = material(theme.tree);
       if (night) { foliage.emissive.set('#16494c'); foliage.emissiveIntensity = .6; }
       instances(night ? new T.ConeGeometry(1, 2.5, 7) : new T.IcosahedronGeometry(1, 1), foliage, crowns);
     }
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < (rainbow?0:12); i++) {
       const angle = i * Math.PI / 6, radius = 340 + (i % 3) * 40;
       mesh(new T.IcosahedronGeometry(1, 1), material(i % 2 ? '#74a5a8' : '#88b7ba'), [Math.cos(angle) * radius, 12, Math.sin(angle) * radius], [65 + i * 3, 30 + i * 3, 65]);
     }
     const building = new T.Group(); building.position.set(37, 0, 132); scenery.add(building);
+    building.visible=!rainbow&&!tropical;
     box(white, [0, 3, 0], [18, 6, 9], building); box(blue, [0, 6.3, 0], [20, .6, 11], building);
     for (let i = -2; i <= 2; i++) box(dark, [i * 3.3, 2.5, -4.55], [2.4, 3.5, .1], building);
+    window.MaloPrototype.addReferenceScenery(T,scenery,track,texture);
     const podium = new T.Group(); scene.add(podium);
     mesh(new T.CylinderGeometry(2.6, 2.75, .42, 64), material('#354353', .32, .6), [0, -.2, 0], [1, 1, 1], podium);
     mesh(new T.CylinderGeometry(2.49, 2.49, .04, 64), material('#677784', .4, .4), [0, .03, 0], [1, 1, 1], podium);
@@ -124,7 +163,7 @@
     const coins = [];
     const coinGeometry = new T.CylinderGeometry(.48, .48, .12, 20);
     const coinMaterial = new T.MeshStandardMaterial({ color: '#ffcf41', metalness: .6, roughness: .25, emissive: '#ad6d00', emissiveIntensity: .4 });
-    for (let i = 12; i < track.points.length; i += 9) {
+    for (const i of [12,24,54,66,78,216,228,258,270,282,450,462]) {
       const p = track.points[i], object = new T.Group(); object.position.set(p.x, 1.1, p.z); scenery.add(object);
       const disc = mesh(coinGeometry, coinMaterial, [0, 0, 0], [1, 1, 1], object); disc.rotation.x = Math.PI / 2;
       coins.push({ object, x: p.x, z: p.z, lap: -1 });
@@ -133,12 +172,13 @@
     const look = new T.Vector3(), destination = new T.Vector3();
     function update(state, dt, menu, snap = false) {
       const { root: kart, body, wheels, glider } = model;
-      const deployed = menu && document.body.dataset.menu === 'vehicle';
+      const finished=!menu&&document.body.classList.contains('finished');
+      const deployed = menu && document.body.dataset.menu === 'vehicle' || !menu && !finished && state.y > 0;
       glider.scale.setScalar(deployed ? 1 : .15); glider.position.set(0, deployed ? 3.1 : 1.15, deployed ? -.35 : -.9);
       scenery.visible = !menu; podium.visible = menu; podium.position.set(state.x, 0, state.z);
       scene.background = menu ? null : raceBackground; scene.fog = menu ? null : raceFog;
       showroomLight.visible = menu;
-      kart.position.set(state.x, .08, state.z); kart.rotation.y = state.yaw;
+      kart.position.set(state.x, .08 + (finished?0:state.y || 0), state.z); kart.rotation.set(!menu && !finished && state.y > 0 ? -.12 : 0,state.yaw,0);
       animation += dt;
       coins.forEach(c => { c.object.rotation.y = animation * 2; c.object.position.y = 1.1 + Math.sin(animation * 3 + c.x) * .12; });
       body.rotation.z = Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * Math.min(state.speed / 60, .15);
@@ -150,12 +190,16 @@
         if (innerWidth <= 900 && innerHeight > innerWidth) look.set(state.x, deployed ? 1.7 : 1.2, state.z);
         showroomLight.position.set(destination.x, 7, destination.z);
         kart.rotation.y += Math.sin(animation * .45) * .12;
+      } else if(finished) {
+        destination.set(state.x+fx*5.5+fz*5,3.1,state.z+fz*5.5-fx*5);
+        look.set(state.x+fz*2.7,1.1,state.z-fx*2.7);
+        if(innerHeight>innerWidth){destination.set(state.x+fx*11+fz*6,4.8,state.z+fz*11-fx*6);look.set(state.x,-2.3,state.z);}
       } else {
-        destination.set(state.x - fx * (8 + state.speed * .045), 4.6, state.z - fz * (8 + state.speed * .045));
-        look.set(state.x + fx * 4, 1, state.z + fz * 4);
+        destination.set(state.x - fx * (8 + state.speed * .045), (state.y > 0 ? 6.4 : 4.6) + (state.y || 0), state.z - fz * (8 + state.speed * .045));
+        look.set(state.x + fx * 4, 1 + (state.y || 0), state.z + fz * 4);
       }
       camera.position.lerp(destination, snap ? 1 : 1 - Math.exp(-dt * 8)); camera.lookAt(look);
-      camera.fov = menu ? 49 : Math.min(90, 2 * Math.atan(Math.tan((55 + state.speed * .18) * Math.PI / 360) / Math.min(1, camera.aspect)) * 180 / Math.PI); camera.updateProjectionMatrix();
+      camera.fov = menu ? 49 : finished?49:Math.min(90, 2 * Math.atan(Math.tan((55 + state.speed * .18) * Math.PI / 360) / Math.min(1, camera.aspect)) * 180 / Math.PI); camera.updateProjectionMatrix();
       sun.position.set(state.x - 45, 70, state.z + 30); sun.target.position.set(state.x, 0, state.z);
       gates.forEach((mat, i) => { mat.emissive.set(i === state.nextGate ? '#1b6756' : '#000000'); });
     }

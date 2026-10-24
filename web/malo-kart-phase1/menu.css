@@ -33,6 +33,11 @@ body[data-menu=driver] .selection-detail { padding:12px 5px; }
 body[data-menu=driver] #detail-name { font-size:24px; }
 body[data-menu=vehicle] .cards { grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; padding:10px; border:3px solid #e0fdff; background:linear-gradient(#154766bb,#c5f4f588,#154766bb); }
 .part-column { min-width:0; display:grid; gap:8px; align-content:start; }
+body[data-menu=vehicle] .part-column { max-height:32vh; overflow:auto; padding:4px; scrollbar-width:thin; }
+body[data-menu=driver] .cards { max-height:44vh; overflow:auto; scrollbar-width:thin; }
+#cup-picker { display:block; margin:0 auto 14px; max-width:430px; color:white; font-size:12px; }
+#cup-picker[hidden] { display:none; }
+#cup-select { display:block; width:100%; min-height:44px; margin-top:5px; padding:8px 12px; border:2px solid white; border-radius:8px; background:#493987; color:white; font:700 16px 'Segoe UI',sans-serif; }
 .part-column h3 { margin:0 0 2px; text-align:center; font-size:12px; letter-spacing:2px; color:#e4fcff; text-shadow:0 2px #164667; }
 body[data-menu=vehicle] .card img { height:clamp(44px,8vh,76px); width:100%; padding:2px; }
 body[data-menu=vehicle] .card .label { display:block; text-align:center; padding:4px 2px; font-size:11px; background:#ffffff55; }
@@ -52,7 +57,7 @@ body[data-menu=course]:not(.racing) #game { visibility:hidden; }
 body[data-menu=course] #intro { left:5vw; width:90vw; }
 body[data-menu=course] #category-tabs { max-width:530px; }
 body[data-menu=course] #selection-title { text-align:center; }
-body[data-menu=course] .cards { grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+body[data-menu=course] .cards { grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
 body[data-menu=course] .card { padding:0 0 12px; background:linear-gradient(#a3ddff44,#ebf5ffdd); }
 body[data-menu=course] .card img { width:100%; height:auto; aspect-ratio:2; object-fit:cover; border-block:3px solid #f4fdff; }
 .course-medal { display:grid; place-items:center; width:clamp(80px,11vw,150px); aspect-ratio:1; margin:14px auto; border:8px ridge #e1e9f5; border-radius:50%; background:radial-gradient(circle,#285b94 40%,#162f60 70%); box-shadow:0 4px 0 #252d73,0 0 0 4px #ffffff88; color:#ffef8e; font-size:clamp(50px,7vw,96px); line-height:1; text-shadow:0 3px #ac7b32; }

@@ -9,12 +9,15 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="menu.css">
   <link rel="stylesheet" href="mobile.css">
+  <link rel="stylesheet" href="presentation.css">
   <script defer src="../vendor/three.min.js"></script>
   <script defer src="simulation.js"></script>
   <script defer src="garage.js"></script>
+  <script defer src="catalogue.js"></script>
   <script defer src="guest-drivers.js"></script>
   <script defer src="kart.js"></script>
   <script defer src="circuit.js"></script>
+  <script defer src="scenery.js"></script>
   <script defer src="scene.js"></script>
   <script defer src="race.js"></script>
   <script defer src="race-view.js"></script>
@@ -25,10 +28,10 @@
 <body>
   <canvas id="game" aria-label="Circuit Azur en trois dimensions"></canvas>
   <div class="shade" aria-hidden="true"></div>
-  <header><a href="../../index.html">↖ LES JEUX DE MALO</a><span class="wallet">◉ <b id="wallet">0</b> / 100</span></header>
+  <header><a href="../../index.html">↖ LES JEUX DE MALO</a><span class="wallet">◉ <b id="wallet">0</b></span></header>
   <main id="intro">
     <section id="home">
-      <p class="eyebrow">16 PILOTES · 3 CIRCUITS · GRAND PRIX</p>
+      <p class="eyebrow">32 PILOTES · 24 CIRCUITS · GRAND PRIX</p>
       <h1>MALO<span>KART</span></h1>
       <p class="description">Choisis ton personnage et prends le départ !<br>Deux objets, du turbo et cinq rivaux à dépasser.</p>
       <button id="play" disabled>PRÉPARATION…</button>
@@ -36,16 +39,18 @@
         <button data-screen="driver" class="secondary">CHOIX DU PILOTE</button>
         <button data-screen="vehicle" class="secondary">CHOIX DU VÉHICULE</button>
         <button data-screen="course" class="secondary">CHOIX DU CIRCUIT</button>
-        <button data-screen="shop" class="secondary">◉ BOUTIQUE</button>
+        <button data-screen="shop" class="secondary">◉ DÉCORATIONS</button>
       </div>
       <button id="options" class="text-button">OPTIONS & COMMANDES</button>
       <p id="current-choice" class="choice-summary"></p>
     </section>
     <section id="garage-panel" hidden>
       <nav id="category-tabs" aria-label="Préparer la course">
-        <button data-screen="home" aria-label="Retour à l’accueil">↶</button><button data-screen="driver">PILOTE</button><button data-screen="vehicle">KART</button><button data-screen="course">CIRCUIT</button><button data-screen="shop">BOUTIQUE</button>
+        <button data-screen="home" aria-label="Retour à l’accueil">↶</button><button data-screen="driver">PILOTE</button><button data-screen="vehicle">KART</button><button data-screen="course">CIRCUIT</button><button data-screen="shop">DÉCORATIONS</button>
       </nav>
       <p class="eyebrow" id="selection-step"></p><h2 id="selection-title"></h2>
+      <label id="cup-picker" hidden>Collection de circuits <select id="cup-select" aria-label="Collection de circuits"></select></label>
+      <nav id="cup-medals" aria-label="Choisir une coupe" hidden></nav>
       <div id="cards" class="cards"></div>
       <div class="selection-detail"><h3 id="detail-name"></h3><p id="detail-description"></p><div id="stats"></div></div>
       <p id="shop-status" role="status"></p>
@@ -59,7 +64,7 @@
     <p id="save-status" role="status"></p>
   </main>
   <section id="hud" hidden aria-label="Tableau de bord">
-    <div class="lap"><small>TOUR</small><strong id="lap">1 <span>/ 2</span></strong></div>
+    <div class="lap"><span class="race-coins">◉ <b id="race-coins">00</b></span><small>⚑ TOUR</small><strong id="lap">1 <span>/ 2</span></strong></div>
     <div class="race-position"><small>POSITION</small><strong id="position">6<span> / 6</span></strong><time id="race-time">0:00.00</time></div>
     <div class="checkpoint"><small>CHECKPOINTS</small><b id="checkpoint">0 / 7</b><span id="message">En route vers la première porte</span></div>
     <div class="speed"><strong id="speed">0</strong><small>KM/H</small><p id="handling">CIRCUIT AZUR</p><meter id="drift-charge" min="0" max="2" low=".8" high="1.6" optimum="2" value="0" aria-label="Charge du mini-turbo"></meter></div>
@@ -78,14 +83,14 @@
   </section>
   <div id="countdown" hidden aria-live="polite"></div>
   <dialog id="pause-dialog"><p class="eyebrow">PETITE PAUSE</p><h2>AU STAND.</h2><button id="resume">REPRENDRE ↗</button><button id="restart" class="secondary">RECOMMENCER</button><button id="back" class="secondary">RETOUR AU DÉPART</button></dialog>
-  <dialog id="finish-dialog"><p class="eyebrow" id="finish-course">2 TOURS VALIDÉS</p><h2 id="finish-title">BIEN JOUÉ !</h2><p>Classement à ton arrivée · 2 tours validés</p><ol id="results"></ol><p id="earned"></p><button id="replay">REJOUER ↗</button><button id="finish-back" class="secondary">RETOUR AU DÉPART</button></dialog>
+  <dialog id="finish-dialog" aria-labelledby="finish-title"><p class="eyebrow" id="finish-course">2 TOURS VALIDÉS</p><h2 id="finish-title">BIEN JOUÉ !</h2><p class="result-caption">Classement à ton arrivée · 2 tours</p><ol id="results"></ol><p id="earned"></p><div class="result-actions"><button id="replay">REJOUER ↗</button><button id="finish-back" class="secondary">RETOUR AU DÉPART</button></div></dialog>
   <dialog id="options-dialog"><p class="eyebrow">À TON RYTHME</p><h2>OPTIONS</h2>
     <label for="quality">Qualité graphique</label><select id="quality"><option value="auto">Automatique</option><option value="high">Élevée</option><option value="low">Légère</option></select>
     <label class="sound-option"><input id="sound-enabled" type="checkbox" checked> Activer les sons</label>
     <label class="sound-option"><input id="auto-gas" type="checkbox"> Accélération automatique</label>
-    <p class="touch-help">Sur téléphone et tablette : utilise les flèches à gauche pour tourner. Maintiens DÉRAPAGE en tournant, puis relâche pour le mini-turbo. Touche l’objet pour l’utiliser. Le frein coupe l’accélération automatique. Tu peux jouer dans les deux orientations.</p>
+    <p class="touch-help">Sur téléphone et tablette : utilise les flèches à gauche pour tourner. Maintiens DÉRAPAGE en tournant, puis relâche pour le mini-turbo. Touche l’objet pour l’utiliser. Le frein coupe l’accélération automatique. Les rampes bleues ouvrent ton aile. Les flèches dirigent le vol ; maintiens FREIN pour planer plus longtemps. Tu peux jouer dans les deux orientations.</p>
     <p>Flèches ou ZQSD/WASD : conduire.<br>Espace + direction : déraper. Charge la jauge, puis relâche pour un mini-turbo.<br>E ou Maj : utiliser le premier objet ; celui en réserve prend sa place. Tu peux garder deux objets à la fois. Échap : pause.</p>
-    <p>Traverse les boîtes ? pour obtenir un champignon accélérateur, une carapace rouge qui poursuit le kart devant toi, une étoile ou une banane à poser. L’étoile augmente ta vitesse et te protège des objets et des autres karts pendant 6 secondes. Touche ton objet pour l’utiliser, ou appuie sur E / Maj au clavier. Le point jaune de la mini-carte, c’est toi !</p><p>Portefeuille limité à 100 pièces. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
+    <p>Traverse les boîtes ? pour obtenir un champignon accélérateur, une carapace rouge qui poursuit le kart devant toi, une étoile ou une banane à poser. L’étoile augmente ta vitesse et te protège des objets et des autres karts pendant 6 secondes. Touche ton objet pour l’utiliser, ou appuie sur E / Maj au clavier. Le point jaune de la mini-carte, c’est toi !</p><p>Total de pièces sans plafond de jeu. Les décorations se débloquent automatiquement : les équiper ne coûte aucune pièce. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
   </dialog>
   <section id="error" hidden role="alert"><h2>Le moteur 3D n’a pas démarré.</h2><p id="error-text"></p><button id="reload">RECHARGER</button><a href="../../index.html">Retour aux jeux</a></section>
   <noscript><p class="no-script">Active JavaScript pour jouer à Malo Kart.</p></noscript>

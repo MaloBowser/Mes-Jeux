@@ -2,6 +2,29 @@
   'use strict';
   const api = window.MaloPrototype;
   api.addGuestPilot = (T, parent, id) => {
+    const driver = api.drivers[id];
+    if (driver.variant) {
+      const model = new T.Group(); parent.add(model); api.addGuestPilot(T,model,driver.base);
+      if (driver.variant === 'baby' || driver.variant === 'junior') {
+        model.scale.setScalar(driver.variant === 'baby' ? .7 : .8); model.position.y = .3;
+        for (const child of [...model.children]) if (Math.abs(child.scale.x-.094)<.001) model.remove(child);
+      }
+      const materials = new Set(); model.traverse(object=>{if(object.material) materials.add(object.material);});
+      for (const mat of materials) {
+        const hex = mat.color.getHexString();
+        if (driver.variant === 'metal') { mat.color.set(driver.color); mat.metalness=.9; mat.roughness=.23; }
+        if (driver.variant === 'bones' && !['211e27','fff9ea'].includes(hex)) mat.color.set(['438f38','e74829'].includes(hex)?'#73777b':driver.color);
+        if (driver.variant === 'toadette') {
+          if (hex==='fff9ea' || hex==='2772e3') mat.color.set(driver.color);
+          if (hex==='eb343d') mat.color.set('#fff9ea');
+        }
+      }
+      if (driver.variant === 'toadette') {
+        const geometry = new T.SphereGeometry(.18,12,8), material = new T.MeshStandardMaterial({color:driver.color});
+        for (const side of [-1,1]) for(let i=0;i<3;i++) { const bead=new T.Mesh(geometry,material); bead.position.set(side*(.55+i*.04),1.9-i*.22,-.15); model.add(bead); }
+      }
+      return;
+    }
     const sphere = new T.SphereGeometry(1, 24, 18);
     const material = color => new T.MeshStandardMaterial({ color, roughness: .58 });
     const suit = material(api.drivers[id].color), skin = material('#ffd0a0'), white = material('#fff9ea');
@@ -30,7 +53,38 @@
         ball(dark, [side * spacing, y, z + .058], [.045 * size, .09 * size, .026]);
       }
     }
-    if (plumbers) {
+    if (id === 'boo') {
+      ball(white,[0,1.65,.05],[.64,.65,.54]);
+      for(const side of [-1,1]) { const arm=ball(white,[side*.64,1.55,.02],[.28,.15,.2]); arm.rotation.z=side*.4; }
+      eyes(1.92,.51,.2,1.1); ball(dark,[0,1.61,.57],[.3,.2,.045]);
+      ball(material('#e5658f'),[0,1.48,.66],[.18,.2,.09]);
+      for(const x of [-.2,.2]) { const tooth=cone(white,[x,1.63,.64],.07,.2); tooth.rotation.z=Math.PI; }
+      shape(new T.CylinderGeometry(.3,.24,.19,8),gold,[0,2.28,0]);
+      for(const x of [-.24,0,.24]) cone(gold,[x,2.47,0],.09,.28);
+    } else if (id === 'birdo') {
+      ball(suit,[0,1.94,0],[.38,.4,.34]); eyes(2.16,.23,.16,1.1);
+      shape(new T.CylinderGeometry(.18,.23,.45,16),suit,[0,1.88,.5]).rotation.x=Math.PI/2;
+      ball(dark,[0,1.88,.73],[.13,.13,.025]);
+      const red=material('#df354c');
+      for(const side of [-1,1]) { const bow=ball(red,[side*.19,2.45,-.02],[.25,.15,.1]); bow.rotation.z=side*.4; }
+      ball(gold,[0,2.45,.06],[.09,.1,.08]);
+      ball(white,[0,1.18,.24],[.24,.29,.07]);
+    } else if (id === 'donkey' || id === 'diddy') {
+      const fur=material('#87532d'), muzzle=material('#d2a675');
+      ball(fur,[0,1.82,0],[.45,.45,.36]);
+      for(const side of [-1,1]) ball(muzzle,[side*.45,1.9,0],[.17,.19,.08]);
+      ball(muzzle,[0,1.76,.3],[.38,.24,.26]); eyes(2.04,.26,.16,.9);
+      ball(dark,[0,1.88,.56],[.16,.08,.06]);
+      if(id==='donkey') { const tie=cone(material('#dc3838'),[0,1.08,.34],.16,.5); tie.rotation.z=Math.PI; }
+      else { ball(suit,[0,2.18,0],[.45,.15,.36]); ball(suit,[0,2.13,.32],[.4,.05,.28]);
+        const tail=shape(new T.TorusGeometry(.38,.07,6,16,Math.PI*1.5),fur,[.2,1,-.7]); tail.rotation.y=Math.PI/2; }
+    } else if (id === 'kamek') {
+      ball(skin,[0,1.84,.07],[.34,.35,.31]); ball(skin,[0,1.7,.38],[.29,.18,.3]);
+      cone(suit,[0,2.42,-.04],.4,.8); ball(suit,[0,2.09,-.04],[.5,.07,.4]);
+      for(const side of [-1,1]) { shape(new T.TorusGeometry(.15,.035,8,16),dark,[side*.17,1.96,.36]); ball(white,[side*.17,1.96,.35],[.13,.13,.04]); }
+      const wand=shape(new T.CylinderGeometry(.035,.035,.85,6),brown,[.53,1.3,.2]); wand.rotation.z=-.4;
+      ball(gold,[.7,1.7,.2],[.14,.14,.14]);
+    } else if (plumbers) {
       const headY = tall ? 1.98 : 1.88, wide = id === 'wario' ? .49 : .39;
       ball(brown, [0, headY, -.16], [wide * 1.03, .38, .35]);
       ball(skin, [0, headY, .025], [wide, tall ? .4 : .35, .36]);

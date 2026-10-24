@@ -1,0 +1,97 @@
+/* Présentation des sélections et de la course, adaptée aux écrans tactiles. */
+body[data-menu=vehicle] { --reel-card:80px; }
+body[data-menu=vehicle] .cards { padding:10px; gap:6px; border:5px ridge #a7bec8; background:linear-gradient(#243743,#b7dbe3 45%,#354e60); }
+body[data-menu=vehicle] .part-column { display:flex; flex-direction:column; gap:0; max-height:none; overflow:hidden; padding:0; border-inline:1px solid #d2efff66; }
+.part-column h3 { margin:0; padding:5px 0; }
+.reel-arrow { min-height:44px; padding:0; border:0; border-radius:0; background:linear-gradient(#1c344ac9,#4b6a7ec9); box-shadow:none; color:#ffed73; font-size:17px; }
+.part-reel { position:relative; height:calc(var(--reel-card) * 3); overflow-y:auto; padding-block:var(--reel-card); scroll-snap-type:y mandatory; scrollbar-width:none; overscroll-behavior:contain; box-sizing:border-box; }
+.part-reel::-webkit-scrollbar { display:none; }
+body[data-menu=vehicle] .part-reel .card { height:var(--reel-card); min-height:var(--reel-card); scroll-snap-align:center; border:3px solid transparent; border-radius:0; background:#d2e7eb30; box-shadow:none; outline:none; opacity:.55; }
+body[data-menu=vehicle] .part-reel .card img { height:calc(var(--reel-card) - 6px); padding:0; transform:scale(1.2); }
+body[data-menu=vehicle] .part-reel .card .label { display:none; }
+body[data-menu=vehicle] .part-reel .card[aria-pressed=true] { opacity:1; background:linear-gradient(#faffffbb,#97cedcaa); border-color:#e9faff; }
+body[data-menu=vehicle] .part-column[data-active=true] .card[aria-pressed=true] { border-color:#fff13d; box-shadow:inset 0 0 12px #ffff7d; background:linear-gradient(#fffbe2,#e0e49699); }
+body[data-menu=vehicle] .card[aria-pressed=true]::after { display:none; }
+body[data-menu=vehicle] #selection-step,body[data-menu=vehicle] #detail-description { display:none; }
+body[data-menu=vehicle] #selection-title { font-size:22px; margin:5px 0 10px; }
+body[data-menu=vehicle] .selection-detail { padding-top:5px; }
+body[data-menu=vehicle] #detail-name { display:none; }
+body[data-menu=vehicle] #stats { gap:4px; margin-top:0; padding:8px 12px; }
+#cup-picker { display:none; }
+#cup-medals:not([hidden]) { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:18px; max-width:1050px; margin:8px auto 28px; padding:8px; }
+.cup-medal { padding:6px; min-height:44px; background:transparent; border:3px solid transparent; border-radius:10px; box-shadow:none; color:white; }
+.cup-medal img { display:block; width:100%; max-width:130px; margin:auto; filter:drop-shadow(0 5px 5px #17215188); }
+.cup-medal span { display:block; font-size:11px; padding-top:6px; letter-spacing:0; }
+.cup-medal[aria-pressed=true] { border-color:#fff173; background:#ffee7b55; box-shadow:0 0 16px #fff58b77; }
+body[data-menu=course] #selection-title { margin:4px 0; font-size:22px; }
+body[data-menu=course] .cards { border:3px solid #f4ebff; border-radius:8px; padding:12px; gap:12px; background:#e0d5fb55; }
+body[data-menu=course] .card { padding:0; border:3px solid #e9f2fd; background:#f1f4ee; }
+body[data-menu=course] .card img { aspect-ratio:1.6; border:0; }
+body[data-menu=course] .card .label { padding:10px 4px; font-size:17px; color:#4b4d5e; }
+body[data-menu=course] .selection-detail { display:none; }
+body.racing header,body.racing .checkpoint { display:none; }
+body.racing .item-slots { top:calc(18px + var(--safe-top)); left:calc(18px + var(--safe-left)); right:auto; align-items:flex-start; gap:0; }
+body.racing #reserve-item { width:54px; height:54px; padding:4px; border:3px solid #c2cfda; border-radius:50%; background:radial-gradient(#426178,#14252e); }
+body.racing #use-item { width:100px; min-height:100px; padding:8px; border:5px solid #d3dee8; border-radius:50%; background:radial-gradient(#4b626d,#16232a); margin:20px 0 0 -9px; box-shadow:0 4px 7px #0006,inset 0 0 0 2px #344653; }
+body.racing #item-symbol { font-size:49px; }
+body.racing #reserve-symbol { font-size:30px; margin:0; }
+body.racing #item-name { font-size:9px; letter-spacing:0; margin:2px 0; }
+body.racing #reserve-item small,body.racing #reserve-name,body.racing #use-item small { display:none; }
+body.racing .lap { display:flex; align-items:center; gap:8px; top:auto; bottom:calc(50px + var(--safe-bottom)); left:calc(24px + var(--safe-left)); font-style:italic; background:#14233266; border-radius:7px; padding:3px 12px; }
+body.racing .lap strong { font-size:28px; }
+body.racing .lap strong span { font-size:20px; color:white; }
+body.racing .lap small { font-size:10px; letter-spacing:0; }
+.race-coins { margin-right:10px; font-size:24px; color:#ffe26a; }
+.race-coins b { color:white; }
+body.racing .race-position { left:auto; top:auto; right:calc(28px + var(--safe-right)); bottom:calc(48px + var(--safe-bottom)); text-align:right; }
+body.racing .race-position strong { font-size:86px; line-height:1; color:#ffc340; -webkit-text-stroke:2px #714923; text-shadow:3px 3px 0 white,5px 6px 0 #473a36; }
+body.racing .race-position strong span { font-size:20px; -webkit-text-stroke:0; text-shadow:0 2px 3px #000; color:white; }
+body.racing .race-position small { display:none; }
+body.racing #race-time { font-size:12px; margin:5px 0; }
+body.racing .radar { left:auto; right:calc(20px + var(--safe-right)); bottom:calc(190px + var(--safe-bottom)); padding:0; border:0; background:none; }
+body.racing .radar canvas { width:150px; height:150px; }
+body.racing .radar figcaption { display:none; }
+body.racing .speed { left:calc(26px + var(--safe-left)); right:auto; bottom:calc(105px + var(--safe-bottom)); max-width:180px; text-align:left; }
+body.racing .speed strong { font-size:23px; letter-spacing:0; }
+body.racing .speed p { font-size:9px; letter-spacing:0; border-top-width:2px; }
+body.racing #pause { top:calc(18px + var(--safe-top)); right:calc(18px + var(--safe-right)); }
+body.racing #race-notice { top:32%; }
+body.finished .shade { background:linear-gradient(90deg,transparent 35%,#14223355); }
+#finish-dialog { position:fixed; inset:5vh 3vw auto auto; margin:0; width:min(580px,51vw); max-height:90dvh; padding:18px; background:linear-gradient(#173448b8,#18334680); border:1px solid #efffff50; border-radius:6px; box-shadow:none; }
+#finish-dialog::backdrop { background:#07152115; backdrop-filter:none; }
+#finish-dialog .eyebrow { font-size:11px; margin:0; }
+#finish-dialog h2 { font-size:32px; margin:8px 0; color:#fff2a0; }
+#finish-dialog .result-caption { font-size:11px; margin:5px 0 12px; }
+#results { padding:0; margin:0; list-style:none; }
+#results li { display:grid; grid-template-columns:30px 36px 1fr 68px; gap:9px; align-items:center; padding:7px 10px; margin:4px 0; border:0; background:#17232aab; color:#fff; font-size:14px; }
+#results .is-player { background:linear-gradient(90deg,#fff48a,#ffd52d); color:#353844; }
+.result-rank { font-size:24px; font-style:italic; }
+#results img { width:36px; height:36px; object-fit:contain; }
+.result-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.result-time { text-align:right; font-size:12px; }
+#finish-dialog #earned { font-size:12px; margin:12px 0; }
+.result-actions { display:flex; gap:10px; }
+.result-actions button { min-height:44px; padding:12px 6px; margin:0; font-size:11px; box-shadow:none; }
+@media(max-height:720px) { body[data-menu=vehicle] { --reel-card:48px; } body[data-menu=vehicle] .cards { padding:5px; } #cup-medals:not([hidden]) { max-width:760px; margin-bottom:12px; gap:8px; } .cup-medal img { max-width:80px; } body[data-menu=course] .card img { max-height:120px; } #finish-dialog { padding:12px; } #results li { padding:3px 8px; } }
+@media(pointer:coarse) { body.racing .lap { bottom:calc(94px + var(--safe-bottom)); } body.racing .race-position { bottom:calc(94px + var(--safe-bottom)); } body.racing .speed { bottom:calc(146px + var(--safe-bottom)); } body.racing .radar { bottom:calc(205px + var(--safe-bottom)); } body.racing:not(.auto-gas) .lap,body.racing:not(.auto-gas) .race-position { bottom:calc(166px + var(--safe-bottom)); } body.racing:not(.auto-gas) .speed { bottom:calc(218px + var(--safe-bottom)); } }
+@media(max-width:900px) and (orientation:portrait) {
+  body[data-menu=vehicle] { --reel-card:62px; }
+  #cup-medals:not([hidden]) { grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; margin:0 0 14px; }
+  .cup-medal { padding:3px; } .cup-medal img { max-width:75px; } .cup-medal span { font-size:9px; }
+  body[data-menu=course] .cards { grid-template-columns:repeat(2,minmax(0,1fr)); padding:7px; gap:8px; }
+  body[data-menu=course] .card { display:block; } body[data-menu=course] .card img { height:90px; } body[data-menu=course] .card .label { font-size:11px; padding:8px 3px; }
+  body.racing #use-item { width:80px; min-height:80px; padding:5px; } body.racing #item-symbol { font-size:36px; }
+  body.racing #reserve-item { width:44px; height:44px; } body.racing #reserve-symbol { font-size:24px; }
+  body.racing .lap { left:12px; gap:4px; padding:3px 6px; } body.racing .lap strong { font-size:23px; } body.racing .lap small { display:none; } .race-coins { font-size:21px; margin-right:3px; }
+  body.racing .race-position { right:16px; } body.racing .race-position strong { font-size:58px; }
+  body.racing .radar { right:10px; } body.racing .radar canvas { width:95px; height:95px; }
+  body.racing .speed { left:16px; max-width:150px; }
+  #finish-dialog { inset:33vh 3vw auto; width:94vw; max-height:64dvh; padding:10px; box-sizing:border-box; }
+  #finish-dialog h2 { font-size:24px; } #results li { grid-template-columns:23px 28px 1fr 60px; gap:5px; font-size:12px; padding:3px 6px; } #results img { width:28px; height:28px; } .result-rank { font-size:19px; }
+}
+@media(max-height:500px) and (orientation:landscape) {
+  body[data-menu=vehicle] { --reel-card:46px; } .cup-medal img { max-width:65px; } .cup-medal span { font-size:9px; }
+  body.racing .radar { top:70px; bottom:auto; } body.racing .radar canvas { width:85px; height:85px; }
+  body.racing .race-position strong { font-size:48px; } body.racing #use-item { width:75px; min-height:75px; } body.racing #item-symbol { font-size:30px; } body.racing .speed { max-width:140px; }
+  #finish-dialog { top:2vh; max-height:96dvh; } #finish-dialog h2 { font-size:22px; margin:3px 0; } #results li { padding:1px 6px; margin:2px 0; } #results img { height:27px; } #finish-dialog .result-caption { margin:3px 0; } #finish-dialog #earned { margin:4px 0; }
+}

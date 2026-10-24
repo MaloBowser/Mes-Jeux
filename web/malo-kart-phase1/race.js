@@ -33,7 +33,7 @@
       racers.forEach(racer => {
         racer.item = null; racer.reserveItem = null; racer.finishTime = null; racer.nextUse = 0;
         racer.progress = (racer.id ? 7 + Math.floor((racer.id - 1) / 2) * 4 : 3) * unit;
-        if (racer.id) Object.assign(racer.state, position(racer.progress, racer.lane), { speed: 0, boost: 0, shield: 0, stun: 0, grace: 0, finished: false });
+        if (racer.id) Object.assign(racer.state, position(racer.progress, racer.lane), { y:0, vy:0, flight:0, speed: 0, boost: 0, shield: 0, stun: 0, grace: 0, finished: false });
       });
     }
     function standings() {
@@ -70,6 +70,7 @@
     function updateRival(racer, dt) {
       const s = racer.state;
       if (s.finished) return;
+      const previous = {x:s.x,z:s.z};
       for (const effect of ['boost', 'shield', 'stun', 'grace']) s[effect] = Math.max(0, s[effect] - dt);
       const here = position(racer.progress), ahead = position(racer.progress + 14);
       const bend = Math.abs(Math.atan2(Math.sin(ahead.yaw - here.yaw), Math.cos(ahead.yaw - here.yaw)));
@@ -77,6 +78,7 @@
       s.speed += Math.max(-22 * dt, Math.min(11 * dt, targetSpeed - s.speed));
       racer.progress = Math.min(track.length * 2, racer.progress + s.speed * dt);
       Object.assign(s, position(racer.progress, racer.lane + Math.sin(elapsed * .7 + racer.id) * .6));
+      api.updateTrackEffects(s, track, previous, dt);
       if (racer.progress >= track.length * 2) { racer.finishTime = elapsed; s.finished = true; s.speed = 0; }
       if (racer.item && elapsed >= racer.nextUse) { useItem(racer); racer.nextUse = elapsed + 2; }
     }
@@ -94,7 +96,7 @@
         box.cooldown = Math.max(0, box.cooldown - dt);
         if (box.cooldown > 0) continue;
         for (const racer of racers) {
-          if (racer.reserveItem || racer.state.finished || Math.hypot(racer.state.x - box.x, racer.state.z - box.z) > 1.9) continue;
+          if (racer.reserveItem || racer.state.finished || racer.state.y > 2 || Math.hypot(racer.state.x - box.x, racer.state.z - box.z) > 1.9) continue;
           const pool = standings().indexOf(racer) >= 3 ? ['turbo', 'turbo', 'orb', 'shield', 'trap'] : ['turbo', 'orb', 'shield', 'trap'];
           const item = pool[Math.floor(random() * pool.length)];
           if (racer.item) racer.reserveItem = item;
@@ -115,7 +117,7 @@
       for (let i = hazards.length - 1; i >= 0; i--) {
         const hazard = hazards[i]; hazard.ttl -= dt;
         for (const racer of racers) {
-          if (racer.id !== hazard.owner && !racer.state.finished && Math.hypot(racer.state.x - hazard.x, racer.state.z - hazard.z) < 1.5) {
+          if (racer.id !== hazard.owner && !racer.state.finished && racer.state.y < 1.5 && Math.hypot(racer.state.x - hazard.x, racer.state.z - hazard.z) < 1.5) {
             hit(racer); hazard.ttl = 0; break;
           }
         }
@@ -123,7 +125,7 @@
       }
       for (const rival of rivals) {
         const s = player.state, other = rival.state;
-        if (s.finished || other.finished || Math.hypot(s.x - other.x, s.z - other.z) >= 1.8) continue;
+        if (s.finished || other.finished || Math.abs(s.y-other.y)>1.5 || Math.hypot(s.x - other.x, s.z - other.z) >= 1.8) continue;
         if (s.shield > 0) { hit(rival); continue; }
         if (other.shield > 0) { hit(player); continue; }
         if (s.grace > 0) continue;
@@ -132,7 +134,7 @@
       }
     }
     reset();
-    return { player, rivals, racers, boxes, hazards, shots, reset, step, useItem, standings,
+    return { player, rivals, racers, boxes, hazards, shots, reset, step, useItem, standings, announce,
       get elapsed() { return elapsed; }, get notice() { return noticeTime > 0 ? notice : ''; } };
   };
 })();

@@ -3,6 +3,23 @@
   'use strict';
   const api = window.MaloPrototype = {};
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+  api.updateTrackEffects = (state, track, previous, dt, input = {}) => {
+    if (state.y > 0 || state.vy > 0) {
+      state.flight = Math.max(0, state.flight - dt);
+      const lift = state.flight > 0 ? input.brake ? 1 : input.gas ? 3 : 2 : 10;
+      state.vy -= lift * dt; state.y = Math.max(0, state.y + state.vy * dt);
+      if (state.y === 0) { state.vy = 0; state.flight = 0; }
+    }
+    for (const zone of track.zones || []) {
+      if (state.y > 1.3) continue;
+      const before = (previous.x-zone.x)*zone.tx+(previous.z-zone.z)*zone.tz;
+      const after = (state.x-zone.x)*zone.tx+(state.z-zone.z)*zone.tz;
+      const side = (state.x-zone.x)*zone.tz-(state.z-zone.z)*zone.tx;
+      if (before >= 0 || after < 0 || Math.abs(side) > 6 || state.speed < 8) continue;
+      state.boost = Math.max(state.boost, 1.4);
+      if (zone.type === 'glide' && state.y === 0) { state.y = 1.2; state.vy = 7; state.flight = 3; }
+    }
+  };
   api.nearestPoint = (points, x, z) => {
     let best = { distance: Infinity };
     for (let i = 0; i < points.length; i++) {
@@ -18,7 +35,7 @@
     const state = { x: 0, z: 0, yaw: 0, vx: 0, vz: 0, speed: 0, laps: 0, nextGate: 1, finished: false, drift: false, impact: 0 };
     function reset() {
       const start = track.points[3], next = track.points[4];
-      Object.assign(state, { x: start.x, z: start.z, yaw: Math.atan2(next.x - start.x, next.z - start.z), vx: 0, vz: 0, speed: 0, laps: 0, nextGate: 1, finished: false, drift: false, impact: 0, boost: 0, stun: 0, shield: 0, grace: 0, driftCharge: 0 });
+      Object.assign(state, { x: start.x, z: start.z, y:0, vy:0, flight:0, yaw: Math.atan2(next.x - start.x, next.z - start.z), vx: 0, vz: 0, speed: 0, laps: 0, nextGate: 1, finished: false, drift: false, impact: 0, boost: 0, stun: 0, shield: 0, grace: 0, driftCharge: 0 });
     }
     function checkGate(previous) {
       const gate = track.gates[state.nextGate];
@@ -41,14 +58,14 @@
       for (const effect of ['boost', 'stun', 'shield', 'grace']) state[effect] = Math.max(0, state[effect] - dt);
       const steering = Number(!!input.left) - Number(!!input.right);
       const wasDrifting = state.drift;
-      state.drift = !!input.drift && steering !== 0 && state.speed > 8 && state.stun === 0;
+      state.drift = !!input.drift && steering !== 0 && state.speed > 8 && state.stun === 0 && state.y === 0;
       if (state.drift) state.driftCharge = Math.min(2, state.driftCharge + dt);
       else {
         if (wasDrifting && state.driftCharge >= .8 && state.stun === 0) state.boost = Math.max(state.boost, state.driftCharge >= 1.6 ? 1.4 : .8);
         state.driftCharge = 0;
       }
       const steerAngle = steering * .46 * vehicle.handling / (1 + state.speed * .12);
-      state.yaw += state.speed / 2.1 * Math.tan(steerAngle) * dt * (state.drift ? 1.22 : 1);
+      state.yaw += state.speed / 2.1 * Math.tan(steerAngle) * dt * (state.y > 0 ? 1.3 : state.drift ? 1.22 : 1);
       const fx = Math.sin(state.yaw), fz = Math.cos(state.yaw);
       let forward = state.vx * fx + state.vz * fz;
       const lateral = (state.vx * fz - state.vz * fx) * Math.exp(-(state.drift ? 2.4 : 10) * dt);
@@ -59,7 +76,7 @@
       state.x += state.vx * dt; state.z += state.vz * dt;
       const nearest = api.nearestPoint(track.points, state.x, state.z);
       const limit = track.halfWidth - 1.25;
-      if (nearest.distance > limit) {
+      if (nearest.distance > limit && state.y === 0) {
         const nx = (state.x - nearest.x) / nearest.distance, nz = (state.z - nearest.z) / nearest.distance;
         state.x = nearest.x + nx * limit; state.z = nearest.z + nz * limit;
         const outward = state.vx * nx + state.vz * nz;
@@ -70,6 +87,7 @@
         }
       }
       state.speed = Math.hypot(state.vx, state.vz);
+      api.updateTrackEffects(state, track, previous, dt, input);
       checkGate(previous);
     }
     reset();

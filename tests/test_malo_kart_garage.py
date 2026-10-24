@@ -32,20 +32,21 @@ try:
         page.wait_for_function('window.testGarage')
         page.screenshot(path=str(OUT/'home.png'))
         page.locator('#play').click()
-        assert page.locator('.card').count()==16
+        assert page.locator('.card').count()==32
         page.wait_for_function('Array.from(document.querySelectorAll(".card img")).every(img=>img.complete && img.naturalWidth>0)')
         thumbnails=page.locator('.card img').evaluate_all('(images)=>images.map(i=>i.src)')
-        assert len(set(thumbnails))==16
-        for driver in ['mario','luigi','peach','daisy','yoshi','toad','koopa','shyguy','bowser','wario','waluigi','rosalina','malo','nova','rocky','zephyr']:
+        assert len(set(thumbnails))==32
+        for driver in page.evaluate('Object.keys(MaloPrototype.drivers)'):
             page.locator(f'[data-choice={driver}]').click()
             page.wait_for_function('Array.from(document.querySelectorAll(".card img")).every(img=>img.complete && img.naturalWidth>0)')
             assert page.evaluate('testGarage.garage.state.driver')==driver
             assert page.locator('#menu-selection').inner_text()==page.evaluate('MaloPrototype.drivers[testGarage.garage.state.driver].name')
             page.evaluate('testGarage.render()')
             page.screenshot(path=str(OUT/f'driver-{driver}.png'))
+        page.locator('[data-choice=zephyr]').click()
         page.locator('#continue').click()
         assert page.locator('.part-column').count()==3
-        assert page.locator('.card').count()==9
+        assert page.locator('.card').count()==30
         assert page.locator('.card[aria-pressed=true]').count()==3
         for vehicle in ['standard','turbo','compact']:
             page.locator(f'[data-part=vehicle][data-choice={vehicle}]').click()
@@ -76,7 +77,7 @@ try:
           }
           return results;
         }''')
-        assert len(combinations)==27 and all(combinations)
+        assert len(combinations)==1000 and all(combinations)
         migration=page.evaluate('''()=>{
           const api=MaloPrototype,key='malo-kart-garage-v1',raw=localStorage.getItem(key),old=JSON.parse(raw);
           delete old.tire;delete old.glider;localStorage.setItem(key,JSON.stringify(old));
@@ -90,7 +91,7 @@ try:
         assert migration
         page.screenshot(path=str(OUT/'vehicles.png'))
         page.locator('#continue').click()
-        assert page.locator('.card').count()==3
+        assert page.locator('.card').count()==4
         layouts=[]
         for course in ['azur','neon','desert']:
             page.locator(f'[data-choice={course}]').click()
@@ -99,9 +100,9 @@ try:
             page.evaluate('testGarage.render()')
             page.screenshot(path=str(OUT/f'course-{course}.png'))
         assert len(set(layouts))==3
-        assert page.locator('.course-medal').count()==3
+        assert page.locator('.cup-medal').count()==6
         course_previews=page.locator('.card img').evaluate_all('(images)=>images.map(i=>i.src)')
-        assert len(set(course_previews))==3 and all(src.startswith('data:image/jpeg') for src in course_previews)
+        assert len(set(course_previews))==4 and all(src.startswith('data:image/jpeg') for src in course_previews)
         page.locator('#menu-back').click()
         assert page.evaluate('testGarage.menus.screen')=='vehicle'
         page.set_viewport_size({'width':800,'height':600})
@@ -126,7 +127,7 @@ try:
         page.evaluate('testGarage.start();testGarage.render()')
         assert page.evaluate('testGarage.view.kart.getObjectByName("glider").scale.x')==.15
         page.evaluate('testGarage.menu()')
-        print('SELECTIONS_PREVIEWS_27_COMBINATIONS_TIRE_PHYSICS_SAVE_MIGRATION_OK',flush=True)
+        print('SELECTIONS_PREVIEWS_1000_COMBINATIONS_TIRE_PHYSICS_SAVE_MIGRATION_OK',flush=True)
         page.locator('#home [data-screen=shop]').click()
         page.locator('[data-choice=gold]').click()
         assert page.locator('#continue').is_disabled()
@@ -141,26 +142,27 @@ try:
           const once=t.garage.state.coins===first;
           for(const c of coins)collect(c);const aboveTen=t.garage.state.coins>10;
           s.laps=1;for(const c of coins)collect(c);
-          const cap=t.garage.state.coins===100;t.menu();return {once,aboveTen,cap};
+          const sparse=coins.length===12, twoLaps=t.garage.state.coins===24;
+          t.garage.credit(1000);const uncapped=t.garage.state.coins===1024;t.menu();return {once,aboveTen,sparse,twoLaps,uncapped};
         }''')
         assert all(collected.values()),collected
         page.locator('#home [data-screen=shop]').click()
         page.locator('[data-choice=gold]').click()
         assert not page.locator('#continue').is_disabled()
         page.locator('#continue').click()
-        assert page.evaluate('testGarage.garage.state.coins')==20
+        assert page.evaluate('testGarage.garage.state.coins')==1024
         assert page.evaluate('testGarage.garage.state.paint')=='gold'
         assert page.evaluate("testGarage.garage.state.owned.includes('gold')")
-        assert not page.evaluate("testGarage.garage.buy('gold')")
-        assert page.evaluate('testGarage.garage.state.coins')==20
-        page.locator('[data-choice=mint]').click()
+        assert not page.evaluate("testGarage.garage.buy('champion')")
+        assert page.evaluate('testGarage.garage.state.coins')==1024
+        page.locator('[data-choice=champion]').click()
         assert page.locator('#continue').is_disabled()
         assert page.evaluate('testGarage.garage.state.paint')=='gold','Preview must not change owned/equipped paint'
         page.locator('[data-choice=gold]').click()
         page.evaluate('testGarage.render()')
         page.screenshot(path=str(OUT/'shop-gold.png'))
         page.reload();page.wait_for_function('window.testGarage')
-        assert page.evaluate('testGarage.garage.state.coins')==20
+        assert page.evaluate('testGarage.garage.state.coins')==1024
         assert page.evaluate('testGarage.garage.state.paint')=='gold'
         page.locator('#options').click()
         page.locator('#quality').select_option('low')
@@ -168,10 +170,11 @@ try:
         page.locator('#options-close').click()
         page.locator('#options').click();page.keyboard.press('Escape')
         assert not page.locator('#options-dialog').is_visible()
-        print('COINS_100_SHOP_PURCHASE_PERSISTENCE_OPTIONS_OK',flush=True)
+        print('UNLIMITED_COINS_AUTOMATIC_UNLOCKS_FREE_EQUIP_PERSISTENCE_OPTIONS_OK',flush=True)
         courses=page.evaluate('''()=>{
           const results=[];
-          for(const course of Object.keys(MaloPrototype.courses))for(const vehicle of Object.keys(MaloPrototype.vehicles)){
+          for(const [index,course] of Object.keys(MaloPrototype.courses).entries()){
+            const vehicle=Object.keys(MaloPrototype.vehicles)[index%10];
             const track=MaloPrototype.createTrack(THREE,course),sim=MaloPrototype.createSimulation(track,MaloPrototype.vehicles[vehicle]);
             let frames=0;
             while(!sim.state.finished && frames<40000){
@@ -184,7 +187,7 @@ try:
           }
           return results;
         }''')
-        print('ALL_9_RACES',json.dumps(courses),flush=True)
+        print('ALL_24_RACES',json.dumps(courses),flush=True)
         assert all(r['finished'] and r['laps']==2 for r in courses),courses
         stats=page.evaluate('''()=>{
           const api=MaloPrototype,points=[{x:0,z:0},{x:0,z:10000},{x:10000,z:10000},{x:10000,z:0},{x:0,z:1}];
@@ -210,7 +213,7 @@ try:
         blocked.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw new Error('blocked')}})")
         blocked.route('**/malo-kart-phase1/game.js',lambda r:r.fulfill(body=script,content_type='application/javascript'))
         blocked.goto(url);blocked.wait_for_function('window.testGarage')
-        assert blocked.evaluate("testGarage.garage.credit(50)===50 && testGarage.garage.buy('coral') && testGarage.garage.state.coins===30")
+        assert blocked.evaluate("testGarage.garage.credit(50)===50 && testGarage.garage.buy('coral') && testGarage.garage.state.coins===50")
         blocked.evaluate('testGarage.menus.show("shop")')
         assert 'session' in blocked.locator('#save-status').inner_text()
         assert not errors,errors

@@ -60,8 +60,9 @@
         const raw = localStorage.getItem(key), saved = raw ? JSON.parse(raw) : null;
         if (saved && typeof saved === 'object') {
           for (const [field, list] of [['driver', api.drivers], ['vehicle', api.vehicles], ['tire', api.tires], ['glider', api.gliders], ['course', api.courses]]) if (Object.hasOwn(list, saved[field])) state[field] = saved[field];
-          state.coins = Number.isFinite(saved.coins) ? Math.max(0, Math.min(100, Math.floor(saved.coins))) : 0;
+          state.coins = Number.isFinite(saved.coins) ? Math.max(0, Math.min(Number.MAX_SAFE_INTEGER, Math.floor(saved.coins))) : 0;
           state.owned = ['original', ...(Array.isArray(saved.owned) ? saved.owned.filter(id => Object.hasOwn(api.paints, id) && id !== 'original') : [])];
+          unlock();
           state.paint = state.owned.includes(saved.paint) ? saved.paint : 'original';
           state.quality = ['auto', 'high', 'low'].includes(saved.quality) ? saved.quality : 'auto';
         }
@@ -69,6 +70,9 @@
       return state;
     }
     function save() { try { localStorage.setItem(key, JSON.stringify(state)); } catch (_) { available = false; } }
+    function unlock() {
+      for (const [id, paint] of Object.entries(api.paints)) if (state.coins >= paint.price && !state.owned.includes(id)) state.owned.push(id);
+    }
     function select(field, id) {
       read();
       const list = { driver: api.drivers, vehicle: api.vehicles, tire: api.tires, glider: api.gliders, course: api.courses, paint: api.paints }[field];
@@ -77,12 +81,12 @@
     }
     function buy(id) {
       read(); const paint = Object.hasOwn(api.paints, id) ? api.paints[id] : null;
-      if (!paint || state.owned.includes(id) || state.coins < paint.price) return false;
-      state.coins -= paint.price; state.owned.push(id); state.paint = id; save(); return true;
+      if (!paint || !state.owned.includes(id)) return false;
+      state.paint = id; save(); return true;
     }
     function credit(amount) {
-      read(); const earned = Math.min(100 - state.coins, Math.max(0, Math.floor(Number.isFinite(amount) ? amount : 0)));
-      state.coins += earned; if (earned) save(); return earned;
+      read(); const earned = Math.min(Number.MAX_SAFE_INTEGER - state.coins, Math.max(0, Math.floor(Number.isFinite(amount) ? amount : 0)));
+      state.coins += earned; unlock(); if (earned) save(); return earned;
     }
     read();
     return { get state() { return state; }, get available() { return available; }, read, select, buy, credit,

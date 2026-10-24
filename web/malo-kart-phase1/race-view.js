@@ -92,15 +92,16 @@
       if (!active) return;
       race.rivals.forEach((racer, i) => {
         const model = rivalModels[i], s = racer.state;
-        model.root.position.set(s.x, .08, s.z); model.root.rotation.y = s.yaw;
+        model.root.position.set(s.x, .08 + s.y, s.z); model.root.rotation.set(s.y > 0 ? -.12 : 0,s.yaw,0);
+        model.glider.scale.setScalar(s.y > 0 ? 1 : .15); model.glider.position.set(0,s.y > 0 ? 3.1 : 1.15,s.y > 0 ? -.35 : -.9);
         model.body.rotation.z = s.stun > 0 ? Math.sin(race.elapsed * 35) * .15 : 0;
         model.wheels.forEach(w => { w.tire.rotation.x += s.speed * dt / .4; w.rim.rotation.x = w.tire.rotation.x; });
       });
       race.racers.forEach((racer, i) => {
         const s = racer.state, shield = shields[i], flame = flames[i];
-        shield.visible = s.shield > 0; shield.position.set(s.x, 1.2, s.z); shield.rotation.y = race.elapsed * 4;
+        shield.visible = s.shield > 0; shield.position.set(s.x, 1.2 + s.y, s.z); shield.rotation.y = race.elapsed * 4;
         flame.visible = s.boost > 0;
-        flame.position.set(s.x - Math.sin(s.yaw) * 2.1, .55, s.z - Math.cos(s.yaw) * 2.1);
+        flame.position.set(s.x - Math.sin(s.yaw) * 2.1, .55 + s.y, s.z - Math.cos(s.yaw) * 2.1);
         flame.rotation.set(-Math.PI / 2, 0, s.yaw); flame.scale.setScalar(.8 + Math.sin(race.elapsed * 45) * .2);
         for (let j = 0; j < 12; j++) {
           const age = (race.elapsed * 4 + j / 12) % 1, side = j % 2 ? 1 : -1, index = i * 12 + j;

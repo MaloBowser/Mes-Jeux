@@ -48,6 +48,7 @@
   }
   function closeDialogs() { for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
   function start() {
+    document.body.classList.remove('finished');
     audio.silence(); audio.unlock(); audio.play('countdown');
     closeDialogs(); simulation.reset(); race.reset(); earned = 0; view.coins.forEach(c => { c.lap = -1; c.object.visible = true; }); clearInput(); accumulator = 0; countdown = 3; goTime = 0; mode = 'countdown';
     $('intro').hidden = true; $('hud').hidden = false; document.body.classList.add('racing'); document.body.classList.remove('selecting');
@@ -55,6 +56,7 @@
     view.update(simulation.state, 0, false, true); raceView.update(0, true); updateHUD();
   }
   function menu() {
+    document.body.classList.remove('finished');
     audio.silence();
     closeDialogs(); clearInput(); simulation.reset(); race.reset(); raceView.update(0, false); mode = 'menu'; accumulator = 0;
     $('hud').hidden = true; $('intro').hidden = false; $('countdown').hidden = true; document.body.classList.remove('racing');
@@ -78,6 +80,7 @@
     const rank = race.standings().indexOf(race.player) + 1, item = api.items[race.player.item];
     $('position').innerHTML = `${rank}<span> / 6</span>`;
     $('race-time').textContent = clock(race.elapsed);
+    $('race-coins').textContent = String(earned).padStart(2,'0');
     $('item-symbol').textContent = item ? item.symbol : '?';
     $('item-symbol').dataset.item = race.player.item || '';
     $('item-name').textContent = item ? item.name : 'Aucun objet';
@@ -95,7 +98,7 @@
     $('checkpoint').textContent = `${s.nextGate === 0 ? 7 : s.nextGate - 1} / 7`;
     $('message').textContent = s.nextGate === 0 ? 'Tous validés · Rejoins la ligne' : `Prochaine porte : 0${s.nextGate}`;
     $('speed').textContent = Math.round(s.speed * 3.6);
-    $('handling').textContent = s.stun > 0 ? 'TOUCHÉ !' : s.shield > 0 ? 'ÉTOILE · INVINCIBLE !' : s.boost > 0 ? 'TURBO !' : s.impact > 0 ? 'CONTACT AVEC LA BARRIÈRE' : s.driftCharge >= .8 ? touchDevice ? 'RELÂCHE DÉRAPAGE : MINI-TURBO' : 'RELÂCHE ESPACE : MINI-TURBO' : s.drift ? 'DÉRAPAGE · CHARGE LE TURBO' : garage.state.coins === 100 ? 'PORTEFEUILLE PLEIN · 100 PIÈCES' : api.courses[track.id].name.toUpperCase();
+    $('handling').textContent = s.stun > 0 ? 'TOUCHÉ !' : s.y > 0 ? `VOL · ${Math.round(s.y)} m` : s.shield > 0 ? 'ÉTOILE · INVINCIBLE !' : s.boost > 0 ? 'TURBO !' : s.impact > 0 ? 'CONTACT AVEC LA BARRIÈRE' : s.driftCharge >= .8 ? touchDevice ? 'RELÂCHE DÉRAPAGE : MINI-TURBO' : 'RELÂCHE ESPACE : MINI-TURBO' : s.drift ? 'DÉRAPAGE · CHARGE LE TURBO' : api.courses[track.id].name.toUpperCase();
   }
   function tick(dt) {
     if ((mode === 'race' || mode === 'countdown') && $('auto-gas').checked) input.gas = !input.brake;
@@ -115,24 +118,30 @@
       if (s.boost > boost) audio.play('turbo');
       for (const coin of view.coins) {
         coin.object.visible = coin.lap !== s.laps;
-        if (!s.finished && coin.lap !== s.laps && garage.state.coins < 100 && Math.hypot(s.x - coin.x, s.z - coin.z) < 1.6) {
-          const amount = garage.credit(1);
+        if (!s.finished && coin.lap !== s.laps && s.y < 2 && Math.hypot(s.x - coin.x, s.z - coin.z) < 1.6) {
+          const owned = garage.state.owned.length, amount = garage.credit(1);
+          if (garage.state.owned.length > owned) race.announce(`DÉBLOQUÉ : ${api.paints[garage.state.owned.at(-1)].name.toUpperCase()} !`);
           if (amount) { earned += amount; coin.lap = s.laps; coin.object.visible = false; menus.wallet(); audio.play('coin'); }
         }
       }
       if (goTime > 0) { goTime -= dt; if (goTime <= 0) $('countdown').hidden = true; }
       if (simulation.state.finished) {
         mode = 'finished'; clearInput(); $('countdown').hidden = true;
+        document.body.classList.add('finished'); $('hud').hidden=true;
         audio.silence(); audio.play('finish');
         const order = race.standings(), rank = order.indexOf(race.player) + 1;
         $('finish-title').textContent = rank === 1 ? 'VICTOIRE !' : `${rank}e PLACE !`;
         $('finish-course').textContent = `${api.courses[track.id].name} · ${clock(race.elapsed)}`;
-        $('results').replaceChildren(...order.map(racer => {
+        $('results').replaceChildren(...order.map((racer,index) => {
           const row = document.createElement('li');
           row.classList.toggle('is-player', racer === race.player);
-          row.textContent = `${racer.name} · ${racer.finishTime === null ? 'En piste' : clock(racer.finishTime)}`; return row;
+          const rank=document.createElement('b');rank.className='result-rank';rank.textContent=index+1;
+          const portrait=document.createElement('img');portrait.src=menus.portrait(racer.choice.driver);portrait.alt='';
+          const name=document.createElement('span');name.className='result-name';name.textContent=`${api.drivers[racer.choice.driver].name}${racer===race.player?' · Toi':''}`;
+          const time=document.createElement('time');time.className='result-time';time.textContent=racer.finishTime===null?'En piste':clock(racer.finishTime);
+          row.append(rank,portrait,name,time);return row;
         }));
-        $('earned').textContent = `${earned} pièces ramassées · Portefeuille : ${garage.state.coins} / 100`; $('finish-dialog').showModal();
+        $('earned').textContent = `${earned} pièces ramassées · Total sauvegardé : ${garage.state.coins}`; $('finish-dialog').showModal();
       }
     }
   }
