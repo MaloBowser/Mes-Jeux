@@ -54,28 +54,40 @@
   Object.assign(api.courses.desert,{theme:'sand',cup:0,medal:'✦'});
   api.cups = ['Coupe Horizon','Coupe Givre','Coupe Sucrée','Coupe Volcan','Coupe Métropole','Coupe Céleste'];
   const routes = [
-    ['lagoon','Lagon des voiles','coast',0,1.05,.88,11,2,0],
-    ['glacier','Glacier étincelant','snow',1,.95,1.08,13,3,.2], ['fjord','Virages du fjord','snow',1,1.12,.85,16,2,.7],
-    ['aurora','Aurores polaires','snow',1,1,1,19,3,1.2], ['summit','Sommet givré','snow',1,.9,1.13,15,4,.3],
-    ['bonbon','Boucle bonbon','candy',2,1.1,.9,17,3,.4], ['biscuit','Biscuit express','candy',2,1.15,.85,12,2,1.1],
-    ['sorbet','Slalom sorbet','candy',2,.92,1.1,19,4,.7], ['choco','Vallée chocolat','candy',2,1,1,21,3,1.5],
-    ['caldera','Caldeira ardente','lava',3,1.1,.92,18,3,.8], ['basalt','Bastion de basalte','lava',3,.95,1.05,16,4,1.4],
-    ['magma','Méandre magma','lava',3,1.12,.86,22,3,.2], ['ember','Route des braises','lava',3,1,1,14,2,1.8],
-    ['metro','Métropole minuit','city',4,1.15,.85,17,4,.5], ['harbor','Port des lumières','city',4,1.05,.95,19,3,1],
-    ['garden','Jardins suspendus','forest',4,.9,1.12,16,3,1.7], ['arcade','Avenue arcade','city',4,1.08,.92,12,4,1.3],
-    ['cloudway','Autoroute des nuages','cloud',5,1.1,.9,15,2,.4], ['rainbowRoad','Ruban arc-en-ciel','cloud',5,1,1,22,4,.9],
-    ['stars','Archipel des étoiles','cloud',5,.94,1.1,20,3,1.9], ['skyline','Grande traversée','cloud',5,1.13,.88,18,4,2.2]
+    ['lagoon','Ovale du lagon','coast',0,'Ovale', [[-120,65],[0,65],[120,65],[155,0],[120,-65],[0,-65],[-120,-65],[-155,0]]],
+    ['glacier','Patinoire étincelante','snow',1,'Rectangle arrondi', [[-100,90],[100,90],[135,55],[135,-55],[100,-90],[-100,-90],[-135,-55],[-135,55]]],
+    ['fjord','Virages du fjord','snow',1,'Double baie', [[-130,70],[-40,110],[50,80],[130,100],[155,20],[100,-70],[20,-100],[-15,-30],[-90,-65],[-155,-15]]],
+    ['aurora','Triangle des aurores','snow',1,'Triangle', [[-115,90],[0,110],[115,90],[100,20],[30,-105],[0,-125],[-30,-105],[-100,20]]],
+    ['summit','Lacets du sommet','snow',1,'Lacets', [[-145,100],[20,100],[145,70],[135,15],[35,15],[-50,5],[-65,-45],[40,-65],[135,-95],[65,-135],[-110,-115],[-150,-40]]],
+    ['bonbon','Rond des bonbons','candy',2,'Rond', Array.from({length:16},(_,i)=>[Math.sin(i*Math.PI/8)*100,Math.cos(i*Math.PI/8)*100])],
+    ['biscuit','Biscuit express','candy',2,'Ovale allongé', [[-150,48],[0,48],[150,48],[175,0],[150,-48],[0,-48],[-150,-48],[-175,0]]],
+    ['sorbet','Slalom sorbet','candy',2,'Slalom en S', [[-135,115],[-45,115],[30,65],[110,85],[155,30],[90,-10],[30,5],[-40,-45],[20,-100],[-45,-135],[-135,-90],[-155,0]]],
+    ['choco','Cacahuète chocolat','candy',2,'Deux lobes', [[-145,65],[-80,105],[0,45],[80,105],[145,65],[160,-20],[90,-85],[0,-40],[-90,-85],[-160,-20]]],
+    ['caldera','Anneau de lave','lava',3,'Anneau volcanique', Array.from({length:16},(_,i)=>[Math.sin(i*Math.PI/8)*120,Math.cos(i*Math.PI/8)*120])],
+    ['basalt','Forteresse de basalte','lava',3,'Citadelle', [[-120,110],[0,110],[120,110],[145,65],[85,15],[145,-50],[110,-110],[0,-110],[-110,-110],[-145,-50],[-85,15],[-145,65]]],
+    ['magma','Ponts du magma','lava',3,'Fer à cheval', [[-145,100],[-65,110],[-55,25],[-65,-55],[0,-100],[65,-55],[55,25],[65,110],[145,100],[150,-80],[80,-150],[-80,-150],[-150,-80]], true],
+    ['ember','Sprint des braises','lava',3,'Delta', [[-150,90],[0,90],[150,90],[120,25],[45,-100],[0,-145],[-45,-100],[-120,25]]],
+    ['metro','Métropole minuit','city',4,'Grand L', [[-140,110],[120,110],[145,65],[140,0],[35,-5],[15,-45],[15,-130],[-65,-145],[-140,-105]]],
+    ['harbor','Pont du grand port','city',4,'Quais et ponts', [[-150,90],[-40,90],[55,120],[150,75],[150,-55],[90,-105],[-15,-70],[-140,-100],[-170,-20]], true],
+    ['garden','Jardins suspendus','forest',4,'Boucle en haricot', [[-130,70],[-50,115],[75,100],[145,35],[125,-65],[50,-115],[-20,-70],[-35,0],[-100,-20],[-150,10]], true],
+    ['arcade','Escaliers néon','city',4,'Chicanes', [[-150,100],[135,100],[160,50],[100,15],[75,-35],[15,-55],[-10,-110],[-100,-130],[-150,-85],[-100,-30],[-150,25]]],
+    ['cloudway','Viaduc des nuages','cloud',5,'Grand viaduc', [[-170,75],[-70,110],[50,80],[160,110],[190,30],[120,-55],[0,-90],[-140,-65]], true],
+    ['rainbowRoad','Trèfle arc-en-ciel','cloud',5,'Trèfle', [[-40,120],[40,120],[65,65],[130,30],[130,-35],[65,-65],[35,-130],[-35,-130],[-65,-65],[-130,-35],[-130,30],[-65,65]], true],
+    ['stars','Étoile cosmique','cloud',5,'Étoile arrondie', [[0,145],[55,70],[135,45],[85,-30],[85,-115],[0,-90],[-85,-115],[-85,-30],[-135,45],[-55,70]]],
+    ['skyline','Grande traversée','cloud',5,'Serpentin', [[-180,90],[-65,100],[20,45],[105,90],[180,55],[150,-10],[65,-30],[-20,-85],[-125,-110],[-185,-45]], true]
   ];
-  for (const [id,name,theme,cup,sx,sz,wave,bends,phase] of routes) {
-    const layout = Array.from({length:12},(_,i)=>{
-      const angle=i*Math.PI/6, radius=112+wave*Math.sin(angle*bends+phase)+7*Math.cos(angle*2-phase);
-      return [Math.sin(angle)*radius*sx,0,Math.cos(angle)*radius*sz];
-    });
-    api.courses[id]={...themes[theme],name,theme,cup,layout,medal:['☀','❄','✿','♜','◆','★'][cup],
-      difficulty:bends>=4?'TECHNIQUE':'INTERMÉDIAIRE',description:`${name} · tracé original, accélérateurs et deux passages en vol.`};
+  for (const [id,name,theme,cup,shape,coordinates,bridge=false] of routes) {
+    api.courses[id]={...themes[theme],name,theme,cup,shape,bridge,layout:coordinates.map(([x,z])=>[x,0,z]),medal:['☀','❄','✿','♜','◆','★'][cup],
+      difficulty:['Rond','Ovale','Ovale allongé','Rectangle arrondi'].includes(shape)?'FACILE':'TECHNIQUE',
+      description:`${shape}${bridge?' avec ponts surélevés':''} · accélérateurs et deux passages en vol.`};
   }
-  Object.assign(api.courses.rainbowRoad,{presentation:'rainbow',sky:'#110c2c',fog:'#201743',description:'Une piste lumineuse multicolore, suspendue dans un ciel étoilé.'});
-  api.courses.azur.description='Boulevard tropical : palmiers, hôtels colorés et tribunes au bord de la mer.';
+  const surfaces={coast:'#408baf',forest:'#6457a0',sand:'#c58d50',snow:'#83cadf',candy:'#b8447b',lava:'#553d56',city:'#35587b',cloud:'#8a80c3'};
+  for(const course of Object.values(api.courses))course.road=surfaces[course.theme];
+  Object.assign(api.courses.rainbowRoad,{presentation:'rainbow',sky:'#110c2c',fog:'#201743'});
+  Object.assign(api.courses.stars,{presentation:'rainbow',sky:'#161139',fog:'#27204c'});
+  Object.assign(api.courses.azur,{shape:'Boulevard côtier',description:'Boulevard tropical : palmiers, hôtels colorés et tribunes au bord de la mer.'});
+  Object.assign(api.courses.neon,{shape:'Slalom forestier'});
+  Object.assign(api.courses.desert,{shape:'Boucle des dunes'});
   for (const [id,name,color,price,pattern] of [
     ['ocean','Vagues océanes','#258dc5',100,'waves'], ['racer','Bandes de course','#e44545',130,'stripes'],
     ['night','Étoiles de nuit','#313f8b',170,'stars'], ['pollen','Fleurs solaires','#f5b533',220,'flowers'],

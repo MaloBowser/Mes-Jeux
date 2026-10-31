@@ -47,7 +47,9 @@ Le garage affiche trois colonnes indépendantes : **Kart**, **Roues**, **Aile**,
 
 Les dix ailes se déploient au garage et en vol, puis se replient à l’atterrissage. Leur forme est cosmétique ; la physique de vol est commune. Roues et ailes sont sauvegardées avec le garage ; une ancienne sauvegarde sans ces champs reçoit les roues Standard et l’aile Delta sans perdre ses éléments acquis.
 
-Les **24 circuits originaux** sont répartis en six collections de quatre : Horizon, Givre, Sucrée, Volcan, Métropole et Céleste. Les trois tracés initiaux sont conservés ; les 21 nouveaux sont des boucles définies par leurs paramètres géométriques, avec huit ambiances de décor. Les collections servent à sélectionner une course, sans championnat à points entre les quatre courses. Chaque vignette montre la scène réellement jouable et est calculée à la première ouverture de sa collection.
+Les **24 circuits originaux** sont répartis en six collections de quatre : Horizon, Givre, Sucrée, Volcan, Métropole et Céleste. Les trois tracés initiaux sont conservés ; les 21 autres ont des formes définies individuellement : rond, ovale, rectangle arrondi, triangle, lacets, slalom en S, deux lobes, fer à cheval, rues en L, chicanes, trèfle et étoile. Les revêtements ont des couleurs et motifs propres aux huit thèmes. La coupe Volcan roule au-dessus d’une mer de lave lumineuse, autour de cratères. Les collections servent à sélectionner une course, sans championnat à points entre les quatre courses. Chaque vignette montre une vue aérienne de la scène réellement jouable pour rendre le tracé lisible ; elle est calculée à la première ouverture de sa collection. La vignette de l’index principal montre une course sur la piste arc-en-ciel.
+
+Six circuits comportent deux ponts à montée et descente progressives : Magma, Port, Jardins, Nuages, Arc-en-ciel et Grande traversée. La chaussée monte jusqu’à 14 mètres et repose sur des piliers. Les karts, la caméra, les pièces, les objets et les barrières suivent sa hauteur. Le vol reste calculé relativement à la chaussée ; les pentes ne modifient pas la vitesse et les tracés ne se croisent pas sur deux niveaux.
 
 Chaque circuit comporte deux plaques d’accélération orange et deux rampes bleues. Les franchir dans le bon sens à au moins 8 m/s, dans leur largeur de 12 m, déclenche un boost de 1,4 seconde. Une rampe ouvre automatiquement l’aile et lance le kart en hauteur. Gauche/droite dirigent le vol ; freiner réduit la descente mais ralentit, accélérer favorise la descente. Après trois secondes de portance, la gravité augmente jusqu’à l’atterrissage. La caméra suit l’altitude. Les rivaux volent aussi. Les bananes au sol et les contacts avec des karts à une autre altitude sont ignorés. Le vol ne permet pas de déraper ni de ramasser des pièces au sol. Les limites de piste reprennent effet à l’atterrissage ; le vol n’ajoute pas de raccourcis, d’antigravité ou de figure acrobatique.
 
@@ -139,9 +141,12 @@ python tests/test_malo_kart_race.py
 python tests/test_malo_kart_mobile.py
 python tests/test_malo_kart_flight.py
 python tests/test_malo_kart_fixes.py
+python tests/test_malo_kart_tracks.py
 ```
 
 `test_malo_kart_fixes.py` reproduit le checkpoint manqué en vol, vérifie l’arrêt après deux tours, la marche arrière au clavier et au toucher, la sortie d’une barrière, les 136 personnalisations, leurs filtres et leur sauvegarde.
+
+`test_malo_kart_tracks.py` vérifie les 24 courses, la séparation des branches du tracé, les six circuits surélevés, la hauteur du kart au sol et en vol, ainsi que les 24 aperçus aériens.
 
 Chaque script gère son propre serveur temporaire. Captures dans `.tmp/malo-phase1-checks/`, `.tmp/malo-garage-checks/` et `.tmp/malo-race-checks/`.
 

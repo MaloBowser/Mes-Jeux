@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "jeux-de-malo-v2-mobile-kart";
+const CACHE_NAME = "jeux-de-malo-v3-circuits-kart";
 
 const FICHIERS = [
     "./",

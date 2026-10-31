@@ -27,7 +27,7 @@
       const dx = b.x - a.x, dz = b.z - a.z, length = Math.hypot(dx, dz);
       const t = clamp(((x - a.x) * dx + (z - a.z) * dz) / (length * length), 0, 1);
       const px = a.x + dx * t, pz = a.z + dz * t, distance = Math.hypot(x - px, z - pz);
-      if (distance < best.distance) best = { x: px, z: pz, distance, tx: dx / length, tz: dz / length, index: i };
+      if (distance < best.distance) best = { x: px, y:(a.y||0)+((b.y||0)-(a.y||0))*t, z: pz, distance, tx: dx / length, tz: dz / length, index: i };
     }
     return best;
   };

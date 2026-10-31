@@ -36,10 +36,13 @@
         for(let i=0;i<=128;i+=16){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,128);ctx.moveTo(0,i);ctx.lineTo(128,i);ctx.stroke();}
         return;
       }
-      ctx.fillStyle = '#475a64'; ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = theme.road || '#475a64'; ctx.fillRect(0, 0, w, h);
       let seed = 91;
       const noise = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
       for (let i = 0; i < 3500; i++) { ctx.fillStyle = i % 2 ? '#ffffff0b' : '#0000000d'; ctx.fillRect(noise() * w, noise() * h, 1, 1); }
+      if(theme.theme==='candy'){ctx.fillStyle='#ffedb866';for(let i=-128;i<256;i+=48){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i+18,0);ctx.lineTo(i+146,128);ctx.lineTo(i+128,128);ctx.fill();}}
+      if(theme.theme==='snow'){ctx.strokeStyle='#efffff88';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(20,0);ctx.lineTo(70,50);ctx.lineTo(40,90);ctx.lineTo(100,128);ctx.stroke();}
+      if(theme.theme==='lava'){ctx.strokeStyle='#ff9b45';ctx.lineWidth=2;ctx.strokeRect(8,3,112,58);ctx.strokeRect(8,67,112,58);}
       ctx.fillStyle = tropical?'#ffd15c':'#f5e9cf'; ctx.fillRect(3, 0, tropical?3:1, h); ctx.fillRect(w - 4, 0, tropical?3:1, h);
       ctx.fillStyle = '#d3ddd455'; ctx.fillRect(w / 2 - 1, 18, 2, 45);
     });
@@ -48,7 +51,7 @@
       const vertices = [], uv = [], indices = [];
       for (let i = 0; i <= track.points.length; i++) {
         const p = track.points[i % track.points.length];
-        for (const side of [a, b]) { vertices.push(p.x + p.tz * side, y, p.z - p.tx * side); uv.push(side === a ? 0 : 1, i * track.length / track.points.length / 16); }
+        for (const side of [a, b]) { vertices.push(p.x + p.tz * side, p.y + y, p.z - p.tx * side); uv.push(side === a ? 0 : 1, i * track.length / track.points.length / 16); }
         if (i < track.points.length) { const n = i * 2; indices.push(n, n + 2, n + 1, n + 1, n + 2, n + 3); }
       }
       const geometry = new T.BufferGeometry();
@@ -59,7 +62,25 @@
     const sea = mesh(new T.PlaneGeometry(2200, 2200), material(theme.outer, .35, .15), [0, -1.2, 0]); sea.rotation.x = -Math.PI / 2; sea.castShadow = false;
     const beach = mesh(new T.CircleGeometry(185, 96), material('#efd29a'), [0, -.3, 0]); beach.rotation.x = -Math.PI / 2; beach.castShadow = false;
     const island = mesh(new T.CircleGeometry(174, 96), material(theme.ground), [0, -.05, 0]); island.rotation.x = -Math.PI / 2; island.castShadow = false;
-    sea.visible=beach.visible=island.visible=!rainbow;
+    sea.visible=!rainbow;
+    beach.visible=island.visible=!rainbow&&theme.theme!=='lava'&&!theme.bridge;
+    if(theme.theme==='lava'){
+      sea.material.emissive.set('#ff571c');sea.material.emissiveIntensity=.8;
+      const lavaMap=texture(256,256,(ctx,w,h)=>{
+        ctx.fillStyle='#e95325';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#ffca42';ctx.lineWidth=7;
+        for(let i=0;i<7;i++){ctx.beginPath();ctx.moveTo(i*46-30,0);for(let y=0;y<=256;y+=16)ctx.lineTo(i*46+Math.sin(y/30+i)*18,y);ctx.stroke();}
+      });
+      lavaMap.wrapS=lavaMap.wrapT=T.RepeatWrapping;lavaMap.repeat.set(35,35);sea.material.map=lavaMap;sea.material.emissiveMap=lavaMap;
+      const volcano=new T.Mesh(new T.CylinderGeometry(15,48,44,24),material('#422b42'));volcano.position.set(0,20,0);scenery.add(volcano);
+      const crater=mesh(new T.CircleGeometry(15,32),new T.MeshBasicMaterial({color:'#ffbd45'}),[0,42.1,0]);crater.rotation.x=-Math.PI/2;
+    }
+    if(theme.bridge){
+      const steel=material(theme.theme==='lava'?'#6e5668':'#badbe4',.4,.4);
+      for(let i=0;i<480;i+=16){const p=track.points[i];if(p.y<2)continue;
+        for(const side of [-1,1])box(steel,[p.x+p.tz*side*7,p.y/2-1,p.z-p.tx*side*7],[1.2,p.y+2,1.2]);
+      }
+      ribbon(-8,8,dark,-.65);
+    }
     ribbon(-9.3, 9.3, rainbow?new T.MeshStandardMaterial({color:'#9b86e6',emissive:'#7a5eb8',emissiveIntensity:.5}):white, .01);
     ribbon(-8, 8, new T.MeshStandardMaterial({ map: roadMap, roughness:rainbow?.3:.95,emissive:rainbow?'#ffffff':'#000000',emissiveMap:rainbow?roadMap:null,emissiveIntensity:.45 }), .04);
     const arrows = texture(128, 128, ctx => {
@@ -68,7 +89,7 @@
     });
     for (const zone of track.zones || []) {
       const ramp = zone.type === 'glide', group = new T.Group();
-      group.position.set(zone.x,.07,zone.z); group.rotation.y = Math.atan2(zone.tx,zone.tz); scenery.add(group);
+      group.position.set(zone.x,zone.y+.07,zone.z); group.rotation.y = Math.atan2(zone.tx,zone.tz); scenery.add(group);
       const surface = new T.MeshStandardMaterial({ color:ramp?'#1ccaff':'#ffae32', map:arrows, emissive:ramp?'#087cca':'#dd621a', emissiveIntensity:.6, side:T.DoubleSide });
       const panel = mesh(new T.PlaneGeometry(12,6),surface,[0,ramp?.6:.02,-2.8],[1,1,1],group);
       panel.rotation.set(-Math.PI/2-(ramp?.2:0),0,Math.PI);
@@ -79,14 +100,14 @@
     track.points.forEach((p, i) => {
       for (let side = 0; side < 2; side++) {
         const offset = side ? 8.25 : -8.25;
-        dummy.position.set(p.x + p.tz * offset, rainbow?.85:.5, p.z - p.tx * offset);
+        dummy.position.set(p.x + p.tz * offset, p.y+(rainbow?.85:.5), p.z - p.tx * offset);
         dummy.rotation.set(0, Math.atan2(p.tx, p.tz), 0); dummy.scale.set(rainbow?.25:.45, rainbow?.22:.9, track.length / track.points.length * 2.1); dummy.updateMatrix();
         if (i % 2 === 0) { const index = i + side; panels.setMatrixAt(index, dummy.matrix); panels.setColorAt(index, rainbow?new T.Color().setHSL(i/480,.8,.75):new T.Color(i % 12 < 6 ? theme.accent : '#fff1d0')); }
       }
     });
     panels.castShadow = panels.receiveShadow = true; scenery.add(panels);
     const gates = track.gates.map((p, i) => {
-      const group = new T.Group(); group.position.set(p.x, 0, p.z); group.rotation.y = Math.atan2(p.tx, p.tz); scenery.add(group);
+      const group = new T.Group(); group.position.set(p.x, p.y, p.z); group.rotation.y = Math.atan2(p.tx, p.tz); scenery.add(group);
       const gateMaterial = material(i ? '#48c7b9' : '#ffd15a');
       if(i){
         for(const side of [-1,1]) { box(gateMaterial,[side*9,1.2,0],[.25,2.4,.3],group);box(white,[side*9,2.3,0],[.65,.25,.4],group); }
@@ -142,10 +163,10 @@
     }
     for (let i = 0; i < (rainbow?0:12); i++) {
       const angle = i * Math.PI / 6, radius = 340 + (i % 3) * 40;
-      mesh(new T.IcosahedronGeometry(1, 1), material(i % 2 ? '#74a5a8' : '#88b7ba'), [Math.cos(angle) * radius, 12, Math.sin(angle) * radius], [65 + i * 3, 30 + i * 3, 65]);
+      mesh(new T.IcosahedronGeometry(1, 1), material(theme.theme==='lava'?(i%2?'#422b42':'#684053'):theme.theme==='snow'?'#d1eaf5':theme.theme==='candy'?(i%2?'#f0b8db':'#e5c789'):(i%2?'#74a5a8':'#88b7ba')), [Math.cos(angle) * radius, 12, Math.sin(angle) * radius], [65 + i * 3, 30 + i * 3, 65]);
     }
     const building = new T.Group(); building.position.set(37, 0, 132); scenery.add(building);
-    building.visible=!rainbow&&!tropical;
+    building.visible=!rainbow&&!tropical&&theme.theme!=='lava'&&!theme.bridge;
     box(white, [0, 3, 0], [18, 6, 9], building); box(blue, [0, 6.3, 0], [20, .6, 11], building);
     for (let i = -2; i <= 2; i++) box(dark, [i * 3.3, 2.5, -4.55], [2.4, 3.5, .1], building);
     window.MaloPrototype.addReferenceScenery(T,scenery,track,texture);
@@ -164,9 +185,9 @@
     const coinGeometry = new T.CylinderGeometry(.48, .48, .12, 20);
     const coinMaterial = new T.MeshStandardMaterial({ color: '#ffcf41', metalness: .6, roughness: .25, emissive: '#ad6d00', emissiveIntensity: .4 });
     for (const i of [12,24,54,66,78,216,228,258,270,282,450,462]) {
-      const p = track.points[i], object = new T.Group(); object.position.set(p.x, 1.1, p.z); scenery.add(object);
+      const p = track.points[i], object = new T.Group(); object.position.set(p.x, p.y+1.1, p.z); scenery.add(object);
       const disc = mesh(coinGeometry, coinMaterial, [0, 0, 0], [1, 1, 1], object); disc.rotation.x = Math.PI / 2;
-      coins.push({ object, x: p.x, z: p.z, lap: -1 });
+      coins.push({ object, x: p.x, y:p.y, z: p.z, lap: -1 });
     }
     let animation = 0;
     const look = new T.Vector3(), destination = new T.Vector3();
@@ -178,9 +199,11 @@
       scenery.visible = !menu; podium.visible = menu; podium.position.set(state.x, 0, state.z);
       scene.background = menu ? null : raceBackground; scene.fog = menu ? null : raceFog;
       showroomLight.visible = menu;
-      kart.position.set(state.x, .08 + (finished?0:state.y || 0), state.z); kart.rotation.set(!menu && !finished && state.y > 0 ? -.12 : 0,state.yaw,0);
+      const ground=menu?0:track.heightAt(state.x,state.z);
+      const slope=menu?0:Math.atan2(track.heightAt(state.x+Math.sin(state.yaw)*2,state.z+Math.cos(state.yaw)*2)-ground,2);
+      kart.position.set(state.x,ground+.08+(finished?0:state.y||0),state.z);kart.rotation.set(!menu&&!finished&&state.y>0?-.12:-slope,state.yaw,0);
       animation += dt;
-      coins.forEach(c => { c.object.rotation.y = animation * 2; c.object.position.y = 1.1 + Math.sin(animation * 3 + c.x) * .12; });
+      coins.forEach(c => { c.object.rotation.y = animation * 2; c.object.position.y = c.y + 1.1 + Math.sin(animation * 3 + c.x) * .12; });
       body.rotation.z = Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * Math.min(state.speed / 60, .15);
       wheels.forEach(w => { w.tire.rotation.x += state.speed * dt / w.radius; w.rim.rotation.x = w.tire.rotation.x; w.spokes.forEach(s => { s.rotation.x += state.speed * dt / w.radius; }); w.pivot.rotation.y = w.front && !menu ? Math.sin(state.yaw - Math.atan2(state.vx, state.vz)) * .6 : 0; });
       const fx = Math.sin(state.yaw), fz = Math.cos(state.yaw);
@@ -198,6 +221,7 @@
         destination.set(state.x - fx * (8 + state.speed * .045), (state.y > 0 ? 6.4 : 4.6) + (state.y || 0), state.z - fz * (8 + state.speed * .045));
         look.set(state.x + fx * 4, 1 + (state.y || 0), state.z + fz * 4);
       }
+      if(!menu){destination.y+=ground;look.y+=ground;}
       camera.position.lerp(destination, snap ? 1 : 1 - Math.exp(-dt * 8)); camera.lookAt(look);
       camera.fov = menu ? 49 : finished?49:Math.min(90, 2 * Math.atan(Math.tan((55 + state.speed * .18) * Math.PI / 360) / Math.min(1, camera.aspect)) * 180 / Math.PI); camera.updateProjectionMatrix();
       sun.position.set(state.x - 45, 70, state.z + 30); sun.target.position.set(state.x, 0, state.z);

@@ -38,6 +38,7 @@
     const boxMaterial = new T.MeshStandardMaterial({ map, emissive: '#329aaa', emissiveIntensity: .5 });
     const boxGeometry = new T.BoxGeometry(1.35, 1.35, 1.35);
     const boxes = race.boxes.map(box => { const mesh = new T.Mesh(boxGeometry, boxMaterial); mesh.position.set(box.x, 1.25, box.z); group.add(mesh); return mesh; });
+    const boxHeights=race.boxes.map(box=>track.heightAt(box.x,box.z));
     const trapMeshes = [], shotMeshes = [];
     const radar = document.getElementById('radar'), pen = radar.getContext('2d');
     const xs = track.points.map(p => p.x), zs = track.points.map(p => p.z);
@@ -82,7 +83,7 @@
     function updatePool(entries, pool, createModel, height) {
       entries.forEach((entry, i) => {
         if (!pool[i]) { pool[i] = createModel(); group.add(pool[i]); }
-        pool[i].visible = true; pool[i].position.set(entry.x, height, entry.z);
+        pool[i].visible = true; pool[i].position.set(entry.x, track.heightAt(entry.x,entry.z)+height, entry.z);
         pool[i].rotation.y = race.elapsed * 3;
       });
       for (let i = entries.length; i < pool.length; i++) pool[i].visible = false;
@@ -92,20 +93,21 @@
       if (!active) return;
       race.rivals.forEach((racer, i) => {
         const model = rivalModels[i], s = racer.state;
-        model.root.position.set(s.x, .08 + s.y, s.z); model.root.rotation.set(s.y > 0 ? -.12 : 0,s.yaw,0);
+        const ground=track.heightAt(s.x,s.z),slope=Math.atan2(track.heightAt(s.x+Math.sin(s.yaw)*2,s.z+Math.cos(s.yaw)*2)-ground,2);
+        model.root.position.set(s.x,ground+.08+s.y,s.z);model.root.rotation.set(s.y>0?-.12:-slope,s.yaw,0);
         model.glider.scale.setScalar(s.y > 0 ? 1 : .15); model.glider.position.set(0,s.y > 0 ? 3.1 : 1.15,s.y > 0 ? -.35 : -.9);
         model.body.rotation.z = s.stun > 0 ? Math.sin(race.elapsed * 35) * .15 : 0;
         model.wheels.forEach(w => { w.tire.rotation.x += s.speed * dt / .4; w.rim.rotation.x = w.tire.rotation.x; });
       });
       race.racers.forEach((racer, i) => {
-        const s = racer.state, shield = shields[i], flame = flames[i];
-        shield.visible = s.shield > 0; shield.position.set(s.x, 1.2 + s.y, s.z); shield.rotation.y = race.elapsed * 4;
+        const s = racer.state, shield = shields[i], flame = flames[i], ground=track.heightAt(s.x,s.z);
+        shield.visible = s.shield > 0; shield.position.set(s.x, ground + 1.2 + s.y, s.z); shield.rotation.y = race.elapsed * 4;
         flame.visible = s.boost > 0;
-        flame.position.set(s.x - Math.sin(s.yaw) * 2.1, .55 + s.y, s.z - Math.cos(s.yaw) * 2.1);
+        flame.position.set(s.x - Math.sin(s.yaw) * 2.1, ground + .55 + s.y, s.z - Math.cos(s.yaw) * 2.1);
         flame.rotation.set(-Math.PI / 2, 0, s.yaw); flame.scale.setScalar(.8 + Math.sin(race.elapsed * 45) * .2);
         for (let j = 0; j < 12; j++) {
           const age = (race.elapsed * 4 + j / 12) % 1, side = j % 2 ? 1 : -1, index = i * 12 + j;
-          sparkPose.position.set(s.x + Math.cos(s.yaw) * side * (1 + age * .6) - Math.sin(s.yaw) * (1 + age * 2), .18 + Math.sin(age * Math.PI) * .45, s.z - Math.sin(s.yaw) * side * (1 + age * .6) - Math.cos(s.yaw) * (1 + age * 2));
+          sparkPose.position.set(s.x + Math.cos(s.yaw) * side * (1 + age * .6) - Math.sin(s.yaw) * (1 + age * 2), ground + .18 + Math.sin(age * Math.PI) * .45, s.z - Math.sin(s.yaw) * side * (1 + age * .6) - Math.cos(s.yaw) * (1 + age * 2));
           sparkPose.scale.setScalar(s.drift && s.driftCharge >= .8 ? .12 * (1 - age) : 0);
           sparkPose.updateMatrix(); sparks.setMatrixAt(index, sparkPose.matrix);
           sparks.setColorAt(index, sparkColor.set(s.driftCharge >= 1.6 ? '#ffb22e' : '#55dbff'));
@@ -114,7 +116,7 @@
       sparks.instanceMatrix.needsUpdate = true; sparks.instanceColor.needsUpdate = true;
       boxes.forEach((mesh, i) => {
         mesh.visible = race.boxes[i].cooldown === 0;
-        mesh.rotation.set(.15, race.elapsed * 1.3, .15); mesh.position.y = 1.25 + Math.sin(race.elapsed * 3 + i) * .15;
+        mesh.rotation.set(.15, race.elapsed * 1.3, .15); mesh.position.y = boxHeights[i] + 1.25 + Math.sin(race.elapsed * 3 + i) * .15;
       });
       updatePool(race.hazards, trapMeshes, createBanana, .1);
       updatePool(race.shots, shotMeshes, createShell, .35);

@@ -59,7 +59,10 @@
       const simulation = api.createSimulation(track), p = track.points[36];
       Object.assign(simulation.state, { x: p.x, z: p.z, yaw: Math.atan2(p.tx, p.tz) });
       view.update(simulation.state, 0, false, true);
-      view.camera.aspect = 2; view.camera.position.y += 3; view.camera.updateProjectionMatrix();
+      const xs=track.points.map(p=>p.x),zs=track.points.map(p=>p.z);
+      const cx=(Math.min(...xs)+Math.max(...xs))/2,cz=(Math.min(...zs)+Math.max(...zs))/2;
+      const span=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...zs)-Math.min(...zs));
+      view.scene.fog=null;view.camera.aspect=2;view.camera.position.set(cx+span*.25,span*1.2,cz+span*.65);view.camera.lookAt(cx,0,cz);view.camera.updateProjectionMatrix();
       renderer.setSize(512, 256, false); renderer.render(view.scene, view.camera);
       thumbnails[`course-${id}`] = renderer.domElement.toDataURL('image/jpeg', .88);
       api.disposeObject(view.scene);
@@ -106,7 +109,7 @@
         else if (screen === 'shop') { const sample = document.createElement('img');sample.className='paint-sample';sample.alt='';thumbnails[`paint-${id}`] ||= api.paintCanvas(item).toDataURL();sample.src=thumbnails[`paint-${id}`];card.append(sample); }
         else { const img = document.createElement('img'); img.src = thumbnails[`${field}-${id}`]; img.alt = ''; card.append(img); }
         const label = document.createElement('span'); label.className = 'label'; label.textContent = item.name;
-        const tag = document.createElement('small'); tag.textContent = screen === 'course' ? item.difficulty : screen === 'shop' ? state.owned.includes(id) ? 'DÉBLOQUÉ' : `${item.price} ◉ AU TOTAL` : chosen ? '✓' : '';
+        const tag = document.createElement('small'); tag.textContent = screen === 'course' ? item.shape || item.difficulty : screen === 'shop' ? state.owned.includes(id) ? 'DÉBLOQUÉ' : `${item.price} ◉ AU TOTAL` : chosen ? '✓' : '';
         label.append(tag); card.append(label); card.onclick = () => {
           if (screen === 'shop') { shopSelection = id; onPreviewPaint(id); }
           else { if (screen === 'vehicle') activePart = field; garage.select(field, id); onChange(field); }

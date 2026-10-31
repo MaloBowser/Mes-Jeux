@@ -9,14 +9,17 @@
       neon: [[-65,0,100],[25,0,110],[105,0,65],[68,0,0],[113,0,-65],[35,0,-110],[-45,0,-65],[-115,0,-90],[-127,0,0]],
       desert: [[-95,0,95],[45,0,110],[135,0,50],[90,0,-25],[120,0,-90],[0,0,-115],[-125,0,-70],[-135,0,20]]
     };
-    const layout = window.MaloPrototype.courses[id]?.layout || layouts[id] || layouts.azur;
+    const course = window.MaloPrototype.courses[id] || {};
+    const layout = course?.layout || layouts[id] || layouts.azur;
     const curve = new T.CatmullRomCurve3(layout.map(p => new T.Vector3(...p)), true, 'catmullrom', .45);
     curve.arcLengthDivisions = 1600;
     const points = Array.from({ length: 480 }, (_, i) => {
       const p = curve.getPointAt(i / 480), tangent = curve.getTangentAt(i / 480);
-      return { x: p.x, z: p.z, tx: tangent.x, tz: tangent.z };
+      const u=i/480;
+      const height=course.bridge ? [ [.12,.38], [.58,.84] ].reduce((h,[start,end])=>h+(u>start&&u<end?14*Math.sin(Math.PI*(u-start)/(end-start))**2:0),0) : 0;
+      return { x: p.x, y:height, z: p.z, tx: tangent.x, tz: tangent.z };
     });
     const zones = [[42,'boost'],[96,'glide'],[246,'boost'],[330,'glide']].map(([index,type])=>({...points[index],index,type}));
-    return { id, points, zones, halfWidth: 8, length: curve.getLength(), gates: Array.from({ length: 8 }, (_, i) => ({ ...points[i * 60] })) };
+    return { id, points, zones, halfWidth: 8, length: curve.getLength(), heightAt:course.bridge?(x,z)=>window.MaloPrototype.nearestPoint(points,x,z).y:()=>0, gates: Array.from({ length: 8 }, (_, i) => ({ ...points[i * 60] })) };
   };
 })();

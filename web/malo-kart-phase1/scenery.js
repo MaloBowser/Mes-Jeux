@@ -22,7 +22,7 @@
       const starGeometry=new T.ExtrudeGeometry(star,{depth:.25,bevelEnabled:false});
       const glow=new T.MeshStandardMaterial({color:'#ffe882',emissive:'#ffb945',emissiveIntensity:.7,metalness:.4,roughness:.3});
       const entries=[];
-      for(let i=0;i<480;i+=20)for(const side of [-1,1]){const p=track.points[i];entries.push({p:[p.x+p.tz*side*10,1.8,p.z-p.tx*side*10],s:[.65,.65,.65],r:[0,Math.atan2(p.tx,p.tz),0]});}
+      for(let i=0;i<480;i+=20)for(const side of [-1,1]){const p=track.points[i];entries.push({p:[p.x+p.tz*side*10,p.y+1.8,p.z-p.tx*side*10],s:[.65,.65,.65],r:[0,Math.atan2(p.tx,p.tz),0]});}
       batch(starGeometry,glow,entries);
       const start=track.points[0],arch=new T.Group();arch.position.set(start.x,0,start.z);arch.rotation.y=Math.atan2(start.tx,start.tz);root.add(arch);
       const arc=mesh(new T.TorusGeometry(10,.3,8,48,Math.PI),gold,[0,1,0],[1,1,1],arch);
