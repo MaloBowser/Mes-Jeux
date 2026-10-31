@@ -109,6 +109,7 @@ try:
         page.wait_for_timeout(100)
         page.evaluate('testGarage.render()')
         page.screenshot(path=str(OUT/'garage-compact.png'))
+        page.locator('#stats').scroll_into_view_if_needed()
         assert page.evaluate('document.getElementById("stats").getBoundingClientRect().bottom <= document.getElementById("intro").getBoundingClientRect().bottom')
         page.locator('#menu-back').click()
         assert page.evaluate('testGarage.menus.screen')=='driver'

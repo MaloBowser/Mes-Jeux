@@ -49,22 +49,34 @@
     }
     const decoration = api.paints[choice.paint];
     if (decoration.pattern) {
-      const canvas=document.createElement('canvas'); canvas.width=canvas.height=128;
-      const ctx=canvas.getContext('2d'); ctx.fillStyle=decoration.color; ctx.fillRect(0,0,128,128);
-      ctx.fillStyle='#fff4ce'; ctx.strokeStyle='#fff4ce'; ctx.lineWidth=9;
-      const pattern=decoration.pattern;
-      if(pattern==='stripes') { ctx.fillRect(24,0,18,128); ctx.fillRect(86,0,18,128); }
-      else if(pattern==='checkers') { ctx.fillStyle='#1c2944'; for(let x=0;x<4;x++) for(let y=0;y<4;y++) if((x+y)%2===0) ctx.fillRect(x*32,y*32,32,32); }
-      else if(pattern==='rainbow') { ['#f66','#fc5','#8d8','#6df','#b8f'].forEach((color,i)=>{ctx.fillStyle=color;ctx.fillRect(i*26,0,26,128);}); }
-      else if(pattern==='waves' || pattern==='flames') {
-        for(let y=18;y<128;y+=35) { ctx.beginPath(); ctx.moveTo(0,y); for(let x=0;x<129;x+=8) ctx.lineTo(x,y+Math.sin(x/15)*10); ctx.stroke(); }
-      } else {
-        ctx.font='bold 42px Arial';ctx.textAlign='center';
-        const symbol={stars:'★',flowers:'✿',diamonds:'◆',leaves:'❧',dots:'●',crown:'♛'}[pattern];
-        for(const x of [32,96]) for(const y of [48,112]) ctx.fillText(symbol,x,y);
-      }
+      const canvas=api.paintCanvas(decoration);
       const map=new T.CanvasTexture(canvas);map.colorSpace=T.SRGBColorSpace;
       paint.map=map; paint.needsUpdate=true;
+    }
+    if(decoration.accessory){
+      const accessory=new T.Group();accessory.name='decoration';body.add(accessory);
+      const trim=mat(decoration.color,.3,.5);
+      if(decoration.accessory==='spoiler'){
+        for(const side of [-1,1])box(metal,[side*.6,1.15,-1.3*length],[.1,.9,.1],accessory);
+        box(trim,[0,1.6,-1.3*length],[2.2,.15,.65],accessory);
+      }else if(decoration.accessory==='flag'||decoration.accessory==='antenna'){
+        box(metal,[.7,1.75,-1.1],[.05,2,.05],accessory);
+        if(decoration.accessory==='flag')box(trim,[1,2.5,-1.1],[.65,.45,.04],accessory);
+        else ball(trim,[.7,2.8,-1.1],[.18,.18,.18],accessory);
+      }else if(decoration.accessory==='exhaust'){
+        for(const side of [-1,1])mesh(new T.CylinderGeometry(.15,.15,1.1,10),trim,[side*.7,1.15,-1.2],[1,1,1],accessory);
+      }else if(decoration.accessory==='fin'){
+        const fin=mesh(new T.ConeGeometry(.5,1.1,3),trim,[0,1.35,-1.3],[.2,1,1],accessory);fin.rotation.y=Math.PI/2;
+      }else if(decoration.accessory==='flower'){
+        for(let i=0;i<6;i++){const angle=i*Math.PI/3;ball(trim,[Math.cos(angle)*.3,1.4+Math.sin(angle)*.3,-1.3],[.2,.2,.09],accessory);}
+        ball(white,[0,1.4,-1.34],[.16,.16,.1],accessory);
+      }else if(decoration.accessory==='neon'){
+        const light=new T.MeshStandardMaterial({color:decoration.color,emissive:decoration.color,emissiveIntensity:2});
+        for(const side of [-1,1])box(light,[side*.8,.35,0],[.12,.12,2.4],accessory);
+      }else if(decoration.accessory==='crown'){
+        mesh(new T.CylinderGeometry(.35,.32,.25,10),trim,[0,1.35,-1.2],[1,1,1],accessory);
+        for(const x of [-.25,0,.25])mesh(new T.ConeGeometry(.1,.35,6),trim,[x,1.62,-1.2],[1,1,1],accessory);
+      }
     }
     for (const side of long ? [-1, 1] : [1]) {
       const exhaust = mesh(new T.CylinderGeometry(.1, .1, .55, 12), metal, [side * .6, .53, -1.4 * length], [1, 1, 1]); exhaust.rotation.x = Math.PI / 2;

@@ -95,3 +95,19 @@ body.finished .shade { background:linear-gradient(90deg,transparent 35%,#1422335
   body.racing .race-position strong { font-size:48px; } body.racing #use-item { width:75px; min-height:75px; } body.racing #item-symbol { font-size:30px; } body.racing .speed { max-width:140px; }
   #finish-dialog { top:2vh; max-height:96dvh; } #finish-dialog h2 { font-size:22px; margin:3px 0; } #results li { padding:1px 6px; margin:2px 0; } #results img { height:27px; } #finish-dialog .result-caption { margin:3px 0; } #finish-dialog #earned { margin:4px 0; }
 }
+.touch-device #touch-controls .touch-pedals { display:grid; grid-template-columns:66px 78px; gap:7px; align-self:end; }
+.touch-device #touch-controls .touch-pedals [data-drive] { grid-row:auto; grid-column:auto; width:100%; height:48px; font-size:9px; border-radius:15px; }
+.touch-device #touch-controls .touch-pedals [data-drive=reverse] { color:#ffc9b4; border-color:#ffc9b4; }
+.touch-device #touch-controls #steering-wheel { display:block; width:128px; height:128px; padding:0; border:0; border-radius:50%; background:transparent; box-shadow:none; touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+#steering-wheel svg { display:block; width:100%; height:100%; pointer-events:none; }
+#steering-wheel:focus-visible { outline:3px solid #ffe66b; outline-offset:4px; }
+body.racing.touch-device .lap { bottom:calc(130px + var(--safe-bottom)); }
+body.racing.touch-device .race-position { bottom:calc(155px + var(--safe-bottom)); }
+body.racing.touch-device .speed { bottom:calc(185px + var(--safe-bottom)); }
+body.racing.touch-device .radar { bottom:calc(265px + var(--safe-bottom)); }
+#shop-filter:not([hidden]) { display:block; color:#06466d; font-size:12px; margin:8px 0 14px; }
+#decoration-filter { display:block; width:100%; min-height:44px; margin:5px 0; padding:8px; font:inherit; border:2px solid white; border-radius:8px; background:#e9fbff; color:#173850; }
+#decoration-count { display:block; font-size:11px; font-weight:bold; }
+body[data-menu=shop] .paint-sample { width:100%; height:80px; object-fit:cover; }
+@media(max-width:350px) { .touch-device #touch-controls #steering-wheel { width:116px; height:116px; } .touch-device #touch-controls .touch-pedals { grid-template-columns:60px 69px; gap:5px; } }
+@media(max-height:500px) and (orientation:landscape) { body.racing.touch-device .radar { bottom:auto; top:65px; } body.racing.touch-device .race-position { bottom:150px; } body.racing.touch-device .speed { bottom:172px; } }

@@ -63,23 +63,24 @@ Le total sauvegardé n’a **plus de plafond de jeu à 100 pièces**. Il est sto
 | Violet électrique | 50 pièces |
 | Or de champion | 80 pièces |
 
-Les paliers débloquent automatiquement 16 décorations en plus de la peinture originale. Les quatre premières couleurs conservent les seuils du tableau ; douze motifs supplémentaires (vagues, bandes, étoiles, fleurs, cristaux, flammes, damier, feuilles, pois, galaxie, couronne, prisme) se débloquent de 100 à 1 050 pièces. Cliquer une décoration la prévisualise sans l’équiper ; le bouton Équiper l’applique gratuitement si elle est débloquée. Les couleurs achetées dans une ancienne version restent acquises, même si leur palier n’est plus atteint après d’anciens achats. Aucun argent réel.
+Les paliers débloquent automatiquement **136 personnalisations** en plus de la peinture originale. Les 120 nouveautés associent 12 styles à 10 couleurs et ajoutent un accessoire 3D : aileron, drapeau, antenne, échappements, dérive, fleur, néons ou couronne. Leurs paliers vont de 30 à 1 220 pièces. Les filtres Course, Nature, Cosmos, Festif et Mécanique facilitent la sélection. Ces personnalisations sont cosmétiques et ne donnent pas de bonus de vitesse. Les 16 décorations précédentes restent disponibles. Les quatre premières couleurs conservent les seuils du tableau ; douze motifs supplémentaires (vagues, bandes, étoiles, fleurs, cristaux, flammes, damier, feuilles, pois, galaxie, couronne, prisme) se débloquent de 100 à 1 050 pièces. Cliquer une décoration la prévisualise sans l’équiper ; le bouton Équiper l’applique gratuitement si elle est débloquée. Les couleurs achetées dans une ancienne version restent acquises, même si leur palier n’est plus atteint après d’anciens achats. Aucun argent réel.
 
 Choix, qualité, solde et couleurs acquises sont sauvegardés sous `malo-kart-garage-v1`, ou `malo.profileData.<profil>.malo-kart-garage-v1` lorsqu’un profil est actif à l’ouverture. Changer de profil dans un autre onglet ne change pas le propriétaire de la partie déjà ouverte. Si le stockage est bloqué, le jeu continue avec une sauvegarde limitée à la session et l’indique dans le menu. C’est une sauvegarde locale modifiable par le propriétaire du navigateur, sans synchronisation entre appareils.
 
 ## Conduire
 
-- Flèches ou ZQSD/WASD : accélérer, freiner et tourner.
+- ↑, Z ou W : accélérer ; ←/→, Q/A et D : tourner.
+- **↓ ou R : reculer**, même avec l’accélération automatique. S : freiner. La marche arrière est limitée à 8 m/s et fonctionne au sol.
 - Espace + direction en roulant : déraper avec moins d’adhérence.
 - Maintenir le dérapage au moins 0,8 seconde, puis relâcher : mini-turbo. À partir de 1,6 seconde, le turbo dure plus longtemps.
 - E, Maj ou bouton de l’objet : utiliser le premier objet ; l’objet en réserve prend automatiquement sa place.
 - Échap ou Ⅱ : pause. Reprendre, recommencer ou retourner à l’accueil depuis la pause.
 
-Sur écran tactile, les flèches du bas permettent de tourner, **FREIN** de ralentir et **DÉRAPAGE** de charger le mini-turbo pendant un virage. L’accélération automatique est activée par défaut : maintenir le frein la coupe temporairement. La désactiver dans Options affiche une pédale **ACCÉLÉRER** à maintenir. Ce réglage vaut pour la session. Toucher l’objet actif utilise le premier objet, puis fait avancer la réserve. Plusieurs doigts peuvent maintenir plusieurs commandes ; relâcher, interrompre le geste ou quitter l’application libère les commandes. Changer d’orientation met la course en pause.
+Sur écran tactile, fais tourner le **volant en bas à droite** avec ton doigt ; il revient au centre quand tu le lâches. **FREIN** ralentit, **RECULER** engage la marche arrière au sol et **DÉRAPAGE** charge le mini-turbo pendant un virage. L’accélération automatique est activée par défaut : maintenir FREIN ou RECULER la coupe temporairement. La désactiver dans Options affiche une pédale **ACCÉLÉRER** à maintenir. Ce réglage vaut pour la session. Toucher l’objet actif utilise le premier objet, puis fait avancer la réserve. Plusieurs doigts peuvent maintenir plusieurs commandes ; relâcher, interrompre le geste ou quitter l’application libère les commandes. Changer d’orientation met la course en pause.
 
 Les menus sont défilables en portrait et en paysage, avec une confirmation toujours accessible. En portrait, le kart apparaît au-dessus des choix et la caméra de course élargit son champ de vision. Le tableau de bord tactile garde la place, les tours, les deux objets, la mini-carte et le compteur. Les étincelles du dérapage deviennent bleues à 0,8 seconde, puis orange à 1,6 seconde ; la flamme apparaît pendant le turbo.
 
-Départ 3–2–1–GO, deux tours et sept checkpoints à passer dans l’ordre. La ligne ne valide un tour qu’après ces portes et dans le bon sens. Rester immobile, revenir sur la ligne ou sauter des portes ne valide pas un tour. La caméra suit le kart et son altitude en vol. Les barrières limitent la trajectoire et réduisent la vitesse au contact. Perdre le focus ou changer d’onglet met le jeu en pause et libère les touches.
+Départ 3–2–1–GO, deux tours et sept checkpoints à passer dans l’ordre. La ligne ne valide un tour qu’après ces portes et dans le bon sens. Les checkpoints intermédiaires prennent aussi en compte la progression le long du tracé lors des passages en vol, jusqu’à 35 m au-delà du bord de piste, pour éviter de bloquer un tour à cause d’une porte survolée à côté. La ligne d’arrivée doit toujours être franchie physiquement, sur toute sa largeur. Le premier passage annonce le dernier tour ; le second arrête la course et affiche les résultats. Rester immobile, revenir sur la ligne ou sauter des portes ne valide pas un tour. La caméra suit le kart et son altitude en vol. Les barrières limitent la trajectoire et réduisent la vitesse au contact. Perdre le focus ou changer d’onglet met le jeu en pause et libère les touches.
 
 ## Adversaires et objets
 
@@ -118,7 +119,8 @@ Le moteur monte dans les tours avec la vitesse. Le départ, les pièces, les obj
 - `race-view.js` : karts adverses, objets en 3D, étoiles et mini-carte.
 - `audio.js` : moteur et effets sonores synthétisés avec Web Audio.
 - `scene.js` : décor, thèmes, pièces et caméra.
-- `game.js` : clavier, course, collecte, application des choix et qualité.
+- `game.js` : clavier, volant tactile, course, collecte, application des choix et qualité.
+- `customization.js` : 120 personnalisations supplémentaires et aperçu partagé des motifs.
 - `preview.png` : capture réelle du jeu pour l’accueil du dépôt.
 - `../../index.html` : lien vers cette version.
 - `../../tests/test_malo_kart_phase1.py` et `../../tests/test_malo_kart_garage.py` : vérifications navigateur.
@@ -136,7 +138,10 @@ python tests/test_malo_kart_garage.py
 python tests/test_malo_kart_race.py
 python tests/test_malo_kart_mobile.py
 python tests/test_malo_kart_flight.py
+python tests/test_malo_kart_fixes.py
 ```
+
+`test_malo_kart_fixes.py` reproduit le checkpoint manqué en vol, vérifie l’arrêt après deux tours, la marche arrière au clavier et au toucher, la sortie d’une barrière, les 136 personnalisations, leurs filtres et leur sauvegarde.
 
 Chaque script gère son propre serveur temporaire. Captures dans `.tmp/malo-phase1-checks/`, `.tmp/malo-garage-checks/` et `.tmp/malo-race-checks/`.
 
@@ -152,7 +157,7 @@ Sur écran tactile, la qualité Automatique démarre au facteur 1 maximum, sans 
 
 Three.js 0.160.1 est fourni localement sous licence MIT (`../vendor/three.LICENSE.txt`). Son bundle classique affiche un avertissement de dépréciation non bloquant, mais permet l’ouverture en fichier local. Les douze portraits de personnages sont © Nintendo et proviennent de la [page officielle de Mario Kart 8 Deluxe](https://www.nintendo.com/au/games/nintendo-switch/mario-kart-8-deluxe/) ; les liens individuels sont conservés dans `assets/portraits/SOURCES.md`. Ils ne sont pas sous la licence MIT du moteur. Les modèles 3D et les motifs du menu sont générés localement. Aucune requête externe à l’exécution, musique externe, police distante ou dépendance payante. Si Three.js ou WebGL manque, un message propose de recharger la page.
 
-Jeu solo contre cinq adversaires automatisés ; pas de multijoueur, de musique ni de marche arrière. Les graphismes restent stylisés et les collisions simplifiées ; les adversaires suivent le tracé avec une conduite simplifiée. Cette version n’est pas le jeu officiel : elle ne reproduit pas ses modèles détaillés, ses circuits, son antigravité ni sa physique exacte de vol. Les tests ont été exécutés dans Edge/Chromium, avec émulation mobile ; Safari iOS, Chrome Android et les appareils physiques restent à vérifier.
+Jeu solo contre cinq adversaires automatisés ; pas de multijoueur ni de musique. Les graphismes restent stylisés et les collisions simplifiées ; les adversaires suivent le tracé avec une conduite simplifiée. Cette version n’est pas le jeu officiel : elle ne reproduit pas ses modèles détaillés, ses circuits, son antigravité ni sa physique exacte de vol. Les tests ont été exécutés dans Edge/Chromium, avec émulation mobile ; Safari iOS, Chrome Android et les appareils physiques restent à vérifier.
 
 
 ## Références de conception

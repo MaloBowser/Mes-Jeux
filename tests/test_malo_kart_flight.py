@@ -70,7 +70,7 @@ try:
         page.evaluate("testFlight.menus.show('course')")
         previews = []
         for cup in range(6):
-            page.locator('#cup-select').select_option(str(cup))
+            page.locator(f'[data-cup="{cup}"]').tap()
             assert page.locator('.card').count() == 4
             page.wait_for_function('Array.from(document.querySelectorAll(".card img")).every(img=>img.complete&&img.naturalWidth>0)')
             previews.extend(page.locator('.card img').evaluate_all('(images)=>images.map(img=>img.src)'))
@@ -97,13 +97,14 @@ try:
         assert page.evaluate('JSON.stringify(testFlight.simulation.state)') == before
         page.locator('#resume').tap()
         cdp = page.context.new_cdp_session(page)
-        rect = page.locator('[data-drive=left]').bounding_box()
-        cdp.send('Input.dispatchTouchEvent', {'type':'touchStart', 'touchPoints':[{'x':rect['x']+rect['width']/2,'y':rect['y']+rect['height']/2,'id':1}]})
+        rect = page.locator('#steering-wheel').bounding_box()
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchStart', 'touchPoints':[{'x':rect['x']+rect['width']/2,'y':rect['y']+10,'id':1}]})
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchMove','touchPoints':[{'x':rect['x']+10,'y':rect['y']+rect['height']/2,'id':1}]})
         yaw = page.evaluate('testFlight.simulation.state.yaw')
         page.evaluate('for(let i=0;i<20;i++)testFlight.tick(1/120)')
         assert page.evaluate('testFlight.simulation.state.yaw') != yaw
         cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd','touchPoints':[]})
-        assert not page.evaluate('testFlight.input.left')
+        assert page.evaluate('testFlight.input.steer') == 0
         page.evaluate('testFlight.start();testFlight.render()')
         assert page.evaluate('testFlight.simulation.state.y===0 && testFlight.glider.scale.x===.15')
         assert not errors, errors

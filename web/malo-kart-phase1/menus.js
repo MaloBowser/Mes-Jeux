@@ -28,6 +28,7 @@
     }
     $('cup-select').onchange=()=>selectCup(Number($('cup-select').value));
     const parts = { vehicle: api.vehicles, tire: api.tires, glider: api.gliders };
+    $('decoration-filter').onchange=()=>render();
     function thumbnail(driver, vehicle, portrait, part, id) {
       const scene = new T.Scene();
       scene.add(new T.HemisphereLight('#ebfaff', '#7c8c9d', 3));
@@ -78,6 +79,7 @@
       if (screen === 'course') activeCup=api.courses[garage.state.course].cup;
       $('cup-picker').hidden=screen!=='course';
       $('cup-medals').hidden=screen!=='course';
+      $('shop-filter').hidden=screen!=='shop';
       $('shop-status').textContent = ''; render();
     }
     function render() {
@@ -89,7 +91,9 @@
       $('selection-step').textContent = labels[screen][0]; $('selection-title').textContent = labels[screen][1];
       $('cup-select').value=activeCup;
       document.querySelectorAll('[data-cup]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.cup)===activeCup)));
-      const entries = { driver: api.drivers, vehicle: parts[activePart], course: Object.fromEntries(Object.entries(api.courses).filter(([,course])=>course.cup===activeCup)), shop: api.paints }[screen];
+      const decorations=Object.fromEntries(Object.entries(api.paints).filter(([,paint])=>$('decoration-filter').value==='all'||paint.category===$('decoration-filter').value));
+      const entries = { driver: api.drivers, vehicle: parts[activePart], course: Object.fromEntries(Object.entries(api.courses).filter(([,course])=>course.cup===activeCup)), shop: decorations }[screen];
+      $('decoration-count').textContent=`${Object.keys(api.paints).length-1} personnalisations · ${state.owned.length-1} débloquées`;
       const selected = screen === 'shop' ? shopSelection : state[screen === 'vehicle' ? activePart : screen];
       $('cards').replaceChildren();
       function appendCard(parent, field, id, item) {
@@ -99,7 +103,7 @@
         if (screen === 'course') {
           const img = document.createElement('img'); img.src = courseThumbnail(id); img.alt = `Aperçu de ${item.name}`; card.append(img);
         }
-        else if (screen === 'shop') { const sample = document.createElement('div'); sample.className = 'paint-sample'; sample.style.setProperty('--paint', item.color || api.vehicles[state.vehicle].color); const symbol = document.createElement('b'); symbol.textContent = 'MK'; sample.append(symbol); card.append(sample); }
+        else if (screen === 'shop') { const sample = document.createElement('img');sample.className='paint-sample';sample.alt='';thumbnails[`paint-${id}`] ||= api.paintCanvas(item).toDataURL();sample.src=thumbnails[`paint-${id}`];card.append(sample); }
         else { const img = document.createElement('img'); img.src = thumbnails[`${field}-${id}`]; img.alt = ''; card.append(img); }
         const label = document.createElement('span'); label.className = 'label'; label.textContent = item.name;
         const tag = document.createElement('small'); tag.textContent = screen === 'course' ? item.difficulty : screen === 'shop' ? state.owned.includes(id) ? 'DÉBLOQUÉ' : `${item.price} ◉ AU TOTAL` : chosen ? '✓' : '';
@@ -139,9 +143,9 @@
       } else {
         for (const [id, item] of Object.entries(entries)) appendCard($('cards'), screen, id, item);
       }
-      const item = entries[selected]; $('detail-name').textContent = item.name;
+      const item = screen==='shop'?api.paints[selected]:entries[selected]; $('detail-name').textContent = item.name;
       $('menu-selection').textContent = screen==='course'?api.cups[activeCup]:item.name;
-      $('detail-description').textContent = screen === 'shop' ? 'Les pièces cumulées débloquent automatiquement les couleurs et les motifs. Équipe-les gratuitement : ton total ne diminue jamais.' : item.description;
+      $('detail-description').textContent = screen === 'shop' ? `${item.accessory?'Motif et accessoire 3D pour ton kart. ':''}Personnalisation visuelle, sans bonus de vitesse. Débloquée avec les pièces cumulées ; équipement gratuit.` : item.description;
       if (screen === 'vehicle' && activePart === 'glider') $('detail-description').textContent += ' S’ouvre en vol après une rampe bleue.';
       $('stats').replaceChildren();
       if (screen === 'vehicle') {
@@ -160,7 +164,7 @@
         $('continue').textContent = equipped ? 'DÉCORATION ÉQUIPÉE ✓' : owned ? 'ÉQUIPER GRATUITEMENT' : `PALIER · ${item.price} PIÈCES`;
         $('continue').disabled = equipped || !owned;
         $('continue').setAttribute('aria-label', $('continue').textContent);
-        const next=Object.values(api.paints).find(paint=>paint.price>state.coins);
+        const next=Object.values(api.paints).filter(paint=>paint.price>state.coins).sort((a,b)=>a.price-b.price)[0];
         $('shop-status').textContent = !owned ? `Encore ${item.price-state.coins} pièces pour débloquer cette décoration.` : next ? `Prochain déblocage : ${next.name}, à ${next.price} pièces.` : 'Toutes les décorations sont débloquées !';
       }
     }

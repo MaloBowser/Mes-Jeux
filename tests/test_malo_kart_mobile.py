@@ -91,7 +91,7 @@ try:
             page.evaluate('testMobile.menus.show("course")')
             page.locator('#start').tap()
             page.evaluate('for(let i=0;i<361;i++)testMobile.tick(1/120);testMobile.render()')
-            for selector in ['[data-drive=left]', '[data-drive=right]', '[data-drive=brake]', '[data-drive=drift]', '#pause']:
+            for selector in ['#steering-wheel', '[data-drive=reverse]', '[data-drive=brake]', '[data-drive=drift]', '#pause']:
                 reachable(page, selector)
             page.evaluate("testMobile.race.player.item='turbo';testMobile.render()")
             reachable(page, '#use-item')
@@ -111,14 +111,18 @@ try:
             rect = page.locator(selector).bounding_box()
             return {'x':rect['x']+rect['width']/2, 'y':rect['y']+rect['height']/2, 'id':pointer_id}
 
-        left, drift = point('[data-drive=left]', 1), point('[data-drive=drift]', 2)
+        rect = page.locator('#steering-wheel').bounding_box()
+        left = {'x':rect['x']+rect['width']/2, 'y':rect['y']+10, 'id':1}
+        left_turn = {'x':rect['x']+10, 'y':rect['y']+rect['height']/2, 'id':1}
+        drift = point('[data-drive=drift]', 2)
         cdp.send('Input.dispatchTouchEvent', {'type':'touchStart', 'touchPoints':[left, drift]})
-        assert page.evaluate('testMobile.input.left && testMobile.input.drift && testMobile.input.gas')
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchMove', 'touchPoints':[left_turn, drift]})
+        assert page.evaluate('testMobile.input.steer>.8 && testMobile.input.drift && testMobile.input.gas')
         page.evaluate('for(let i=0;i<110;i++)testMobile.tick(1/120);testMobile.render()')
         assert page.evaluate('testMobile.simulation.state.driftCharge') >= .8
         page.screenshot(path=str(OUT/'drift-sparks.png'))
         cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd', 'touchPoints':[]})
-        assert page.evaluate('!testMobile.input.left && !testMobile.input.drift')
+        assert page.evaluate('testMobile.input.steer===0 && !testMobile.input.drift')
         page.evaluate('testMobile.tick(1/120)')
         assert page.evaluate('testMobile.simulation.state.boost') > 0
         brake = point('[data-drive=brake]', 3)
@@ -135,7 +139,7 @@ try:
         assert not page.evaluate('testMobile.input.left')
         cdp.send('Input.dispatchTouchEvent', {'type':'touchStart', 'touchPoints':[left]})
         cdp.send('Input.dispatchTouchEvent', {'type':'touchMove', 'touchPoints':[{'x':420, 'y':160, 'id':1}]})
-        assert page.evaluate('testMobile.input.left'), 'Pointer capture must preserve a held button outside its bounds'
+        assert page.evaluate('testMobile.input.steer!==0'), 'Pointer capture must preserve a held button outside its bounds'
         page.evaluate('window.dispatchEvent(new Event("blur"))')
         assert page.evaluate('testMobile.mode==="paused" && Object.values(testMobile.input).every(v=>!v)')
         cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd', 'touchPoints':[]})
@@ -160,15 +164,19 @@ try:
         page.set_viewport_size({'width':320, 'height':568})
         page.evaluate('testMobile.start();for(let i=0;i<480;i++)testMobile.tick(1/120);testMobile.render()')
         assert page.evaluate('testMobile.simulation.state.speed') == 0
-        for selector in ['[data-drive=gas]', '[data-drive=brake]', '[data-drive=drift]', '[data-drive=left]', '[data-drive=right]']:
+        for selector in ['[data-drive=gas]', '[data-drive=brake]', '[data-drive=drift]', '[data-drive=reverse]', '#steering-wheel']:
             reachable(page, selector)
-        gas, right = point('[data-drive=gas]', 4), point('[data-drive=right]', 5)
+        gas = point('[data-drive=gas]', 4)
+        rect = page.locator('#steering-wheel').bounding_box()
+        right = {'x':rect['x']+rect['width']/2, 'y':rect['y']+10, 'id':5}
+        right_turn = {'x':rect['x']+rect['width']-10, 'y':rect['y']+rect['height']/2, 'id':5}
         cdp.send('Input.dispatchTouchEvent', {'type':'touchStart', 'touchPoints':[gas, right]})
-        assert page.evaluate('testMobile.input.gas && testMobile.input.right')
+        cdp.send('Input.dispatchTouchEvent', {'type':'touchMove', 'touchPoints':[gas, right_turn]})
+        assert page.evaluate('testMobile.input.gas && testMobile.input.steer<-.8')
         page.evaluate('for(let i=0;i<120;i++)testMobile.tick(1/120)')
         assert page.evaluate('testMobile.simulation.state.speed') > 5
         cdp.send('Input.dispatchTouchEvent', {'type':'touchEnd', 'touchPoints':[]})
-        assert page.evaluate('!testMobile.input.gas && !testMobile.input.right')
+        assert page.evaluate('!testMobile.input.gas && testMobile.input.steer===0')
         assert not errors, errors
         print('MANUAL_ACCELERATION_SMALL_PHONE_OK; ERRORS', errors, flush=True)
         browser.close()

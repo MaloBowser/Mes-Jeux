@@ -33,17 +33,27 @@
   }
   rebuild();
   const held = new Set(), touches = new Map();
-  const bindings = { ArrowUp: 'gas', KeyZ: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyQ: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'drift' };
-  const input = { gas: false, brake: false, left: false, right: false, drift: false };
+  const bindings = { ArrowUp: 'gas', KeyZ: 'gas', KeyW: 'gas', ArrowDown: 'reverse', KeyS: 'brake', ArrowLeft: 'left', KeyQ: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'drift', KeyR:'reverse' };
+  const input = { gas: false, brake: false, left: false, right: false, drift: false, reverse:false, steer:0 };
+  const wheel=$('steering-wheel');
+  let wheelPointer=null,wheelTurn=0,previousWheelAngle=0;
+  function showWheel(){
+    wheel.style.transform=`rotate(${wheelTurn}rad)`;
+    const value=Math.round(wheelTurn/(Math.PI/2)*100);
+    wheel.setAttribute('aria-valuenow',value);wheel.setAttribute('aria-valuetext',value===0?'Tout droit':`${Math.abs(value)} % à ${value>0?'droite':'gauche'}`);
+  }
   let mode = 'menu', previousMode = 'race', countdown = 3, lastFrame = 0, accumulator = 0, sampleTime = 0, sampleFrames = 0, goTime = 0;
   function clearInput() {
     held.clear(); touches.clear(); Object.keys(input).forEach(key => { input[key] = false; });
+    wheelPointer=null;wheelTurn=0;input.steer=0;showWheel();
     document.querySelectorAll('[data-drive]').forEach(button => button.classList.remove('pressed'));
   }
   function syncInput() {
     const active = mode === 'race' || mode === 'countdown';
-    Object.keys(input).forEach(key => { input[key] = active && ([...held].some(code => bindings[code] === key) || [...touches.values()].includes(key)); });
-    if (active && $('auto-gas').checked) input.gas = !input.brake;
+    Object.keys(input).filter(key=>key!=='steer').forEach(key => { input[key] = active && ([...held].some(code => bindings[code] === key) || [...touches.values()].includes(key)); });
+    input.steer=active?-wheelTurn/(Math.PI/2):0;
+    if (active && $('auto-gas').checked) input.gas = !input.brake && !input.reverse;
+    if(input.reverse)input.gas=false;
     document.querySelectorAll('[data-drive]').forEach(button => button.classList.toggle('pressed', input[button.dataset.drive]));
   }
   function closeDialogs() { for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
@@ -101,7 +111,7 @@
     $('handling').textContent = s.stun > 0 ? 'TOUCHÉ !' : s.y > 0 ? `VOL · ${Math.round(s.y)} m` : s.shield > 0 ? 'ÉTOILE · INVINCIBLE !' : s.boost > 0 ? 'TURBO !' : s.impact > 0 ? 'CONTACT AVEC LA BARRIÈRE' : s.driftCharge >= .8 ? touchDevice ? 'RELÂCHE DÉRAPAGE : MINI-TURBO' : 'RELÂCHE ESPACE : MINI-TURBO' : s.drift ? 'DÉRAPAGE · CHARGE LE TURBO' : api.courses[track.id].name.toUpperCase();
   }
   function tick(dt) {
-    if ((mode === 'race' || mode === 'countdown') && $('auto-gas').checked) input.gas = !input.brake;
+    if ((mode === 'race' || mode === 'countdown') && $('auto-gas').checked) input.gas = !input.brake && !input.reverse;
     if (mode === 'countdown') {
       const previousCount = Math.ceil(countdown);
       countdown -= dt; $('countdown').textContent = Math.max(1, Math.ceil(countdown));
@@ -110,9 +120,10 @@
     } else if (mode === 'race') {
       const s = simulation.state;
       const itemCount = Number(!!race.player.item) + Number(!!race.player.reserveItem);
-      const stun = s.stun, impact = s.impact, boost = s.boost;
+      const stun = s.stun, impact = s.impact, boost = s.boost, laps=s.laps;
       simulation.step(dt, input);
       race.step(dt);
+      if(s.laps>laps&&!s.finished)race.announce('DERNIER TOUR · Repasse la ligne pour terminer !');
       if (Number(!!race.player.item) + Number(!!race.player.reserveItem) > itemCount) audio.play('pickup');
       if (s.stun > stun || impact === 0 && s.impact > 0) audio.play('hit');
       if (s.boost > boost) audio.play('turbo');
@@ -182,6 +193,26 @@
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, event => { touches.delete(event.pointerId); syncInput(); });
     button.addEventListener('contextmenu', event => event.preventDefault());
   });
+  function wheelAngle(event){const rect=wheel.getBoundingClientRect();return Math.atan2(event.clientX-rect.x-rect.width/2,rect.y+rect.height/2-event.clientY);}
+  wheel.addEventListener('pointerdown',event=>{
+    if((mode!=='race'&&mode!=='countdown')||event.button!==0||wheelPointer!==null)return;
+    event.preventDefault();wheelPointer=event.pointerId;previousWheelAngle=wheelAngle(event);wheel.setPointerCapture(event.pointerId);
+  });
+  wheel.addEventListener('pointermove',event=>{
+    if(event.pointerId!==wheelPointer)return;
+    const angle=wheelAngle(event),delta=Math.atan2(Math.sin(angle-previousWheelAngle),Math.cos(angle-previousWheelAngle));
+    wheelTurn=Math.max(-Math.PI/2,Math.min(Math.PI/2,wheelTurn+delta));previousWheelAngle=angle;showWheel();syncInput();
+  });
+  for(const event of ['pointerup','pointercancel','lostpointercapture'])wheel.addEventListener(event,e=>{
+    if(e.pointerId!==wheelPointer)return;wheelPointer=null;wheelTurn=0;showWheel();syncInput();
+  });
+  wheel.addEventListener('keydown',event=>{
+    if(!['ArrowLeft','ArrowRight','Home'].includes(event.code))return;
+    event.preventDefault();event.stopPropagation();
+    wheelTurn=event.code==='Home'?0:Math.max(-Math.PI/2,Math.min(Math.PI/2,wheelTurn+(event.code==='ArrowLeft'?-.16:.16)));showWheel();syncInput();
+  });
+  wheel.addEventListener('blur',()=>{wheelPointer=null;wheelTurn=0;showWheel();syncInput();});
+  wheel.addEventListener('contextmenu',event=>event.preventDefault());
   $('pause-dialog').addEventListener('cancel', event => { event.preventDefault(); resume(); });
   $('finish-dialog').addEventListener('cancel', event => { event.preventDefault(); });
   addEventListener('blur', () => { clearInput(); pause(); audio.silence(); });

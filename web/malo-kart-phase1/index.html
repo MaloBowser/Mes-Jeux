@@ -14,6 +14,7 @@
   <script defer src="simulation.js"></script>
   <script defer src="garage.js"></script>
   <script defer src="catalogue.js"></script>
+  <script defer src="customization.js"></script>
   <script defer src="guest-drivers.js"></script>
   <script defer src="kart.js"></script>
   <script defer src="circuit.js"></script>
@@ -51,6 +52,7 @@
       <p class="eyebrow" id="selection-step"></p><h2 id="selection-title"></h2>
       <label id="cup-picker" hidden>Collection de circuits <select id="cup-select" aria-label="Collection de circuits"></select></label>
       <nav id="cup-medals" aria-label="Choisir une coupe" hidden></nav>
+      <label id="shop-filter" hidden>Style de personnalisation <select id="decoration-filter"><option value="all">Tout voir</option><option value="Course">Course</option><option value="Nature">Nature</option><option value="Cosmos">Cosmos</option><option value="Festif">Festif</option><option value="Mécanique">Mécanique</option></select><span id="decoration-count"></span></label>
       <div id="cards" class="cards"></div>
       <div class="selection-detail"><h3 id="detail-name"></h3><p id="detail-description"></p><div id="stats"></div></div>
       <p id="shop-status" role="status"></p>
@@ -76,10 +78,10 @@
     <p id="race-notice" role="status"></p>
     <button id="pause" class="compact" aria-label="Mettre en pause">Ⅱ</button>
     <div id="touch-controls" aria-label="Commandes tactiles">
-      <div class="touch-steering"><button data-drive="left" aria-label="Tourner à gauche">◀</button><button data-drive="right" aria-label="Tourner à droite">▶</button></div>
-      <div class="touch-pedals"><button data-drive="brake" aria-label="Freiner">FREIN</button><button data-drive="drift" aria-label="Maintenir pour déraper">DÉRAPAGE</button><button data-drive="gas" aria-label="Accélérer">ACCÉLÉRER</button></div>
+      <div class="touch-pedals"><button data-drive="brake" aria-label="Freiner">FREIN</button><button data-drive="drift" aria-label="Maintenir pour déraper">DÉRAPAGE</button><button data-drive="reverse" aria-label="Reculer">RECULER</button><button data-drive="gas" aria-label="Accélérer">ACCÉLÉRER</button></div>
+      <button id="steering-wheel" role="slider" aria-label="Volant : fais glisser pour tourner" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Tout droit"><svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="59" fill="#142d41c9" stroke="#c4dce8" stroke-width="12"/><path d="M70 8v18" stroke="#ffe064" stroke-width="10"/><path d="M20 54 60 73 70 123 80 73 120 54" fill="none" stroke="#a8c7d6" stroke-width="10" stroke-linejoin="round"/><circle cx="70" cy="70" r="21" fill="#ffd64f" stroke="#fff3b5" stroke-width="3"/><text x="70" y="78" text-anchor="middle" fill="#15384e" font-size="24" font-family="Arial" font-weight="bold">M</text></svg></button>
     </div>
-    <p class="race-controls">↑ / Z ACCÉLÉRER　 ↓ / S FREINER　 ← → / Q D TOURNER　 ESPACE DÉRAPER　 E / MAJ OBJET　 ÉCHAP PAUSE</p>
+    <p class="race-controls">↑ / Z ACCÉLÉRER　 S FREINER　 ← → / Q D TOURNER　 ESPACE DÉRAPER　 E / MAJ OBJET　 ↓ / R RECULER　 ÉCHAP PAUSE</p>
   </section>
   <div id="countdown" hidden aria-live="polite"></div>
   <dialog id="pause-dialog"><p class="eyebrow">PETITE PAUSE</p><h2>AU STAND.</h2><button id="resume">REPRENDRE ↗</button><button id="restart" class="secondary">RECOMMENCER</button><button id="back" class="secondary">RETOUR AU DÉPART</button></dialog>
@@ -88,8 +90,8 @@
     <label for="quality">Qualité graphique</label><select id="quality"><option value="auto">Automatique</option><option value="high">Élevée</option><option value="low">Légère</option></select>
     <label class="sound-option"><input id="sound-enabled" type="checkbox" checked> Activer les sons</label>
     <label class="sound-option"><input id="auto-gas" type="checkbox"> Accélération automatique</label>
-    <p class="touch-help">Sur téléphone et tablette : utilise les flèches à gauche pour tourner. Maintiens DÉRAPAGE en tournant, puis relâche pour le mini-turbo. Touche l’objet pour l’utiliser. Le frein coupe l’accélération automatique. Les rampes bleues ouvrent ton aile. Les flèches dirigent le vol ; maintiens FREIN pour planer plus longtemps. Tu peux jouer dans les deux orientations.</p>
-    <p>Flèches ou ZQSD/WASD : conduire.<br>Espace + direction : déraper. Charge la jauge, puis relâche pour un mini-turbo.<br>E ou Maj : utiliser le premier objet ; celui en réserve prend sa place. Tu peux garder deux objets à la fois. Échap : pause.</p>
+    <p class="touch-help">Sur téléphone et tablette : fais tourner le volant en bas à droite avec ton doigt ; relâche pour revenir au centre. Maintiens DÉRAPAGE en tournant, puis relâche pour le mini-turbo. Touche l’objet pour l’utiliser. Le frein coupe l’accélération automatique. Maintiens RECULER pour sortir d’un blocage au sol. Les rampes bleues ouvrent ton aile. Le volant dirige aussi le vol ; maintiens FREIN pour planer plus longtemps. Tu peux jouer dans les deux orientations.</p>
+    <p>↑ / Z / W : accélérer. ← → / Q / A / D : tourner. ↓ / R : reculer. S : freiner.<br>Espace + direction : déraper. Charge la jauge, puis relâche pour un mini-turbo.<br>E ou Maj : utiliser le premier objet ; celui en réserve prend sa place. Tu peux garder deux objets à la fois. Échap : pause.</p>
     <p>Traverse les boîtes ? pour obtenir un champignon accélérateur, une carapace rouge qui poursuit le kart devant toi, une étoile ou une banane à poser. L’étoile augmente ta vitesse et te protège des objets et des autres karts pendant 6 secondes. Touche ton objet pour l’utiliser, ou appuie sur E / Maj au clavier. Le point jaune de la mini-carte, c’est toi !</p><p>Total de pièces sans plafond de jeu. Les décorations se débloquent automatiquement : les équiper ne coûte aucune pièce. Les pièces sont sauvegardées dès leur collecte, même si tu quittes la course.</p><button id="options-close">C’EST PARTI ↗</button>
   </dialog>
   <section id="error" hidden role="alert"><h2>Le moteur 3D n’a pas démarré.</h2><p id="error-text"></p><button id="reload">RECHARGER</button><a href="../../index.html">Retour aux jeux</a></section>

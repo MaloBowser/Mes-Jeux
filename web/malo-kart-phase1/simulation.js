@@ -41,13 +41,22 @@
       const gate = track.gates[state.nextGate];
       const before = (previous.x - gate.x) * gate.tx + (previous.z - gate.z) * gate.tz;
       const after = (state.x - gate.x) * gate.tx + (state.z - gate.z) * gate.tz;
-      if (before >= 0 || after < 0) return;
-      const t = -before / (after - before);
-      const x = previous.x + (state.x - previous.x) * t, z = previous.z + (state.z - previous.z) * t;
-      if (Math.abs((x - gate.x) * gate.tz - (z - gate.z) * gate.tx) > track.halfWidth - 1.2) return;
+      let crossed = false;
+      if (before < 0 && after >= 0) {
+        const t = -before / (after - before);
+        const x = previous.x + (state.x - previous.x) * t, z = previous.z + (state.z - previous.z) * t;
+        crossed = Math.abs((x - gate.x) * gate.tz - (z - gate.z) * gate.tx) <= track.halfWidth + .5;
+      }
+      if (!crossed && state.nextGate !== 0) {
+        const a = api.nearestPoint(track.points, previous.x, previous.z), b = api.nearestPoint(track.points, state.x, state.z);
+        const count = track.points.length, sector = count / track.gates.length;
+        const travel = (b.index - a.index + count) % count, remaining = (state.nextGate * sector - a.index + count) % count;
+        crossed = travel > 0 && travel < sector && remaining > 0 && remaining <= travel && Math.max(a.distance,b.distance) <= track.halfWidth + 35;
+      }
+      if (!crossed) return;
       if (state.nextGate === 0) {
         state.laps++;
-        if (state.laps === 2) { state.finished = true; state.vx = state.vz = state.speed = 0; }
+        if (state.laps >= 2) { state.finished = true; state.vx = state.vz = state.speed = state.boost = state.y = state.vy = state.flight = 0; }
       }
       state.nextGate = (state.nextGate + 1) % track.gates.length;
     }
@@ -56,21 +65,27 @@
       const previous = { x: state.x, z: state.z };
       state.impact = Math.max(0, state.impact - dt);
       for (const effect of ['boost', 'stun', 'shield', 'grace']) state[effect] = Math.max(0, state[effect] - dt);
-      const steering = Number(!!input.left) - Number(!!input.right);
+      const steering = clamp((Number(input.steer) || 0) + Number(!!input.left) - Number(!!input.right), -1, 1);
+      const reversing = !!input.reverse && state.y === 0;
+      const signedSpeed = state.vx * Math.sin(state.yaw) + state.vz * Math.cos(state.yaw);
       const wasDrifting = state.drift;
-      state.drift = !!input.drift && steering !== 0 && state.speed > 8 && state.stun === 0 && state.y === 0;
+      state.drift = !!input.drift && steering !== 0 && signedSpeed > 8 && state.stun === 0 && state.y === 0 && !reversing;
       if (state.drift) state.driftCharge = Math.min(2, state.driftCharge + dt);
       else {
         if (wasDrifting && state.driftCharge >= .8 && state.stun === 0) state.boost = Math.max(state.boost, state.driftCharge >= 1.6 ? 1.4 : .8);
         state.driftCharge = 0;
       }
       const steerAngle = steering * .46 * vehicle.handling / (1 + state.speed * .12);
-      state.yaw += state.speed / 2.1 * Math.tan(steerAngle) * dt * (state.y > 0 ? 1.3 : state.drift ? 1.22 : 1);
+      state.yaw += signedSpeed / 2.1 * Math.tan(steerAngle) * dt * (state.y > 0 ? 1.3 : state.drift ? 1.22 : 1);
       const fx = Math.sin(state.yaw), fz = Math.cos(state.yaw);
       let forward = state.vx * fx + state.vz * fz;
       const lateral = (state.vx * fz - state.vz * fx) * Math.exp(-(state.drift ? 2.4 : 10) * dt);
-      forward += ((state.stun > 0 ? -18 : (input.gas ? vehicle.acceleration : 0) + (state.boost > 0 ? 28 : 0)) - (input.brake ? 27 / Math.sqrt(vehicle.weight) : 0) - .7 - .004 * forward * forward) * dt;
-      forward = clamp(forward, 0, vehicle.speed * (state.boost > 0 ? 1.35 : 1));
+      if (reversing) state.boost = 0;
+      const drive = state.stun > 0 ? 0 : reversing ? -12 : (input.gas ? vehicle.acceleration : 0) + (state.boost > 0 ? 28 : 0);
+      forward += drive * dt;
+      const drag = (.7 + .004 * forward * forward + (input.brake ? 27 / Math.sqrt(vehicle.weight) : 0) + (state.stun > 0 ? 18 : 0)) * dt;
+      forward = Math.sign(forward) * Math.max(0,Math.abs(forward)-drag);
+      forward = clamp(forward, -8, vehicle.speed * (state.boost > 0 ? 1.35 : 1));
       state.vx = fx * forward + fz * lateral;
       state.vz = fz * forward - fx * lateral;
       state.x += state.vx * dt; state.z += state.vz * dt;

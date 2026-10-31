@@ -4,7 +4,7 @@ dialog { max-height:calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom)); 
 #touch-controls,.touch-help { display:none; }
 .touch-device .touch-help { display:block; }
 .touch-device #touch-controls { display:flex; position:fixed; z-index:5; bottom:calc(14px + var(--safe-bottom)); left:calc(14px + var(--safe-left)); right:calc(14px + var(--safe-right)); justify-content:space-between; align-items:end; pointer-events:none; }
-.touch-steering,.touch-pedals { display:flex; align-items:end; gap:9px; }
+.touch-pedals { display:flex; align-items:end; gap:9px; }
 .touch-pedals { display:grid; grid-template-columns:55px 85px; }
 .touch-pedals [data-drive=drift] { grid-column:2; grid-row:1; }
 .touch-pedals [data-drive=brake] { grid-column:1; grid-row:2; }
@@ -118,6 +118,6 @@ dialog { max-height:calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom)); 
   #touch-controls button { width:56px; height:60px; }
   #touch-controls [data-drive=drift],#touch-controls [data-drive=gas] { width:68px; }
   #touch-controls [data-drive=brake] { width:47px; }
-  .touch-steering,.touch-pedals { gap:5px; }
+  .touch-pedals { gap:5px; }
   .touch-pedals { grid-template-columns:47px 68px; }
 }
