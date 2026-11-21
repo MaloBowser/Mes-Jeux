@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🦎 Le Mot Caméléon</title>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script defer src="ui-commune.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -345,6 +347,7 @@ function renderLetters() {
 }
 
 function newWord() {
+    window.MaloAvatar?.start();
   word = WORDS[Math.floor(Math.random() * WORDS.length)];
 
   while (word === previous) {
@@ -407,6 +410,7 @@ function checkAnswer() {
 
   if (answer === word) {
     solved = true;
+        window.MaloAvatar?.finish();
 
     const earned =
       Math.max(10, 100 - errors * 15) +

@@ -6,6 +6,8 @@
 <title>Memory - Les jeux de Malo</title>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 
 <style>
@@ -399,6 +401,7 @@ function shuffle(a){
 }
 
 function startGame(){
+    window.MaloAvatar?.start();
   const d=DIFFICULTY[$("difficulty").value];
   rows=d.rows;cols=d.cols;
   mode=$("mode").value;
@@ -532,6 +535,7 @@ function checkPair(){
     updateUI();
 
     if(matched.size===cards.length){
+      window.MaloAvatar?.finish();
       setTimeout(endGame,500);
       return;
     }

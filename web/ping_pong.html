@@ -474,6 +474,8 @@
         }
     </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -749,6 +751,7 @@
         }
 
         function commencerMatch() {
+            window.MaloAvatar?.start();
             scoreJoueur = 0;
             scoreRobot = 0;
 
@@ -1180,6 +1183,7 @@
             if(
                 scoreJoueur >= SCORE_MAXIMUM
             ) {
+                    window.MaloAvatar?.finish();
                 partieEnCours = false;
 
                 afficherMessage(
@@ -1202,6 +1206,7 @@
             if(
                 scoreRobot >= SCORE_MAXIMUM
             ) {
+                    window.MaloAvatar?.finish();
                 partieEnCours = false;
 
                 afficherMessage(

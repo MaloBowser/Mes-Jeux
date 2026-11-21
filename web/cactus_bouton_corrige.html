@@ -30,6 +30,8 @@ input,select{padding:12px;border-radius:12px;border:1px solid #ffffff35;backgrou
 @media(max-width:600px){.card{width:82px;height:120px}.value{font-size:29px}.suit{font-size:40px}}
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -98,6 +100,7 @@ function deck(){let d=[];Object.keys(SUITS).forEach(c=>VALUES.forEach(v=>d.push(
 function names(){ $("names").innerHTML="";for(let i=0;i<+$("humanCount").value;i++){let r=document.createElement("div");r.className="row";r.innerHTML=`<label>Nom du joueur ${i+1}</label><input id="name${i}" placeholder="Joueur ${i+1}">`;$("names").appendChild(r)}}
 
 function start(){
+    window.MaloAvatar?.start();
   players=[];let h=+$("humanCount").value;
   for(let i=0;i<h;i++)players.push({name:$("name"+i).value.trim()||`Joueur ${i+1}`,cards:[],memory:{}});
   shuffle(players);drawPile=deck();players.forEach(p=>p.cards=[drawPile.pop(),drawPile.pop(),drawPile.pop(),drawPile.pop()]);
@@ -302,6 +305,7 @@ function finishTurn(){
 
 function total(p){return p.cards.reduce((t,c)=>t+pts(c),0)}
 function showResults(){
+    window.MaloAvatar?.finish();
   gameOver=true;
   let sorted=[...players].sort((a,b)=>total(a)-total(b));
   let best=total(sorted[0]);

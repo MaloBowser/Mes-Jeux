@@ -41,6 +41,8 @@ h1{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -56,6 +58,7 @@ h1{
 <script>
 
 function jouer(joueur){
+    window.MaloAvatar?.start();
 
     const signes = ["pierre","feuille","ciseaux"];
 
@@ -89,6 +92,7 @@ function jouer(joueur){
         "💻 L'ordinateur gagne ! 😭<br>L'ordinateur a choisi : "
         + ordinateur;
     }
+    window.MaloAvatar?.finish();
 }
 
 </script>

@@ -78,6 +78,8 @@ body {
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -98,6 +100,7 @@ body {
 let points = 0;
 
 function jouer(choixJoueur){
+    window.MaloAvatar?.start();
 
     const choix = ["pile","face"];
 
@@ -122,6 +125,7 @@ function jouer(choixJoueur){
 
     document.getElementById("points").innerHTML =
     "Points : " + points;
+    window.MaloAvatar?.finish();
 
 }
 

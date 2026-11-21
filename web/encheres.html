@@ -97,6 +97,8 @@ button:disabled{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -264,6 +266,7 @@ function creerCasesJoueurs(){
 }
 
 function commencerPartie(){
+    window.MaloAvatar?.start();
 
     let nombre = Number(
         document.getElementById("nombreJoueurs").value
@@ -622,6 +625,7 @@ function lotSuivant(){
 }
 
 function afficherClassement(){
+    window.MaloAvatar?.finish();
 
     document.getElementById("jeu").classList.add("cache");
     document.getElementById("classement").classList.remove("cache");

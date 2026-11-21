@@ -62,6 +62,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -296,6 +298,7 @@ const capitales = [
 let indice = 0;
 
 function nouveauPays(){
+    window.MaloAvatar?.start();
 
     indice = Math.floor(Math.random() * pays.length);
 
@@ -312,6 +315,7 @@ function verifier(){
 
     let rep = document.getElementById("reponse").value.trim();
 
+    if (rep.trim()) window.MaloAvatar?.finish();
     if(rep.toLowerCase() == capitales[indice].toLowerCase()){
 
         document.getElementById("message").innerHTML =

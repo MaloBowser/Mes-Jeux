@@ -123,6 +123,8 @@ hr{border:0;border-top:1px solid rgba(255,255,255,.2);margin:22px 0}
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -201,6 +203,7 @@ function makeRoles(count){
   return shuffle(roles);
 }
 function startGame(){
+    window.MaloAvatar?.start();
   const n=Number(byId("playerCount").value);
   const names=[];
   for(let i=0;i<n;i++){
@@ -443,6 +446,7 @@ function winner(){
   return null;
 }
 function showEpilogue(result){
+    window.MaloAvatar?.finish();
   const register=G.players.map(p=>{
     const love=p.loverId!==null?` — lié(e) à ${playerById(p.loverId).name}`:"";
     return `• ${p.name} : ${roleTitle(p)}, ${p.alive?"vivant(e)":"mort(e)"}${love}`;

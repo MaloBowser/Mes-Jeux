@@ -31,6 +31,8 @@ dialog{color:white;background:#07141e;border:2px solid var(--cyan);border-radius
 @media(max-width:800px){.layout{grid-template-columns:1fr}.side{grid-row:3}.rack-panel{grid-column:1}#board{grid-template-columns:repeat(17,42px);grid-template-rows:repeat(17,42px)}.cell{width:42px;height:42px}.tile{width:37px;height:37px;font-size:22px}}
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -75,7 +77,7 @@ const DICT=new Set([...WORDS,...(window.MIXMO_MOTS||[])]);const THEMES={"Animaux
 let bag=[],tiles=[],placed=new Map(),selected=null,bots=[],round=0,theme=null,running=false,timer=null,pendingJoker=null,audioCtx=null;
 const $=id=>document.getElementById(id);const key=(r,c)=>`${r},${c}`;
 function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function start(){bag=shuffle([...LETTERS]);tiles=[];placed.clear();round=0;theme=null;running=true;try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}let n=+$('bots').value;let speed={cool:.42,normal:.62,rapide:.85}[$('level').value];bots=Array.from({length:n},(_,i)=>({name:['Léa','Noé','Mia','Léo','Zoé'][i],left:0,progress:Math.random()*5,speed:speed*(.82+Math.random()*.25),layout:i}));draw(6);bots.forEach(b=>drawForBot(b,6));$('setup').style.display='none';$('game').style.display='block';createBoard();render();updateWordCheck();log('La partie commence : 6 lettres chacun !');timer=setInterval(tick,1000)}
+function start(){ window.MaloAvatar?.start(); bag=shuffle([...LETTERS]);tiles=[];placed.clear();round=0;theme=null;running=true;try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}let n=+$('bots').value;let speed={cool:.42,normal:.62,rapide:.85}[$('level').value];bots=Array.from({length:n},(_,i)=>({name:['Léa','Noé','Mia','Léo','Zoé'][i],left:0,progress:Math.random()*5,speed:speed*(.82+Math.random()*.25),layout:i}));draw(6);bots.forEach(b=>drawForBot(b,6));$('setup').style.display='none';$('game').style.display='block';createBoard();render();updateWordCheck();log('La partie commence : 6 lettres chacun !');timer=setInterval(tick,1000)}
 function draw(n){for(let i=0;i<n&&bag.length;i++){let ch=bag.pop();let t={id:crypto.randomUUID(),ch,value:null};tiles.push(t);if(ch==='#')activateBandit()}updateCounts()}
 function drawForBot(bot,n){let received=0;while(received<n&&bag.length){let ch=bag.pop();received++;if(ch==='#')activateBandit()}bot.left+=received;return received}
 function activateBandit(){if(!theme){let names=Object.keys(THEMES);theme=names[Math.floor(Math.random()*names.length)];$('theme-pill').hidden=false;$('theme-pill').textContent='🥷 CATÉGORIE : '+theme;let banner=$('category-banner');banner.textContent='🥷 CATÉGORIE IMPOSÉE : '+theme;banner.classList.add('show');$('bandit-theme').textContent=theme;setTimeout(()=>{if(!$('bandit-dialog').open)$('bandit-dialog').showModal()},100);speak('Bandit ! Catégorie imposée : '+theme);log('BANDIT ! Catégorie imposée : '+theme)}}
@@ -103,7 +105,7 @@ function speak(text){try{speechSynthesis.cancel();let u=new SpeechSynthesisUtter
 function announceEffect(name){let a=$('announcement');a.textContent=(name==='Toi'?'TOI':name.toUpperCase())+' : MIXMO !';a.style.display='flex';a.style.animation='none';void a.offsetWidth;a.style.animation='pop 1.8s ease';speak((name==='Toi'?'Tu cries':name+' crie')+' Mixmo !');setTimeout(()=>a.style.display='none',1750)}
 function updateCounts(){$('bag-count').textContent=bag.length;$('tile-count').textContent=tiles.length;$('round').textContent=round;$('mixmo').disabled=!running}
 function log(m){$('log').insertAdjacentHTML('afterbegin','<p>• '+m+'</p>')}
-function finish(win,text){running=false;clearInterval(timer);$('end-title').textContent=win?'🏆 Bravo, tu gagnes !':'⚡ Partie terminée';$('end-text').textContent=text;$('end').showModal()}
+function finish(win,text){ window.MaloAvatar?.finish(); running=false;clearInterval(timer);$('end-title').textContent=win?'🏆 Bravo, tu gagnes !':'⚡ Partie terminée';$('end-text').textContent=text;$('end').showModal()}
 function mixRack(){let free=shuffle(tiles.filter(t=>!isPlaced(t.id)));let rack=$('rack');rack.innerHTML='';free.forEach(t=>rack.appendChild(tileEl(t)))}
 $('start').onclick=start;$('check').onclick=()=>{updateWordCheck();validate(true)};$('mixmo').onclick=announce;$('shuffle').onclick=mixRack;$('open-rules').onclick=$('rules-btn').onclick=()=>$('rules').showModal();$('quit').onclick=()=>{if(confirm('Quitter la partie ?'))location.reload()};
 </script>

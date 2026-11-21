@@ -46,6 +46,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -70,6 +72,7 @@ const rep = [
 ];
 
 function jouer(){
+    window.MaloAvatar?.start();
 
     let resultat = rep[Math.floor(Math.random()*rep.length)];
 
@@ -86,6 +89,7 @@ function jouer(){
         "❌ <b>Tu as perdu...</b><br><br>🍀 Retente ta chance !";
 
     }
+    window.MaloAvatar?.finish();
 
 }
 

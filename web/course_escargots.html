@@ -68,6 +68,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -113,6 +115,7 @@ function afficher(){
     document.getElementById("jaune").style.left = Math.min(jaune * 5, 94) + "%";
 }
 function depart(){
+    window.MaloAvatar?.start();
     rouge = 0;
     bleu = 0;
     vert = 0;
@@ -147,6 +150,7 @@ function lancerDe(){
 
     if(rouge >= arrivee || bleu >= arrivee || vert >= arrivee || jaune >= arrivee){
         courseFinie = true;
+            window.MaloAvatar?.finish();
 
         let gagnant = "";
 

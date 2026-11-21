@@ -58,6 +58,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -110,6 +112,7 @@ const ana = [
 let indice=0;
 
 function nouveauMot(){
+    window.MaloAvatar?.start();
 
     indice=Math.floor(Math.random()*mots.length);
 
@@ -124,6 +127,7 @@ function verifier(){
 
     let reponse=document.getElementById("reponse").value.toLowerCase();
 
+    if (reponse.trim()) window.MaloAvatar?.finish();
     if(reponse===ana[indice]){
 
         document.getElementById("message").innerHTML=

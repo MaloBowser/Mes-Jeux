@@ -67,6 +67,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -140,6 +142,7 @@ let indice = 0;
 let points = 0;
 
 function nouvelleQuestion(){
+    window.MaloAvatar?.start();
 
     indice = Math.floor(Math.random()*questions.length);
 
@@ -156,6 +159,7 @@ function verifier(){
 
     let rep = Number(document.getElementById("reponse").value);
 
+    if (document.getElementById("reponse").value.trim()) window.MaloAvatar?.finish();
     if(rep === reponses[indice]){
 
         points++;

@@ -596,6 +596,7 @@
     updateItem(); updateHUD();
   }
   function startRace() {
+      window.MaloAvatar?.start();
     document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
     resetRace(); mode = 'countdown'; countdown = 3.5;
     $('menu').hidden = true; $('hud').hidden = false; $('pause').hidden = false; $('touch-controls').hidden = !touch;
@@ -613,6 +614,7 @@
   }
   const ordering = () => [...racers].sort((a, b) => a.finish !== null && b.finish !== null ? a.finish - b.finish : a.finish !== null ? -1 : b.finish !== null ? 1 : b.progress - a.progress);
   function finishRace() {
+      window.MaloAvatar?.finish();
     player.finish = elapsed; mode = 'finished'; clearKeys(); $('touch-controls').hidden = true; $('pause').hidden = true; $('countdown').hidden = true;
     const order = ordering(), rank = order.indexOf(player) + 1;
     $('result-title').textContent = rank === 1 ? 'LA VICTOIRE !' : rank <= 3 ? 'SUR LE PODIUM !' : 'BIEN JOUÉ !';

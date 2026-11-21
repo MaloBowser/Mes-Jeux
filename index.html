@@ -36,9 +36,28 @@
 
         .jeu {
             display: inline-block;
+            vertical-align: top;
             margin: 25px;
             transition: transform 0.3s;
         }
+
+        #ouvrir-personnalisation {
+            display: inline-grid;
+            justify-items: center;
+            gap: 5px;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            vertical-align: bottom;
+        }
+        #ouvrir-personnalisation span {
+            background: linear-gradient(135deg, #075168, #123047);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 12px rgba(0,245,255,.15);
+        }
+        #ouvrir-personnalisation:hover { transform: none; }
 
         .jeu:hover {
             transform: scale(1.08);
@@ -146,6 +165,8 @@
             }
         }
     </style>
+<script src="web/avatar-catalogue.js"></script>
+<script src="web/avatar-progression.js"></script>
 <script src="web/ui-commune.js"></script>
 </head>
 
@@ -173,6 +194,12 @@
         <span id="compteur-jeux" aria-live="polite"></span>
     </div>
 
+<div class="jeu" data-nom="personnalisation avatar visage smiley tenue vêtements vestiaire récompenses fidélité" data-categories="solo arcade">
+    <button id="ouvrir-personnalisation" type="button" aria-haspopup="dialog">
+        <img src="web/covers/personnalisation.webp" alt="" width="260" height="150">
+        <span>👕 Personnalisation</span>
+    </button>
+</div>
 <div class="jeu" data-nom="malo kart mario kart course voiture circuit 3d" data-categories="solo arcade sport">
     <img src="web/malo-kart-phase1/preview.png?v=circuits-20261031" alt="Malo Kart : course sur un pont arc-en-ciel, 24 circuits à découvrir">
     <br>
@@ -713,6 +740,7 @@ c'est la personne qu'il vous faut  </p></h5>
     function filtrerJeux() {
         const rechercheActive = normaliser(recherche.value.trim());
         let nombreVisible = 0;
+        let vestiaireVisible = false;
 
         cartesJeux.forEach((carte) => {
             const categories = carte.dataset.categories.split(' ');
@@ -722,10 +750,13 @@ c'est la personne qu'il vous faut  </p></h5>
             const estVisible = bonneCategorie && bonneRecherche;
 
             carte.classList.toggle('masque', !estVisible);
-            if (estVisible) nombreVisible++;
+            if (estVisible && carte.querySelector("#ouvrir-personnalisation")) vestiaireVisible = true;
+            else if (estVisible) nombreVisible++;
         });
 
-        compteurJeux.textContent = `${nombreVisible} jeu${nombreVisible === 1 ? '' : 'x'}`;
+        const totalJeux = `${nombreVisible} jeu${nombreVisible === 1 ? '' : 'x'}`;
+        compteurJeux.textContent = vestiaireVisible ? (nombreVisible ? totalJeux + " · Vestiaire" : "Vestiaire") : totalJeux;
+        boutonAleatoire.disabled = nombreVisible === 0;
     }
 
     boutonsCategories.forEach((bouton) => {
@@ -740,7 +771,7 @@ c'est la personne qu'il vous faut  </p></h5>
     recherche.addEventListener('input', filtrerJeux);
 
     boutonAleatoire.addEventListener('click', () => {
-        const jeuxVisibles = cartesJeux.filter((carte) => !carte.classList.contains('masque'));
+        const jeuxVisibles = cartesJeux.filter((carte) => !carte.classList.contains('masque') && carte.querySelector('a[href]'));
 
         if (jeuxVisibles.length === 0) return;
 

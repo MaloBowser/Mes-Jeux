@@ -95,7 +95,9 @@
   const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   })[char]);
-  const avatarHtml = (profile) => profile?.image
+  const avatarHtml = (profile) => window.MaloAvatar?.face(profile?.id)
+    ? `<span class="malo-avatar-emoji">${escapeHtml(MaloAvatar.face(profile.id))}</span>`
+    : profile?.image
     ? `<img src="${escapeHtml(profile.image)}" alt="">`
     : `<span class="malo-avatar-emoji">${escapeHtml(profile?.emoji || "👤")}</span>`;
 
@@ -136,18 +138,26 @@
     });
   }
 
+  function openCustomization() {
+    if (activeProfile()) MaloAvatar.open(() => showProfileChooser(true));
+    else showProfileChooser(false);
+  }
+
   function renderAccount() {
-    document.querySelector(".malo-account")?.remove();
     const profile = activeProfile();
     if (!profile) return;
-    const account = document.createElement("button");
-    account.type = "button";
-    account.className = "malo-account";
-    account.title = `Profil de ${profile.name}`;
-    account.setAttribute("aria-label", `Changer de profil. Profil actuel : ${profile.name}`);
-    account.innerHTML = avatarHtml(profile);
-    account.addEventListener("click", () => showProfileChooser(true));
-    document.body.appendChild(account);
+    let account = document.querySelector(".malo-account");
+    if (!account) {
+      account = document.createElement("button");
+      account.type = "button";
+      account.className = "malo-account";
+      account.setAttribute("aria-haspopup", "dialog");
+      account.addEventListener("click", () => showProfileChooser(true));
+      document.body.appendChild(account);
+    }
+    account.title = "Changer de profil";
+    account.setAttribute("aria-label", `Changer de profil · ${profile.name}`);
+    MaloAvatar.portrait(account, profile);
   }
 
   function showWelcome(profile, done) {
@@ -186,7 +196,7 @@
       <div class="malo-profile-brand">🎮 LES JEUX DE MALO</div>
       <div class="malo-dialog-head"><div><h2 id="profileTitle">Qui joue aujourd’hui ?</h2><p>Choisis ton profil pour retrouver ton nom et tes sauvegardes personnelles.</p></div>${canClose && activeProfile() ? '<button type="button" data-close aria-label="Fermer">✕</button>' : ''}</div>
       <div class="malo-profile-grid"></div>
-      <div class="malo-actions"><button class="malo-primary" type="button" data-add>＋ Ajouter un profil</button></div>
+      <div class="malo-actions">${canClose && activeProfile() ? '<button type="button" data-dress>👕 Personnaliser mon avatar</button>' : ''}<button class="malo-primary" type="button" data-add>＋ Ajouter un profil</button></div>
     </section>`;
     const grid = overlay.querySelector(".malo-profile-grid");
     profiles.forEach((profile) => {
@@ -194,6 +204,7 @@
       card.type = "button";
       card.className = `malo-profile-card${profile.id === activeId() ? " is-active" : ""}`;
       card.innerHTML = `<span class="malo-profile-avatar">${avatarHtml(profile)}</span><span class="malo-profile-name">${escapeHtml(profile.name)}</span>`;
+      MaloAvatar.portrait(card.querySelector(".malo-profile-avatar"), profile);
       card.addEventListener("click", () => selectProfile(profile.id));
       const edit = document.createElement("button");
       edit.type = "button";
@@ -208,14 +219,18 @@
     });
     if (!profiles.length) grid.innerHTML = "<p>Aucun profil pour le moment. Crée le premier !</p>";
     overlay.querySelector("[data-add]").addEventListener("click", () => showProfileEditor());
+    overlay.querySelector("[data-dress]")?.addEventListener("click", () => { overlay.remove(); openCustomization(); });
     overlay.querySelector("[data-close]")?.addEventListener("click", () => overlay.remove());
     document.body.appendChild(overlay);
+    (overlay.querySelector(".malo-profile-card.is-active") || overlay.querySelector("[data-add]")).focus();
   }
 
   function showProfileEditor(existing = null) {
     document.querySelector(".malo-overlay")?.remove();
-    let chosenEmoji = existing?.emoji || EMOJIS[0];
-    let chosenImage = existing?.image || "";
+    const customFace = existing && MaloAvatar.face(existing.id);
+    let chosenEmoji = customFace || existing?.emoji || EMOJIS[0];
+    let chosenImage = customFace ? "" : existing?.image || "";
+    let avatarEdited = false;
     const overlay = document.createElement("div");
     overlay.className = "malo-overlay";
     overlay.innerHTML = `<form class="malo-dialog" role="dialog" aria-modal="true">
@@ -227,7 +242,7 @@
       <div class="malo-actions">${existing ? '<button class="malo-danger" type="button" data-delete>Supprimer</button>' : ''}<button type="button" data-back>Retour</button><button class="malo-primary" type="submit">Enregistrer</button></div>
     </form>`;
     const preview = overlay.querySelector(".malo-avatar-preview");
-    const renderPreview = () => { preview.innerHTML = chosenImage ? `<img src="${escapeHtml(chosenImage)}" alt="Aperçu">` : `<span>${chosenEmoji}</span>`; };
+    const renderPreview = () => { preview.innerHTML = chosenImage ? `<img src="${escapeHtml(chosenImage)}" alt="Aperçu">` : `<span>${escapeHtml(chosenEmoji)}</span>`; };
     const emojiGrid = overlay.querySelector(".malo-emoji-grid");
     EMOJIS.forEach((emoji) => {
       const button = document.createElement("button");
@@ -235,7 +250,7 @@
       button.className = `malo-emoji-choice${!chosenImage && emoji === chosenEmoji ? " is-selected" : ""}`;
       button.textContent = emoji;
       button.addEventListener("click", () => {
-        chosenEmoji = emoji; chosenImage = "";
+        avatarEdited = true; chosenEmoji = emoji; chosenImage = "";
         emojiGrid.querySelectorAll("button").forEach((item) => item.classList.toggle("is-selected", item === button));
         renderPreview();
       });
@@ -246,7 +261,7 @@
       if (!file) return;
       if (file.size > 500000) { event.target.value = ""; return showToast("Choisis une image de moins de 500 Ko."); }
       const reader = new FileReader();
-      reader.onload = () => { chosenImage = reader.result; emojiGrid.querySelectorAll("button").forEach((item) => item.classList.remove("is-selected")); renderPreview(); };
+      reader.onload = () => { avatarEdited = true; chosenImage = reader.result; emojiGrid.querySelectorAll("button").forEach((item) => item.classList.remove("is-selected")); renderPreview(); };
       reader.readAsDataURL(file);
     });
     overlay.querySelector("[data-back]").addEventListener("click", () => showProfileChooser(Boolean(activeProfile())));
@@ -264,14 +279,20 @@
       if (activeId() === existing.id) rawRemove(ACTIVE_KEY);
       showProfileChooser(false);
     });
-    overlay.querySelector("form").addEventListener("submit", (event) => {
+    overlay.querySelector("form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const name = new FormData(event.currentTarget).get("username").trim().replace(/\s+/g, " ");
       if (!name) return;
       const profiles = getProfiles();
-      const profile = { id: existing?.id || `${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`, name, emoji: chosenEmoji, image: chosenImage };
+      const profile = { id: existing?.id || `${Date.now().toString(36)}${Math.random().toString(36).slice(2,7)}`, name,
+        emoji: existing && !avatarEdited ? existing.emoji : chosenEmoji,
+        image: existing && !avatarEdited ? existing.image : chosenImage };
       const index = profiles.findIndex((item) => item.id === profile.id);
       if (index >= 0) profiles[index] = profile; else profiles.push(profile);
+      if (existing && avatarEdited && customFace) {
+        try { await MaloAvatar.resetFace(existing.id); }
+        catch { showToast("Impossible de sauvegarder le visage."); return; }
+      }
       saveProfiles(profiles);
       if (!existing) migrateLegacySaves(profile.id);
       selectProfile(profile.id);
@@ -501,7 +522,11 @@
       location.replace(HOME_URL);
       return;
     }
+    if (activeProfile()) renderAccount();
+    window.addEventListener("malo-avatar-change", renderAccount);
+    window.addEventListener("malo-avatar-error", event => showToast(event.detail));
     if (isHome) {
+      document.getElementById("ouvrir-personnalisation")?.addEventListener("click", openCustomization);
       const report = document.createElement("button");
       report.type = "button";
       report.className = "malo-report-button";
@@ -509,7 +534,6 @@
       report.textContent = "⚠️";
       report.addEventListener("click", showReportDialog);
       document.body.appendChild(report);
-      if (activeProfile()) renderAccount();
     } else if (!document.querySelector(".malo-home-button, a[href='../index.html'], a[href='/index.html']")) {
       const home = document.createElement("a");
       home.className = "malo-home-button";

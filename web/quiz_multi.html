@@ -51,6 +51,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -196,6 +198,7 @@ function melanger(tableau){
 }
 
 function demarrer(){
+    window.MaloAvatar?.start();
     nbJoueurs = Number(document.getElementById("nbJoueurs").value);
 
     if(nbJoueurs <= 0){
@@ -277,6 +280,7 @@ function finJoueur(){
 }
 
 function resultats(){
+    window.MaloAvatar?.finish();
     let texte = "<h2>📊 Résultats finaux</h2>";
 
     for(let i=0;i<scores.length;i++){

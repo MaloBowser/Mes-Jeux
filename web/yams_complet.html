@@ -23,6 +23,8 @@ table{width:100%;border-collapse:collapse;font-size:14px}td{padding:5px;border-b
 @media(max-width:850px){.grille{grid-template-columns:1fr}}@media(max-width:520px){.de{width:68px;height:68px;font-size:36px}}
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -84,7 +86,7 @@ function inf(f){return ["Brelan","Carré","Full","Petite suite","Grande suite","
 function total(f){return sup(f)+bonus(f)+inf(f)}
 function ech(t){return String(t).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
 
-function demarrer(){joueurs=[];for(let i=0;i<Number($("nbJoueurs").value);i++){joueurs.push({nom:$("nom"+i).value.trim()||`Joueur ${i+1}`,scores:feuilleVide()});}
+function demarrer(){ window.MaloAvatar?.start(); joueurs=[];for(let i=0;i<Number($("nbJoueurs").value);i++){joueurs.push({nom:$("nom"+i).value.trim()||`Joueur ${i+1}`,scores:feuilleVide()});}
  indexJoueur=0;manche=1;$("demarrage").classList.add("cache");$("jeu").classList.remove("cache");preparerTour();}
 function preparerTour(){lancer=0;des=[1,1,1,1,1];gardes=new Set();tourFini=false;$("lancer").classList.remove("cache");$("lancer").textContent="🎲 Lancer";$("toutGarder").classList.add("cache");$("toutRelancer").classList.add("cache");$("stop").classList.add("cache");$("info").textContent="Clique sur « Lancer ».";$("message").textContent="🎮 Tour de "+joueurs[indexJoueur].nom;afficher();}
 function afficher(){ $("manche").textContent=manche;$("joueurNom").textContent=joueurs[indexJoueur]?.nom||"";$("lancerNum").textContent=lancer;afficherDes();afficherCategories();afficherFeuilles();}
@@ -118,7 +120,7 @@ function suivant(){indexJoueur++;if(indexJoueur>=joueurs.length){indexJoueur=0;a
 function afficherFinManche(){$("titreFinManche").textContent=`Fin de la manche ${manche}/13`;classement($("classementManche"));$("suite").textContent=manche>=13?"Voir les résultats":"Manche suivante";$("finManche").classList.remove("cache");}
 function classement(zone){zone.innerHTML="";[...joueurs].sort((a,b)=>total(b.scores)-total(a.scores)).forEach((j,i)=>{let d=document.createElement("div");d.className="ligne-classement";d.innerHTML=`<span>${i+1}. ${ech(j.nom)}</span><strong>${total(j.scores)} pts</strong>`;zone.appendChild(d);});}
 function afficherFeuilles(){$("feuilles").innerHTML="";joueurs.forEach((j,i)=>{let a=document.createElement("article");a.className="feuille"+(i===indexJoueur?" actif":"");a.innerHTML=`<h3>📋 ${ech(j.nom)}</h3><table>${CATS.map(c=>`<tr><td>${c}</td><td>${j.scores[c]===null?"—":j.scores[c]}</td></tr>`).join("")}</table><p>Supérieur : ${sup(j.scores)} | Bonus : ${bonus(j.scores)}</p><p>Inférieur : ${inf(j.scores)}</p><p class="total">Total : ${total(j.scores)}</p>`;$("feuilles").appendChild(a);});}
-function resultats(){classement($("classementFinal"));let m=Math.max(...joueurs.map(j=>total(j.scores))),g=joueurs.filter(j=>total(j.scores)===m).map(j=>j.nom);$("gagnant").textContent=g.length===1?`🎉 ${g[0]} gagne avec ${m} points !`:`🤝 Égalité entre ${g.join(", ")} avec ${m} points !`;$("resultats").classList.remove("cache");}
+function resultats(){ window.MaloAvatar?.finish(); classement($("classementFinal"));let m=Math.max(...joueurs.map(j=>total(j.scores))),g=joueurs.filter(j=>total(j.scores)===m).map(j=>j.nom);$("gagnant").textContent=g.length===1?`🎉 ${g[0]} gagne avec ${m} points !`:`🤝 Égalité entre ${g.join(", ")} avec ${m} points !`;$("resultats").classList.remove("cache");}
 function retour(){["passage","finManche","resultats"].forEach(id=>$(id).classList.add("cache"));$("jeu").classList.add("cache");$("demarrage").classList.remove("cache");champsNoms();}
 
 $("nbJoueurs").onchange=champsNoms;$("start").onclick=demarrer;$("lancer").onclick=lancerDes;

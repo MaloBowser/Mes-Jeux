@@ -75,6 +75,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -145,6 +147,7 @@ function retourMenu(){
 }
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
     plateau = ["","","","","","","","",""];
     joueur = "X";
     partieFinie = false;
@@ -256,6 +259,7 @@ function verifierGagnant(symbole){
 }
 
 function finir(resultat){
+    window.MaloAvatar?.finish();
     partieFinie = true;
 
     if(resultat === "nul"){

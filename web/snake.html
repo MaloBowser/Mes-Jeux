@@ -95,6 +95,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -133,6 +135,7 @@ let record = Number(localStorage.getItem("recordSnake")) || 0;
 recordElement.textContent = record;
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
     serpent = [{x:10, y:10}, {x:9, y:10}, {x:8, y:10}];
     direction = {x:1, y:0};
     prochaineDirection = {x:1, y:0};
@@ -199,6 +202,7 @@ function avancer(){
 }
 
 function terminerPartie(){
+    window.MaloAvatar?.finish();
     clearInterval(boucle);
     boucle = null;
     partieFinie = true;

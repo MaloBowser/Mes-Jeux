@@ -55,6 +55,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -80,6 +82,7 @@ const cartes=[
 let points=0;
 
 function jouer(){
+    window.MaloAvatar?.start();
 
 let rob=Math.floor(Math.random()*cartes.length);
 
@@ -113,6 +116,7 @@ document.getElementById("resultat").innerHTML=
 
 document.getElementById("score").innerHTML=
 "🏆 Score : "+points;
+    window.MaloAvatar?.finish();
 
 }
 

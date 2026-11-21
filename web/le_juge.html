@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Le Juge - Les jeux de Malo</title>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 <style>
 *{box-sizing:border-box}
@@ -416,6 +418,7 @@ function saveHistory(h){localStorage.setItem(key(),JSON.stringify(h));$("count")
 function toast(t){$("toast").textContent=t;$("toast").classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>$("toast").classList.remove("show"),1500)}
 function hit(){$("gavel").classList.remove("hit");void $("gavel").offsetWidth;$("gavel").classList.add("hit");soundGavel()}
 function newCase(){
+    window.MaloAvatar?.start();
   let i=Math.floor(Math.random()*CASES.length);
   if(CASES.length>1)while(i===currentIndex)i=Math.floor(Math.random()*CASES.length);
   currentIndex=i;currentCase=CASES[i];
@@ -466,6 +469,7 @@ $("innocent").onclick=()=>deliberate(()=>{
   h.push({affaire:currentCase.title,juridiction:(CASE_HELP[currentIndex]||{}).jurisdiction||"",verdict:"Relaxe / acquittement",sentence:"Aucune peine",date:new Date().toLocaleString("fr-FR")});
   saveHistory(h);
   $("verdict").textContent=((CASE_HELP[currentIndex]||{}).status==="Accusé"?"Décision : ACQUITTEMENT":"Décision : RELAXE");
+      window.MaloAvatar?.finish();
   $("verdict").className="verdict innocent";
   $("sentenceBox").classList.add("hidden");
   hit();toast("✅ Décision enregistrée");soundSuccess();goNextSoon();
@@ -475,7 +479,7 @@ $("confirm").onclick=()=>{
   if(!sentence){toast("⚠️ Choisis ou écris une peine");return}
   let h=loadHistory();
   h.push({affaire:currentCase.title,juridiction:(CASE_HELP[currentIndex]||{}).jurisdiction||"",verdict:"Culpabilité retenue",sentence,date:new Date().toLocaleString("fr-FR")});
-  saveHistory(h);hit();toast("⚖️ Jugement enregistré");soundSuccess();goNextSoon();
+  saveHistory(h);hit(); window.MaloAvatar?.finish(); toast("⚖️ Jugement enregistré");soundSuccess();goNextSoon();
 };
 $("next").onclick=newCase;
 $("history").onclick=()=>{let h=loadHistory();$("historyList").innerHTML=h.length?[...h].reverse().map(v=>`<div class="item"><strong>${v.affaire}</strong><br>${v.juridiction?`<small>${v.juridiction}</small><br>`:""}Décision : ${v.verdict}<br>Peine : ${v.sentence}<br><small>${v.date||""}</small></div>`).join(""):`<p style="text-align:center;opacity:.7">Aucun verdict pour le moment.</p>`;$("historyOverlay").classList.remove("hidden")};

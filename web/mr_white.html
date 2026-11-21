@@ -57,6 +57,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -111,6 +113,7 @@ function creerJoueurs(){
 }
 
 function lancerPartie(nb){
+    window.MaloAvatar?.start();
     joueurs = [];
 
     for(let i=0;i<nb;i++){
@@ -197,6 +200,7 @@ function vote(){
 }
 
 function resultat(vote){
+    window.MaloAvatar?.finish();
     if(vote === mrWhite){
         document.getElementById("zone").innerHTML =
         `<h2>🎉 Bravo !</h2>

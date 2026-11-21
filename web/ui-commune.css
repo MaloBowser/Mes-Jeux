@@ -83,19 +83,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  padding: 3px;
+  box-sizing: border-box;
+  width: 64px;
+  height: 64px;
+  padding: 3px !important;
   color: #fff;
-  background: rgba(5, 17, 27, .92);
+  background: radial-gradient(ellipse at 50% 95%, #3867a4, #101c3d 56%, #071320);
   border: 2px solid rgba(0,245,255,.85);
   border-radius: 50%;
   box-shadow: 0 8px 26px rgba(0,0,0,.35), 0 0 24px rgba(0,245,255,.42);
   font-weight: 750;
   overflow: hidden;
 }
-.malo-account img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.malo-account .malo-avatar-emoji { font-size: 27px; line-height: 1; }
+.malo-account > svg, .malo-profile-avatar > svg { display:block; width:100%; height:100%; pointer-events:none; }
 .malo-report-button,
 .malo-home-button {
   position: fixed;
@@ -298,7 +298,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   touch-action: none;
 }
 @media (max-width: 620px) {
-  .malo-report-button, .malo-home-button, .malo-account { width: 44px; height: 44px; }
+  .malo-report-button, .malo-home-button { width: 44px; height: 44px; }
+  .malo-account { width:54px; height:54px; }
   body > header:first-of-type, body > h1:first-of-type { padding-top: 68px !important; }
   .malo-profile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .malo-emoji-grid { grid-template-columns: repeat(5, 1fr); }

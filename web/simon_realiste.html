@@ -110,6 +110,8 @@ option{color:#000}
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -256,6 +258,7 @@ async function nextRound(){
 }
 
 async function startGame(){
+    window.MaloAvatar?.start();
   gameOver.classList.add("hidden");
   sequence=[];
   playerIndex=0;
@@ -272,6 +275,7 @@ async function startGame(){
 }
 
 async function wrong(){
+    window.MaloAvatar?.finish();
   gameStarted=false;
   playingSequence=true;
   statusEl.textContent="❌ Mauvaise couleur !";

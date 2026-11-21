@@ -211,6 +211,8 @@ option{color:#000}
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -361,6 +363,7 @@ function makeDeck(){
 }
 
 function startGame(){
+    window.MaloAvatar?.start();
   players=[];
   const humans=Number($("humanCount").value);
 
@@ -506,6 +509,7 @@ function beginTurn(){
 
   const targetIndex=findNextPlayerWithCards(currentPlayer);
   if(targetIndex===null){
+    window.MaloAvatar?.finish();
     finishGame();
     return;
   }
@@ -617,7 +621,8 @@ function finalizeDraw(player){
   busy=false;
 
   if(countPlayersWithCards()<=1){
-    setTimeout(finishGame,900);
+    window.MaloAvatar?.finish();
+      setTimeout(finishGame,900);
   }else{
     setTimeout(nextPlayer,1000);
   }

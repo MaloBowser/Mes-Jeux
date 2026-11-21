@@ -64,6 +64,8 @@ button{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -83,6 +85,7 @@ let joueur = "🔴";
 let partieFinie = false;
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
     plateau = [
         [" "," "," "," "," "," "," "],
         [" "," "," "," "," "," "," "],
@@ -134,6 +137,7 @@ function jouer(colonne){
     afficher();
 
     if(gagnant(joueur)){
+        window.MaloAvatar?.finish();
         document.getElementById("message").innerHTML =
         "🏆 Le joueur " + joueur + " a gagné !";
         partieFinie = true;

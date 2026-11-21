@@ -44,6 +44,8 @@
         }
     </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -83,6 +85,7 @@
         let prixSecret;
 
         function nouvelObjet() {
+            window.MaloAvatar?.start();
             indice = Math.floor(Math.random() * objets.length);
 
             document.getElementById("objet").textContent =
@@ -99,6 +102,7 @@
     let reponse = Number(document.getElementById("reponse").value);
     let message = document.getElementById("message");
 
+    if (document.getElementById("reponse").value.trim()) window.MaloAvatar?.finish();
     if (reponse === prixSecret) {
         points++;
         message.textContent = "🎉 Bravo ! Le prix était bien " + prixSecret + " €";

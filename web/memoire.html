@@ -62,6 +62,8 @@ button:hover{
 
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -90,6 +92,7 @@ let code = "";
 let points = 0;
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
 
     code="";
 
@@ -117,6 +120,7 @@ function verifier(){
     if(champReponse.disabled) return;
     let reponse=champReponse.value;
 
+    if (reponse.trim()) window.MaloAvatar?.finish();
     if(reponse===code){
 
         points++;

@@ -334,6 +334,8 @@
         }
     </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -526,6 +528,7 @@
         }
 
         function commencerPartie() {
+            window.MaloAvatar?.start();
             const champs =
                 document.querySelectorAll(".nom-joueur");
 
@@ -754,6 +757,7 @@
         }
 
         function afficherClassement() {
+            window.MaloAvatar?.finish();
             afficherEcran("ecranClassement");
 
             const classementTrie =

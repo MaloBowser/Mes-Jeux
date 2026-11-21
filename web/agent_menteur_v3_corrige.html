@@ -28,6 +28,8 @@ select{width:100%;padding:12px;border-radius:12px;background:#ffffff12;color:#ff
 @media(max-width:800px){.board,.grid{grid-template-columns:1fr}}
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 <body>
@@ -106,6 +108,7 @@ function esc(s){
 }
 
 function startGame(){
+    window.MaloAvatar?.start();
   const difficulty = byId("difficulty").value;
   const requested = Number(byId("count").value);
   let available;
@@ -251,6 +254,7 @@ function nextCase(){
 }
 
 function finishGame(){
+    window.MaloAvatar?.finish();
   byId("game").classList.add("hidden");
   byId("solved").textContent = solved + "/" + selection.length;
   byId("finalScore").textContent = score;

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Devine le nombre</title>
 
     <link rel="icon" type="image/png" href="web/console-de-jeu.png">
@@ -44,6 +45,8 @@
     </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -64,6 +67,7 @@
         let max = 10;
         let nombreSecret = Math.floor(Math.random() * 10) + 1;
 
+        window.MaloAvatar?.start();
         function verifier() {
             let reponse = Number(document.getElementById("reponse").value);
             let message = document.getElementById("message");
@@ -76,6 +80,7 @@
                 message.textContent = "C'est plus petit";
             } else {
                 message.textContent = "Bravo 👌👏";
+                window.MaloAvatar?.finish();
             }
         }
     </script>

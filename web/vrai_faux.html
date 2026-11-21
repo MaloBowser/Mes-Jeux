@@ -52,6 +52,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -201,6 +203,7 @@ const reponses = [
 let numero=0;
 
 function nouvelleQuestion(){
+    window.MaloAvatar?.start();
 
     numero=Math.floor(Math.random()*questions.length);
 
@@ -212,6 +215,7 @@ function nouvelleQuestion(){
 }
 
 function repondre(choix){
+    window.MaloAvatar?.finish();
 
     if(choix===reponses[numero]){
 

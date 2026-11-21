@@ -58,6 +58,7 @@
   }
   function closeDialogs() { for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close(); }
   function start() {
+      window.MaloAvatar?.start();
     document.body.classList.remove('finished');
     audio.silence(); audio.unlock(); audio.play('countdown');
     closeDialogs(); simulation.reset(); race.reset(); earned = 0; view.coins.forEach(c => { c.lap = -1; c.object.visible = true; }); clearInput(); accumulator = 0; countdown = 3; goTime = 0; mode = 'countdown';
@@ -137,6 +138,7 @@
       }
       if (goTime > 0) { goTime -= dt; if (goTime <= 0) $('countdown').hidden = true; }
       if (simulation.state.finished) {
+          window.MaloAvatar?.finish();
         mode = 'finished'; clearInput(); $('countdown').hidden = true;
         document.body.classList.add('finished'); $('hud').hidden=true;
         audio.silence(); audio.play('finish');

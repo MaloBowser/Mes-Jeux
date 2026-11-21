@@ -53,6 +53,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -73,6 +75,7 @@ button:hover{
 <script>
 
 function jouer(){
+    window.MaloAvatar?.start();
 
     const MIN = 1;
     const MAX = 50;
@@ -140,6 +143,7 @@ function jouer(){
     }
 
     document.getElementById("resultat").innerHTML=resultat;
+    window.MaloAvatar?.finish();
 
 }
 

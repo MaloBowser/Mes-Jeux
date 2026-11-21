@@ -91,6 +91,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -134,6 +136,7 @@ const grosLots=[
 const coffres=document.getElementById("coffres");
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
     document.getElementById("lot").innerHTML="";
     coffres.innerHTML="";
 
@@ -148,6 +151,7 @@ function nouvellePartie(){
             this.innerHTML="🎁";
             this.classList.add("ouvert");
             this.disabled=true;
+                if (!coffres.querySelector("button:enabled")) window.MaloAvatar?.finish();
 
             if(grosLots.includes(lot)){
                 document.getElementById("lot").innerHTML =

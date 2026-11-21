@@ -68,6 +68,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -125,6 +127,7 @@ let bonBallon = 0;
 let partieFinie = false;
 
 function creerBallons(){
+    window.MaloAvatar?.start();
     let nombre = Number(document.getElementById("nombreBallons").value);
 
     if(nombre < 5){
@@ -154,6 +157,7 @@ function choisirBallon(numero, bouton){
     if(partieFinie) return;
 
     partieFinie = true;
+        window.MaloAvatar?.finish();
 
     if(numero === bonBallon){
         bouton.innerHTML = "🏆";

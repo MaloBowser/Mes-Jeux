@@ -63,6 +63,8 @@ button{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -86,6 +88,7 @@ let bateaux = [];
 let touches = 0;
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
     essais = 20;
     touches = 0;
     bateaux = [];
@@ -178,6 +181,7 @@ function jouer(caseCliquee,l,c){
     "💣 Essais : " + essais + " | 🚢 Bateaux trouvés : " + touches + "/3";
 
     if(touches === 3){
+        window.MaloAvatar?.finish();
         document.getElementById("message").innerHTML =
         "🏆 Bravo ! Tu as coulé les 3 bateaux !";
         document.getElementById("radar").innerHTML =
@@ -185,6 +189,7 @@ function jouer(caseCliquee,l,c){
     }
 
     if(essais === 0 && touches < 3){
+        window.MaloAvatar?.finish();
         document.getElementById("message").innerHTML =
         "❌ Perdu ! Les bateaux restants apparaissent en rouge.";
 

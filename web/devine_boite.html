@@ -60,6 +60,8 @@ margin-top:35px;
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -191,9 +193,11 @@ const lots = [
     "Mystère... ouvre une autre boîte !"
 ]
 
+window.MaloAvatar?.start();
 function ouvrir(){
 
 let lot = lots[Math.floor(Math.random()*lots.length)];
+    window.MaloAvatar?.finish();
 
 document.getElementById("resultat").innerHTML =
 "🎉 Tu as gagné :<br><br><b>"+lot+"</b>";
@@ -201,6 +205,7 @@ document.getElementById("resultat").innerHTML =
 }
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
 
 document.getElementById("resultat").innerHTML="";
 

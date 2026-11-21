@@ -308,6 +308,8 @@ h1{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -402,6 +404,7 @@ function newSecret(){
 }
 
 function startGame(){
+    window.MaloAvatar?.start();
   secret=newSecret();
   current=[];
   attempts=[];
@@ -566,6 +569,7 @@ function revealSecret(show){
 }
 
 function winGame(){
+    window.MaloAvatar?.finish();
   const tries=attempts.length;
   let newRecord=false;
 
@@ -588,6 +592,7 @@ function winGame(){
 }
 
 function loseGame(){
+    window.MaloAvatar?.finish();
   $("endEmoji").textContent="💥";
   $("endTitle").textContent="Perdu !";
   $("endText").textContent="Tu as utilisé tes 20 essais. Le code secret est maintenant révélé.";

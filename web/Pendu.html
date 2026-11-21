@@ -53,6 +53,8 @@ button:hover {
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -108,6 +110,7 @@ let lettresUtilisees = [];
 let vies = 15;
 
 function rejouer() {
+    window.MaloAvatar?.start();
     motSecret = mots[Math.floor(Math.random() * mots.length)];
     lettresTrouvees = [];
     lettresUtilisees = [];
@@ -162,10 +165,12 @@ function verifier() {
     document.getElementById("lettre").value = "";
 
     if (!document.getElementById("mot").textContent.includes("_")) {
+        window.MaloAvatar?.finish();
         message.textContent = "🎉 Bravo ! Tu as trouvé le mot : " + motSecret;
     }
 
     if (vies === 0) {
+        window.MaloAvatar?.finish();
         message.textContent = "💀 Perdu ! Le mot était : " + motSecret;
     }
 }

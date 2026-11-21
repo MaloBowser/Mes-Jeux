@@ -1,5 +1,5 @@
 
-const CACHE_NAME = "jeux-de-malo-v3-circuits-kart";
+const CACHE_NAME = "jeux-de-malo-v5-portraits";
 
 const FICHIERS = [
     "./",
@@ -7,7 +7,15 @@ const FICHIERS = [
     "./manifest.json",
     "./fond.jpg",
     "./web/ui-commune.css",
-    "./web/ui-commune.js"
+    "./web/ui-commune.js",
+    "./web/avatar-catalogue.js",
+    "./web/avatar-progression.js",
+    "./web/avatar-menu.js",
+    "./web/avatar-dessin.js",
+    "./web/assets/avatar/visages.webp",
+    "./web/assets/avatar/visages-mini.webp",
+    "./web/avatar-menu.css",
+    "./web/covers/personnalisation.webp"
 ];
 
 // Installation

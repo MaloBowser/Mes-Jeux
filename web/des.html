@@ -55,6 +55,8 @@ button:hover{
 </style>
 
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -77,6 +79,7 @@ let points = 0;
 const faces = ["⚀","⚁","⚂","⚃","⚄","⚅"];
 
 function jouer(){
+    window.MaloAvatar?.start();
 
     let deMoi = Math.floor(Math.random()*6)+1;
     let deOrdi = Math.floor(Math.random()*6)+1;
@@ -109,6 +112,7 @@ function jouer(){
 
     document.getElementById("score").innerHTML =
     "🏆 Score : " + points;
+    window.MaloAvatar?.finish();
 
 }
 

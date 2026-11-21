@@ -53,6 +53,8 @@ button:hover{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -103,6 +105,7 @@ const phrases = [
 let porte = 0;
 
 function nouvellePartie(){
+    window.MaloAvatar?.start();
     porte = Math.floor(Math.random() * MAX) + MIN;
     document.getElementById("message").innerHTML = "";
     document.getElementById("reponse").value = "";
@@ -118,6 +121,7 @@ function verifier(){
     }
 
     if(reponse === porte){
+        window.MaloAvatar?.finish();
         document.getElementById("message").innerHTML =
         "🎉 Bravo, tu as trouvé la sortie !";
     }else{

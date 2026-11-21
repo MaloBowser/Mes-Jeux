@@ -53,6 +53,8 @@ h1{
 }
 </style>
 <link rel="stylesheet" href="ui-commune.css">
+<script src="avatar-catalogue.js"></script>
+<script src="avatar-progression.js"></script>
 <script src="ui-commune.js"></script>
 </head>
 
@@ -79,10 +81,12 @@ const fils = ["rouge","vert","bleu","jaune","blanc"];
 
 let chrono = 10;
 let bonFil = fils[Math.floor(Math.random() * fils.length)];
+    window.MaloAvatar?.start();
 
 function choisir(couleur){
 
     if(couleur === bonFil){
+        window.MaloAvatar?.finish();
         document.getElementById("message").innerHTML =
         "🎉 Bravo !<br>Tu as désamorcé la bombe ! 💣";
         return;
@@ -97,12 +101,14 @@ function choisir(couleur){
     "❌ Mauvais fil !";
 
     if(chrono <= 0){
+        window.MaloAvatar?.finish();
         document.getElementById("message").innerHTML =
         "💥 BOUM !! La bombe a explosé !<br>Le bon fil était : <b>" + bonFil + "</b>";
     }
 }
 
 function nouvelleBombe(){
+    window.MaloAvatar?.start();
     chrono = 10;
     bonFil = fils[Math.floor(Math.random() * fils.length)];
 
