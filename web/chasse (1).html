@@ -2,11 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<title>Chasse en forêt</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chasse — Bois de brume</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:'Segoe UI',system-ui,sans-serif;color:#f1ead8}
 canvas{display:block}
+body.mouseLocked,body.mouseLocked canvas{cursor:none!important}
 #hud{position:fixed;top:16px;left:20px;font-size:24px;font-weight:800;text-shadow:0 2px 4px #000c;pointer-events:none}
 #hud small{display:block;font-size:14px;font-weight:600;opacity:.85}
 #msg{position:fixed;top:28%;left:50%;transform:translateX(-50%);font-size:26px;font-weight:800;text-shadow:0 2px 6px #000;opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}
@@ -28,6 +29,18 @@ canvas{display:block}
 #overlay button{font:700 18px inherit;font-family:inherit;padding:12px 30px;margin:6px;border:2px solid #e8c98a;background:#2b3a1f;color:#f1ead8;border-radius:6px;cursor:pointer}
 #overlay button:hover{background:#3d5229}
 #keys{margin-top:22px;font-size:14px;opacity:.75;line-height:1.7}
+
+#mobileUI{display:none;position:fixed;inset:0;pointer-events:none;z-index:4;touch-action:none;user-select:none;-webkit-user-select:none}
+#mobileUI button{pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;border:2px solid #e8c98aaa;background:#17291bc9;color:#fff;border-radius:18px;font:bold 21px system-ui;box-shadow:0 3px 14px #0008;min-width:57px;min-height:57px}
+#movePad{position:absolute;left:20px;bottom:30px;width:150px;height:150px;pointer-events:auto;touch-action:none;border-radius:50%;background:#17291b9e;border:3px solid #e8c98a99;box-shadow:0 4px 18px #0008;display:grid;place-items:center}
+#stick{width:65px;height:65px;border-radius:50%;background:#c58d42e8;border:3px solid #fff9;box-shadow:0 2px 12px #0008;display:grid;place-items:center;font:700 11px system-ui;color:white;pointer-events:none}
+#actionPad{position:absolute;right:18px;bottom:38px;display:flex;gap:12px;align-items:center}
+#actionPad button{font-size:15px;padding:12px;min-width:74px;min-height:70px}
+#mobilePause{position:absolute;right:12px;top:12px;min-width:45px!important;min-height:45px!important;font-size:18px!important}
+#lookHelp{position:absolute;right:10px;top:65px;color:#fff9;font:12px system-ui;text-shadow:0 1px 3px #000}
+#mobileUI button.pressed{background:#c58d42df;transform:scale(.96)}
+@media(pointer:coarse) and (hover:none){#mobileUI{display:block}#controlsHint{display:none!important}#hud{top:10px;left:10px;font-size:18px}#hud small{font-size:11px}#overlay h1{font-size:clamp(24px,7vw,44px)}#keys{font-size:12px;margin-top:10px}#overlay p{font-size:14px}#overlay{box-sizing:border-box;overflow:auto} }
+@media(max-height:450px) and (max-width:950px){#movePad{width:116px;height:116px;bottom:8px;left:12px}#stick{width:54px;height:54px}#actionPad{bottom:12px;right:12px}#actionPad button{min-width:64px;min-height:55px;padding:6px}}
 </style>
 </head>
 <body>
@@ -36,11 +49,16 @@ canvas{display:block}
 <div id="cross"></div>
 <div id="hit"></div>
 <div id="scope"><i class="h"></i><i class="v"></i><i class="pl"></i><i class="pr"></i><i class="pb"></i><i class="dot"></i></div>
+<div id="mobileUI" aria-label="Commandes tactiles">
+  <div id="movePad" aria-label="Joystick de déplacement et tir"><div id="stick">TIR</div></div>
+  <div id="actionPad"><button data-action="run">COURIR</button><button data-action="aim">VISER</button></div>
+  <button id="mobilePause">Ⅱ</button><div id="lookHelp">Glisser sur l'écran pour regarder</div>
+</div>
 <div id="overlay">
-  <h1>CHASSE EN FORÊT</h1>
+  <h1>CHASSE — BOIS DE BRUME</h1>
   <p id="ovText">Traquez le gibier sans vous faire repérer.</p>
   <div><button id="play">Jouer</button><button id="restart" style="display:none">Nouvelle partie</button></div>
-  <div id="keys">ZQSD / WASD : se déplacer · Maj : courir (bruyant)<br>Clic droit (maintenu) : viseur · Clic gauche : tirer · Échap : arrêter<br>Tête et cœur rapportent davantage de points.</div>
+  <div id="keys">Sur téléphone : glisser le joystick pour avancer · toucher le centre du joystick pour tirer · maintenir VISER ou COURIR · glisser à droite pour regarder<br>Sur ordinateur : ZQSD / WASD pour bouger · Souris : regarder<br>Maj : courir · Clic droit maintenu : viser · Clic gauche : tirer · Échap : pause<br>Tête et cœur rapportent davantage de points.</div>
 </div>
 
 <script type="importmap">
@@ -87,101 +105,261 @@ const grad = new THREE.DataTexture(new Uint8Array([60, 120, 185, 255]), 4, 1, TH
 grad.minFilter = grad.magFilter = THREE.NearestFilter; grad.needsUpdate = true;
 const toon = (color, o = {}) => new THREE.MeshToonMaterial({ color, gradientMap: grad, ...o });
 
-// ---------- Terrain ----------
-function H(x, z) {
-  return Math.sin(x * 0.018) * Math.cos(z * 0.021) * 3 + Math.sin(x * 0.051 + 1.3) * Math.sin(z * 0.043) * 1.2 + Math.sin((x + z) * 0.11) * 0.25;
-}
-{
-  const g = new THREE.PlaneGeometry(520, 520, 200, 200); g.rotateX(-Math.PI / 2);
-  const p = g.attributes.position, cols = [], c = new THREE.Color();
-  const cA = new THREE.Color('#4a6630'), cB = new THREE.Color('#6d6636'), cC = new THREE.Color('#38532a');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), z = p.getZ(i);
-    p.setY(i, H(x, z));
-    const n = Math.sin(x * 0.13) * Math.cos(z * 0.11) + Math.sin(x * 0.37 + z * 0.29) * 0.5;
-    c.copy(cA).lerp(n > 0 ? cB : cC, Math.min(1, Math.abs(n))).offsetHSL(0, 0, (Math.random() - 0.5) * 0.03);
-    cols.push(c.r, c.g, c.b);
-  }
-  g.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-  g.computeVertexNormals();
-  var ground = new THREE.Mesh(g, toon('#ffffff', { vertexColors: true }));
-  ground.receiveShadow = true; scene.add(ground);
-}
+// Forêt et terrain de Dev ChatGPT (Bois de brume)
 
-// ---------- Collisions (grille) ----------
+    let seed = 8742639;
+    function random() { seed = (Math.imul(1664525, seed) + 1013904223) >>> 0; return seed / 4294967296; }
+    const between = (min,max) => min + (max-min)*random();
+    const choose = items => items[Math.floor(random()*items.length)];
+    const smooth = THREE.MathUtils.smoothstep;
+    const TAU = Math.PI*2;
+
 const grid = new Map(), CELL = 8;
-const gkey = (i, j) => i + ',' + j;
-function addObstacle(x, z, r) {
-  const k = gkey(Math.floor(x / CELL), Math.floor(z / CELL));
-  if (!grid.has(k)) grid.set(k, []);
-  grid.get(k).push({ x, z, r });
-}
-function pushOut(p, rad) {
-  let hit = false;
-  const ci = Math.floor(p.x / CELL), cj = Math.floor(p.z / CELL);
-  for (let i = ci - 1; i <= ci + 1; i++) for (let j = cj - 1; j <= cj + 1; j++) {
-    const arr = grid.get(gkey(i, j)); if (!arr) continue;
-    for (const o of arr) {
-      const dx = p.x - o.x, dz = p.z - o.z, d = Math.hypot(dx, dz), m = o.r + rad;
-      if (d < m && d > 1e-4) { p.x = o.x + dx / d * m; p.z = o.z + dz / d * m; hit = true; }
+const gkey = (i,j) => i+','+j;
+function addObstacle(x,z,r) { const k=gkey(Math.floor(x/CELL),Math.floor(z/CELL)); if(!grid.has(k))grid.set(k,[]);grid.get(k).push({x,z,r}); }
+function blocked(x,z,r) { for(let i=Math.floor(x/CELL)-1;i<=Math.floor(x/CELL)+1;i++)for(let j=Math.floor(z/CELL)-1;j<=Math.floor(z/CELL)+1;j++)for(const o of grid.get(gkey(i,j))||[])if(Math.hypot(x-o.x,z-o.z)<r+o.r)return true;return false; }
+function pushOut(p,rad) { const ci=Math.floor(p.x/CELL),cj=Math.floor(p.z/CELL);for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++)for(const o of grid.get(gkey(i,j))||[]){const dx=p.x-o.x,dz=p.z-o.z,d=Math.hypot(dx,dz),m=o.r+rad;if(d<m){const a=d>0.0001?dx/d:1,b=d>0.0001?dz/d:0;p.x=o.x+a*m;p.z=o.z+b*m;}} }
+
+const liveMaterials=new Map();
+function material(color){if(!liveMaterials.has(color))liveMaterials.set(color,new THREE.MeshLambertMaterial({color,flatShading:true}));return liveMaterials.get(color);}
+const ico=new THREE.IcosahedronGeometry(1,0),rockGeo=new THREE.IcosahedronGeometry(1,1);
+const logGeo=new THREE.CylinderGeometry(.63,1,1,7),crownGeo=new THREE.CylinderGeometry(.06,1,1,8,1),leafGeo=new THREE.DodecahedronGeometry(1,0);
+    const pathX = (z) => 5 * Math.sin((z + 4) * .055) + 12 * Math.sin((z + 4) * .013);
+    const pathDistance = (x, z) => Math.abs(x - pathX(z));
+    function heightAt(x, z) {
+      const hills = .72 * Math.sin(x * .043 + .5) * Math.cos(z * .047 + .2)
+        + .62 * Math.sin(z * .068 - x * .023)
+        + 1.42 * Math.sin(z * .021 + x * .029);
+      const details = .12 * Math.sin(x * .37 + z * .29) + .13 * Math.cos(z * .22 - x * .30);
+      const bank = 1.3 * Math.exp(-((x + 20) ** 2 + (z + 39) ** 2) / 380);
+      return hills + details * (.30 + .70 * smooth(pathDistance(x, z), 1.3, 5)) + bank;
     }
-  }
-  return hit;
-}
 
-// ---------- Forêt ----------
-const dummy = new THREE.Object3D();
-const cone = (r, h, y, s = 7) => { const g = new THREE.ConeGeometry(r, h, s); g.translate(0, y, 0); return g; };
-const ico = (r, x, y, z) => { const g = new THREE.IcosahedronGeometry(r, 0); g.translate(x, y, z); return g; };
-const pineTrunkGeo = new THREE.CylinderGeometry(0.22, 0.34, 3, 6); pineTrunkGeo.translate(0, 1.5, 0);
-const pineLeafGeo = mergeGeometries([cone(2.3, 3.6, 3.4), cone(1.8, 3.0, 5.1), cone(1.15, 2.6, 6.7)]);
-const oakTrunkGeo = new THREE.CylinderGeometry(0.28, 0.45, 3.6, 6); oakTrunkGeo.translate(0, 1.8, 0);
-const oakLeafGeo = mergeGeometries([ico(2.4, 0, 5.2, 0), ico(1.7, 1.4, 4.6, 0.7), ico(1.8, -1.2, 4.8, -0.8), ico(1.5, 0.2, 6.5, -0.3)]);
+    const groundGeometry = new THREE.PlaneGeometry(344, 344, 188, 188);
+    groundGeometry.rotateX(-Math.PI / 2);
+    const groundPositions = groundGeometry.attributes.position;
+    const groundColors = [];
+    const groundTint = new THREE.Color();
+    const moss = new THREE.Color(0x4b5633);
+    const fernEarth = new THREE.Color(0x70734a);
+    const trail = new THREE.Color(0xa59066);
+    for (let i = 0; i < groundPositions.count; i++) {
+      const x = groundPositions.getX(i);
+      const z = groundPositions.getZ(i);
+      groundPositions.setY(i, heightAt(x, z));
+      const patch = .5 + .24 * Math.sin(x * .21 + z * .09) + .18 * Math.cos(z * .15 - x * .16);
+      const edge = pathDistance(x, z) + .46 * Math.sin(z * .74) + .21 * Math.cos(z * 1.9 + x);
+      groundTint.copy(moss).lerp(fernEarth, patch).lerp(trail, 1 - smooth(edge, 1.25, 3.35));
+      groundTint.multiplyScalar(between(.77, 1.15));
+      groundColors.push(groundTint.r, groundTint.g, groundTint.b);
+    }
+    groundGeometry.setAttribute('color', new THREE.Float32BufferAttribute(groundColors, 3));
+    groundGeometry.computeVertexNormals();
+    const ground = new THREE.Mesh(groundGeometry, new THREE.MeshLambertMaterial({ vertexColors: true }));
+    scene.add(ground);
+    const shotTargets=[ground];
 
-const trees = [];
-for (let i = 0; i < 1500; i++) {
-  let x, z; do { x = rnd(-230, 230); z = rnd(-230, 230); } while (Math.hypot(x, z) < 8);
-  trees.push({ x, z, s: rnd(0.8, 1.6), pine: Math.random() < 0.55 });
-}
-for (let i = 0; i < 500; i++) {
-  const a = Math.random() * Math.PI * 2, r = rnd(196, 240);
-  trees.push({ x: Math.cos(a) * r, z: Math.sin(a) * r, s: rnd(1, 1.7), pine: Math.random() < 0.6 });
-}
-trees.forEach(t => { t.ry = Math.random() * 6.28; addObstacle(t.x, t.z, (t.pine ? 0.32 : 0.42) * t.s); });
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = shadowCanvas.height = 64;
+    const shadowPaint = shadowCanvas.getContext('2d');
+    const gradient = shadowPaint.createRadialGradient(32, 32, 2, 32, 32, 31);
+    gradient.addColorStop(0, 'rgba(255,255,255,0.86)');
+    gradient.addColorStop(.52, 'rgba(255,255,255,0.50)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    shadowPaint.fillStyle = gradient;
+    shadowPaint.fillRect(0, 0, 64, 64);
+    const shadowTexture = new THREE.CanvasTexture(shadowCanvas);
+    const shadowGeo = new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2);
+    const shadowMaterial = new THREE.MeshBasicMaterial({
+      color: 0x252b18, map: shadowTexture, transparent: true, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -1
+    });
+    function shadow(parent, x, z, radiusX, radiusZ, opacity) {
+      const decal = new THREE.Mesh(shadowGeo, shadowMaterial.clone());
+      decal.material.opacity = opacity;
+      decal.scale.set(radiusX, 1, radiusZ);
+      placeShadow(decal, x, z);
+      parent.add(decal);
+      return decal;
+    }
+    function placeShadow(decal, x, z) {
+      decal.position.set(x, heightAt(x, z) + .052, z);
+      decal.quaternion.setFromUnitVectors(THREE.Object3D.DEFAULT_UP, new THREE.Vector3(
+        heightAt(x - .4, z) - heightAt(x + .4, z), .8,
+        heightAt(x, z - .4) - heightAt(x, z + .4)
+      ).normalize());
+    }
 
-function makeInst(geo, mat, list, colorFn, shadow = true, sy = 1) {
-  const m = new THREE.InstancedMesh(geo, mat, list.length);
-  const c = new THREE.Color();
-  list.forEach((t, i) => {
-    dummy.position.set(t.x, H(t.x, t.z) - 0.1, t.z);
-    dummy.rotation.set(0, t.ry, 0);
-    dummy.scale.set(t.s, t.s * sy, t.s);
-    dummy.updateMatrix();
-    m.setMatrixAt(i, dummy.matrix);
-    if (colorFn) m.setColorAt(i, colorFn(c));
-  });
-  m.castShadow = shadow; m.receiveShadow = true;
-  scene.add(m); return m;
-}
-const pines = trees.filter(t => t.pine), oaks = trees.filter(t => !t.pine);
-const flat = { flatShading: true };
-const shotTargets = [ground];
-shotTargets.push(makeInst(pineTrunkGeo, toon('#ffffff', flat), pines, c => c.set('#4a3426').offsetHSL(0, 0, rnd(-0.03, 0.03))));
-shotTargets.push(makeInst(pineLeafGeo, toon('#ffffff', flat), pines, c => c.set('#2c4628').offsetHSL(rnd(-0.02, 0.02), 0, rnd(-0.04, 0.04))));
-shotTargets.push(makeInst(oakTrunkGeo, toon('#ffffff', flat), oaks, c => c.set('#54402e').offsetHSL(0, 0, rnd(-0.03, 0.03))));
-shotTargets.push(makeInst(oakLeafGeo, toon('#ffffff', flat), oaks, c => c.set('#4b6a2e').offsetHSL(rnd(-0.03, 0.03), 0, rnd(-0.05, 0.05))));
+    const templates = new Map();
+    const transform = new THREE.Object3D();
+    function scatter(geometry, color, x, y, z, sx, sy, sz, rx, ry, rz = 0) {
+      if (!templates.has(geometry)) templates.set(geometry, []);
+      transform.position.set(x, y, z);
+      transform.scale.set(sx, sy, sz);
+      transform.rotation.set(rx, ry, rz);
+      transform.updateMatrix();
+      templates.get(geometry).push({ matrix: transform.matrix.clone(), color: new THREE.Color(color) });
+    }
 
-const bushes = [];
-for (let i = 0; i < 650; i++) bushes.push({ x: rnd(-200, 200), z: rnd(-200, 200), s: rnd(0.6, 1.4), ry: Math.random() * 6 });
-shotTargets.push(makeInst(new THREE.IcosahedronGeometry(1, 0), toon('#ffffff', flat), bushes, c => c.set('#3f5e2b').offsetHSL(rnd(-0.03, 0.03), 0, rnd(-0.05, 0.05)), true, 0.7));
+    const needles = [0x293d2d, 0x344b34, 0x405638, 0x4c5c38, 0x4a613d];
+    const broadleaf = [0x435b3c, 0x52643c, 0x647141, 0x6d7543, 0x787b49, 0x8e7846];
+    const bark = [0x514431, 0x5f4e36, 0x544b39, 0x67553d, 0x635b4d];
+    const stone = [0x6a7060, 0x73796b, 0x777867, 0x5c675b];
+    function tree(x, z, h, pine) {
+      const y = heightAt(x, z) - .05;
+      const turn = between(0, TAU);
+      const radius = h * (pine ? .038 : .069);
+      const trunkColor = choose(bark);
+      scatter(logGeo, trunkColor, x, y + h * .45, z, radius, h * .94, radius, 0, turn);
+      scatter(logGeo, trunkColor, x, y + .15, z, radius * 1.55, .53, radius * 1.48, 0, turn);
+      addObstacle(x, z, radius * .83);
+      if (Math.hypot(x, z) < 58) shadow(scene, x - .35, z + .4, radius * 4.4, radius * 3.2, .58);
+      if (pine) {
+        const leafColor = choose(needles);
+        for (let layer = 0; layer < 4; layer++) {
+          const width = h * (.253 - .038 * layer) * between(.89, 1.12);
+          scatter(crownGeo, new THREE.Color(leafColor).multiplyScalar(.78 + layer * .155),
+            x + between(-.19, .19), y + h * (.435 + .147 * layer), z + between(-.2, .2),
+            width, h * (.42 - .019 * layer), width * between(.88, 1.13),
+            between(-.07, .07), turn + layer * .28, between(-.065, .065));
+        }
+      } else {
+        for (let limb = 0; limb < 5; limb++) {
+          const a = turn + limb * 2.4;
+          const reach = limb === 0 ? .025 * h : between(.09, .24) * h;
+          const dx = Math.cos(a) * reach;
+          const dz = Math.sin(a) * reach;
+          const top = h * (limb === 0 ? .94 : between(.73, .87));
+          const branchLength = Math.hypot(dx, dz, top - h * .47);
+          scatter(logGeo, trunkColor, x + dx * .5, y + (top + h * .47) * .5, z + dz * .5,
+            radius * .53, branchLength, radius * .56, dz / branchLength, 0, -dx / branchLength);
+          const width = between(.17, .26) * h;
+          scatter(leafGeo, choose(broadleaf), x + dx, y + top, z + dz, width, width * .78, width * 1.1, .26, a, .38);
+        }
+      }
+    }
 
-const rocks = [];
-for (let i = 0; i < 160; i++) { const r = { x: rnd(-200, 200), z: rnd(-200, 200), s: rnd(0.4, 1.3), ry: Math.random() * 6 }; rocks.push(r); addObstacle(r.x, r.z, r.s * 0.9); }
-shotTargets.push(makeInst(new THREE.DodecahedronGeometry(1, 0), toon('#ffffff', flat), rocks, c => c.set('#7b7a72').offsetHSL(0, 0, rnd(-0.06, 0.04)), true, 0.6));
+    const clearings = [[5, -21, 8], [-10, -37, 7], [28, -24, 8], [-26, 4, 8], [22, 18, 8], [-22, -68, 8]];
+    tree(-6.1, -7.9, 12, false);
+    tree(10.9, -10.5, 13, true);
+    tree(16, -18, 15, false);
+    tree(-12.5, -17.4, 12, true);
+    tree(14.2, -31, 12, true);
+    tree(-15, -31, 14, false);
+    for (let i = 0; i < 1350; i++) {
+      const x = between(-157, 157);
+      const z = between(-157, 157);
+      if (Math.hypot(x, z) > 157 || Math.hypot(x - .4, z - 6.5) < 8
+        || pathDistance(x, z) < between(2.85, 5.5) || blocked(x, z, 1.3)
+        || clearings.some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r)) continue;
+      tree(x, z, between(5.8, 14.8), random() > .33);
+    }
 
-const grass = [];
-for (let i = 0; i < 8000; i++) grass.push({ x: rnd(-205, 205), z: rnd(-205, 205), s: rnd(0.6, 1.4), ry: Math.random() * 6 });
-makeInst(cone(0.12, 0.6, 0.3, 3), toon('#ffffff'), grass, c => c.set('#5b7a33').offsetHSL(rnd(-0.03, 0.04), 0, rnd(-0.06, 0.06)), false);
+    function rock(x, z, size) {
+      const y = heightAt(x, z);
+      const turn = between(0, TAU);
+      scatter(rockGeo, choose(stone), x, y + size * .18, z, size, size * .64, size * .79, .34, turn, -.16);
+      scatter(ico, choose([0x647349, 0x606c45, 0x6a7448]),
+        x + size * .13, y + size * .62, z + size * .08, size * .61, size * .15, size * .53, .05, turn, .12);
+      if (size > .54) addObstacle(x, z, size * .82);
+      if (Math.hypot(x, z) < 45 && size > .58) shadow(scene, x, z, size * 1.46, size * 1.18, .49);
+    }
+    rock(3.7, -3.6, 1.15);
+    rock(4.8, -4.7, .59);
+    rock(-4.0, -3.1, .79);
+    rock(10.7, -17, .59);
+    rock(-8.8, -23, .89);
+    for (let i = 0; i < 440; i++) {
+      const x = between(-143, 143);
+      const z = between(-143, 143);
+      if (Math.hypot(x, z) > 146 || pathDistance(x, z) < 3.3 || blocked(x, z, .7)) continue;
+      rock(x, z, between(.20, 1.3));
+    }
+
+    function blade(x, z, lean, tall, wide, twist) {
+      const sidesX = Math.cos(twist) * wide;
+      const sidesZ = Math.sin(twist) * wide;
+      return [x - sidesX, 0, z - sidesZ, x + sidesX, 0, z + sidesZ, x + lean * sidesZ / wide, tall, z - lean * sidesX / wide];
+    }
+    function createTuft() {
+      const shapes = [];
+      for (let i = 0; i < 7; i++) {
+        shapes.push(...blade(between(-.13, .13), between(-.13, .13), between(.10, .34),
+          between(.22, .63), between(.028, .065), between(0, TAU)));
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(shapes, 3));
+      geo.computeVertexNormals();
+      return geo;
+    }
+    function createFern() {
+      const vertices = [];
+      for (let frond = 0; frond < 6; frond++) {
+        const a = frond * TAU / 6;
+        const length = between(.52, 1);
+        const place = (t, width) => [
+          Math.cos(a) * length * t - Math.sin(a) * width,
+          .52 * Math.sin(t * 2.12) + .03,
+          Math.sin(a) * length * t + Math.cos(a) * width
+        ];
+        for (let pair = 1; pair <= 7; pair++) {
+          const t = pair * .106;
+          const w = Math.sin(t * 3.5) * .14;
+          for (const side of [-1, 1]) {
+            vertices.push(...place(t, 0), ...place(t + .145, side * w), ...place(t + .075, 0));
+          }
+          vertices.push(...place(t - .10, -.012), ...place(t - .10, .012), ...place(t + .10, .002));
+        }
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    const tuft = createTuft();
+    const fern = createFern();
+    const grassTones = [0x4d602e, 0x566934, 0x66763b, 0x747844, 0x7c7c44, 0x899352, 0x9b9854];
+    const fernTones = [0x596f38, 0x617a40, 0x7c8d48, 0x8d9551];
+    for (let i = 0; i < 10700; i++) {
+      const x = between(-138, 138);
+      const z = between(-138, 122);
+      if (Math.hypot(x, z) > 137 || pathDistance(x, z) < between(1.6, 2.85)) continue;
+      const size = between(.32, .92) * (Math.hypot(x, z) > 54 ? 1.23 : 1);
+      const y = heightAt(x, z) - .045;
+      scatter(tuft, choose(grassTones), x, y, z, size, size, size, 0, between(0, TAU));
+      if (random() < .031) {
+        scatter(fern, choose(fernTones), x, y, z, size * 1.5, size * 1.44, size * 1.55, 0, between(0, TAU));
+      }
+    }
+    for (const [x, z, size] of [[3.8, -.5, .95], [-2.6, -2.4, 1.02], [4.6, -6.1, 1.18], [-4.7, -7.6, 1.4], [1.7, -8.4, .72]]) {
+      scatter(fern, choose(fernTones), x, heightAt(x, z), z, size, size, size, 0, between(0, TAU));
+    }
+    for (let i = 0; i < 530; i++) {
+      const z = between(-78, 29);
+      const x = pathX(z) + between(-10, 10);
+      if (pathDistance(x, z) < 2.2) continue;
+      const y = heightAt(x, z);
+      const size = between(.075, .18);
+      const color = choose([0xaab079, 0xbdb990, 0xc1a262, 0xa88c58, 0x91855b]);
+      scatter(ico, color, x, y + size * .54, z, size * 1.28, size * .43, size * .87, -.15, between(0, TAU), .2);
+    }
+    for (const [geometry, instances] of templates) {
+      const batch = new THREE.InstancedMesh(geometry, new THREE.MeshLambertMaterial({
+        flatShading: true, side: geometry === tuft || geometry === fern ? THREE.DoubleSide : THREE.FrontSide
+      }), instances.length);
+      instances.forEach(({ matrix, color }, i) => {
+        batch.setMatrixAt(i, matrix);
+        batch.setColorAt(i, color);
+      });
+      batch.computeBoundingSphere();
+      scene.add(batch);
+      shotTargets.push(batch);
+    }
+    templates.clear();
+
+
+const H = heightAt;
 
 // ---------- Animaux ----------
 const SPECIES = {
@@ -192,7 +370,7 @@ const SPECIES = {
   lapin:     { name: 'Lapin', w: .2, h: .2, l: .32, leg: .08, legR: .035, neck: .03, head: [.13, .14, .17], col: '#8a7860', belly: '#cfc2ae', walk: 1.2, run: 6, alert: 18, flee: 9, mult: 2.5, sleepW: .15, graze: .5, hop: true, ears: .2, longEars: true, puff: true },
   renard:    { name: 'Renard', w: .22, h: .26, l: .62, leg: .32, legR: .035, neck: .15, head: [.15, .15, .26], col: '#b3582a', belly: '#efe2cc', legCol: '#3a2418', walk: 1.2, run: 7, alert: 30, flee: 16, mult: 1.8, sleepW: .25, graze: .8, ears: .12, bushy: true },
 };
-const POP = { cerf: 5, chevreuil: 6, sanglier: 6, blaireau: 4, lapin: 9, renard: 4 };
+const POP = { cerf: 12, chevreuil: 17, sanglier: 14, blaireau: 10, lapin: 27, renard: 10 };
 const ZONES = { head: { label: 'Tête', pts: 250 }, heart: { label: 'Cœur', pts: 400 }, body: { label: 'Corps', pts: 100 }, leg: { label: 'Patte', pts: 40 } };
 
 const OUTLINE = new THREE.MeshBasicMaterial({ color: '#17120d', side: THREE.BackSide });
@@ -292,7 +470,12 @@ function buildAnimal(type) {
 const animals = [];
 function placeAnimal(a, minDist) {
   let x, z;
-  do { x = rnd(-WORLD + 10, WORLD - 10); z = rnd(-WORLD + 10, WORLD - 10); } while (Math.hypot(x - player.x, z - player.z) < minDist);
+  let tries = 0;
+  do {
+    x = clamp(player.x + rnd(-105, 105), -125, 125);
+    z = clamp(player.z + rnd(-105, 105), -125, 125);
+    tries++;
+  } while (Math.hypot(x - player.x, z - player.z) < minDist && tries < 100);
   a.root.position.set(x, H(x, z), z);
 }
 function spawn(type, minDist) {
@@ -303,7 +486,7 @@ function spawn(type, minDist) {
 }
 function resetAnimals() {
   animals.forEach(a => scene.remove(a.root)); animals.length = 0;
-  for (const t in POP) for (let i = 0; i < POP[t]; i++) spawn(t, 35);
+  for (const t in POP) for (let i = 0; i < POP[t]; i++) spawn(t, 14);
 }
 
 function nextState(a) {
@@ -339,7 +522,7 @@ function animalUpdate(a, dt, t) {
     a.body.position.y = a.baseY;
     p.y = H(p.x, p.z) + S.w * 0.4 * a.fall - Math.max(0, a.deadT - 8) * 0.6;
     a.mark.visible = false;
-    if (a.deadT > 11) { scene.remove(a.root); animals.splice(animals.indexOf(a), 1); spawn(a.type, 70); }
+    if (a.deadT > 11) { scene.remove(a.root); animals.splice(animals.indexOf(a), 1); spawn(a.type, 30); }
     return;
   }
 
@@ -546,6 +729,7 @@ function shoot() {
 
 document.addEventListener('mousedown', e => {
   if (!running) return;
+  if (!mobile && !controls.isLocked) { controls.lock(); return; }
   if (e.button === 0) shoot();
   if (e.button === 2) rmb = true;
 });
@@ -559,16 +743,91 @@ const scopeEl = document.getElementById('scope'), crossEl = document.getElementB
 function resetGame() {
   score = 0; kills = 0; player.x = 0; player.z = 0; updateHud(); resetAnimals();
 }
-controls.addEventListener('lock', () => { overlay.style.display = 'none'; running = true; clock.getDelta(); });
+controls.addEventListener('lock', () => { overlay.style.display = 'none'; running = true; document.body.classList.add('mouseLocked'); clock.getDelta(); });
 controls.addEventListener('unlock', () => {
+  document.body.classList.remove('mouseLocked');
   running = false; rmb = false;
   overlay.style.display = 'flex';
   overlay.querySelector('h1').textContent = 'PARTIE ARRÊTÉE';
   ovText.textContent = `Score : ${score} · Prises : ${kills}`;
   playBtn.textContent = 'Reprendre'; restartBtn.style.display = '';
 });
-playBtn.onclick = () => controls.lock();
-restartBtn.onclick = () => { resetGame(); controls.lock(); };
+const mobile = matchMedia('(pointer:coarse)').matches && !matchMedia('(hover:hover) and (pointer:fine)').matches;
+const mobileUI = document.getElementById('mobileUI');
+if(mobile) mobileUI.style.display = 'block'; else mobileUI.style.display = 'none';
+function startPlay(){ if(mobile){overlay.style.display='none';running=true;clock.getDelta();}else { controls.lock(); } }
+playBtn.onclick = startPlay;
+restartBtn.onclick = () => { resetGame();startPlay(); };
+// Chaque bouton possède son propre pointerId : plusieurs doigts peuvent agir simultanément.
+const activeTouches = new Map();
+function releaseTouch(id){
+  const el=activeTouches.get(id); if(!el)return;
+  activeTouches.delete(id);el.classList.remove('pressed');
+  if(el.dataset.key)keys[el.dataset.key]=false;
+  if(el.dataset.action==='run')keys.ShiftLeft=false;
+  if(el.dataset.action==='aim')rmb=false;
+}
+for(const btn of document.querySelectorAll('#mobileUI button[data-action]')){
+  btn.addEventListener('pointerdown',e=>{
+    if(!running)return;
+    e.preventDefault();btn.setPointerCapture(e.pointerId);
+    activeTouches.set(e.pointerId,btn);btn.classList.add('pressed');
+    if(btn.dataset.key)keys[btn.dataset.key]=true;
+    if(btn.dataset.action==='run')keys.ShiftLeft=true;
+    if(btn.dataset.action==='aim')rmb=true;
+    if(btn.dataset.action==='shoot')shoot();
+  });
+  for(const ev of ['pointerup','pointercancel','lostpointercapture'])btn.addEventListener(ev,e=>{e.preventDefault();releaseTouch(e.pointerId)});
+}
+// Joystick analogique : déplacement multidirectionnel et tir par pression courte.
+const movePad=document.getElementById('movePad'), stick=document.getElementById('stick');
+let stickPointer=null,stickStartX=0,stickStartY=0,stickMoved=false;
+function updateStick(x,y){
+  const rect=movePad.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const max=rect.width*.32,dx=x-cx,dy=y-cy,mag=Math.hypot(dx,dy),scale=mag>max?max/mag:1;
+  const nx=dx*scale/max,ny=dy*scale/max;
+  stick.style.transform=`translate(${dx*scale}px,${dy*scale}px)`;
+  const dead=.22;
+  keys.KeyW=ny < -dead;keys.KeyS=ny > dead;
+  keys.KeyA=nx < -dead;keys.KeyD=nx > dead;
+}
+function stopStick(){stickPointer=null;stick.style.transform='translate(0,0)';for(const k of ['KeyW','KeyS','KeyA','KeyD'])keys[k]=false;}
+movePad.addEventListener('pointerdown',e=>{
+  if(!running)return;e.preventDefault();
+  if(stickPointer!==null){shoot();return;} // Un deuxième doigt sur le joystick tire sans arrêter le déplacement.
+  stickPointer=e.pointerId;stickStartX=e.clientX;stickStartY=e.clientY;stickMoved=false;
+  movePad.setPointerCapture(e.pointerId);updateStick(e.clientX,e.clientY);
+});
+movePad.addEventListener('pointermove',e=>{
+  if(e.pointerId!==stickPointer)return;e.preventDefault();
+  if(Math.hypot(e.clientX-stickStartX,e.clientY-stickStartY)>14)stickMoved=true;
+  updateStick(e.clientX,e.clientY);
+});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])movePad.addEventListener(ev,e=>{
+  if(e.pointerId!==stickPointer)return;e.preventDefault();
+  if(ev==='pointerup'&&!stickMoved&&running)shoot();
+  stopStick();
+});
+// Un autre doigt peut glisser dans la zone de jeu pour orienter la caméra.
+let lookPointer=null,lookX=0,lookY=0;
+renderer.domElement.style.touchAction='none';
+renderer.domElement.addEventListener('pointerdown',e=>{if(!mobile||!running||lookPointer!==null)return;lookPointer=e.pointerId;lookX=e.clientX;lookY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(!mobile||!running||e.pointerId!==lookPointer)return;
+  const dx=e.clientX-lookX,dy=e.clientY-lookY;lookX=e.clientX;lookY=e.clientY;
+  euler.setFromQuaternion(camera.quaternion);
+  const sensitivity=aimT>.5?.0012:.003;
+  euler.y-=dx*sensitivity;euler.x=clamp(euler.x-dy*sensitivity,-1.5,1.5);
+  camera.quaternion.setFromEuler(euler);
+});
+for(const ev of ['pointerup','pointercancel','lostpointercapture'])renderer.domElement.addEventListener(ev,e=>{if(e.pointerId===lookPointer)lookPointer=null});
+document.getElementById('mobilePause').addEventListener('click',()=>{
+  if(!running)return;running=false;rmb=false;
+  for(const id of [...activeTouches.keys()])releaseTouch(id);stopStick();
+  overlay.style.display='flex';overlay.querySelector('h1').textContent='PAUSE';
+  ovText.textContent=`Score : ${score} · Prises : ${kills}`;
+  playBtn.textContent='Reprendre';restartBtn.style.display='';
+});
 
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
@@ -620,5 +879,7 @@ function loop() {
 }
 loop();
 </script>
+<div id="controlsHint">ZQSD / WASD : bouger · Souris : regarder · Maj : courir · Clic droit : viser · Clic gauche : tirer · Échap : pause</div>
+<style>#controlsHint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);max-width:95vw;text-align:center;padding:9px 15px;border-radius:9px;background:#0b150bc9;color:#f5ead0;font:600 12px system-ui;pointer-events:none;z-index:3;box-shadow:0 3px 18px #0007}#overlay{z-index:5} @media(max-width:650px){#controlsHint{font-size:10px;bottom:5px}}</style>
 </body>
 </html>
